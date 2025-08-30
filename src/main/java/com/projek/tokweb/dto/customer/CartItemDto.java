@@ -18,6 +18,7 @@ public class CartItemDto {
     private Double weight;
     private Integer purity;
     private Double price;
+    private Double priceAtTime; // Harga yang disimpan saat item ditambahkan ke keranjang
     private Integer quantity;
     private String specs;
 }

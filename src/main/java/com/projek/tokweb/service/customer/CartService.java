@@ -95,7 +95,12 @@ public class CartService {
             if (quantity <= 0) {
                 cartItemRepository.delete(item);
             } else {
+                // Refresh harga produk dari database untuk memastikan harga selalu up-to-date
+                Product currentProduct = productRepository.findById(productId)
+                        .orElseThrow(() -> new RuntimeException("Produk tidak ditemukan"));
+                
                 item.setQuantity(quantity);
+                item.setPriceAtTime(currentProduct.getFinalPrice()); // Update harga ke harga terbaru
                 cartItemRepository.save(item);
             }
             
@@ -174,7 +179,8 @@ public class CartService {
                 .imageUrl(item.getProduct().getImageUrl())
                 .weight(item.getProduct().getWeight())
                 .purity(item.getProduct().getPurity())
-                .price(item.getPriceAtTime())
+                .price(item.getPriceAtTime()) // Harga yang disimpan saat ditambahkan ke keranjang
+                .priceAtTime(item.getPriceAtTime()) // Harga yang disimpan saat ditambahkan ke keranjang
                 .quantity(item.getQuantity())
                 .specs(String.format("Berat: %s gram | Kadar: %dK", 
                         item.getProduct().getFormattedWeight(), 

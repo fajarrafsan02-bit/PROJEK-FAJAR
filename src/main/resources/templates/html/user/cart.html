@@ -615,6 +615,14 @@
                 this.renderCart();
                 this.updateBadges();
                 this.updateSummary();
+                
+                // Refresh data keranjang setiap 5 menit untuk memastikan harga selalu up-to-date
+                setInterval(async () => {
+                    await this.loadCartFromDatabase();
+                    this.renderCart();
+                    this.updateSummary();
+                    this.updateBadges();
+                }, 300000); // 5 menit
             }
 
             // Perbaiki method getCurrentUserId agar menggunakan endpoint
@@ -685,10 +693,11 @@
                     // Debug log untuk melihat struktur data
                     console.log('Cart item:', item);
                     
-                    // Normalisasi data item
+                    // Normalisasi data item - gunakan harga dari database
                     const productName = item.productName || item.name || 'Produk Tidak Dikenal';
                     const productImage = item.imageUrl || item.image || '/placeholder.svg';
-                    const productPrice = item.price || item.priceAtTime || 0;
+                    // Prioritaskan harga dari database (priceAtTime) untuk memastikan akurasi
+                    const productPrice = item.priceAtTime || item.price || 0;
                     const productWeight = item.weight || 0;
                     const productPurity = item.purity || 24;
                     
@@ -735,11 +744,18 @@
                         return;
                     }
 
-                newQuantity = parseInt(newQuantity);
-                if (newQuantity < 1) {
+                    newQuantity = parseInt(newQuantity);
+                    if (newQuantity < 1) {
                         await this.removeItem(itemId);
-                    return;
-                }
+                        return;
+                    }
+
+                    // Cari item berdasarkan itemId untuk mendapatkan productId yang benar
+                    const item = this.cart.find(cartItem => cartItem.id == itemId);
+                    if (!item) {
+                        this.showNotification('Item tidak ditemukan', 'error');
+                        return;
+                    }
 
                     const response = await fetch('/api/cart/update', {
                         method: 'PUT',
@@ -748,7 +764,7 @@
                         },
                         body: new URLSearchParams({
                             userId: userId,
-                            productId: itemId,
+                            productId: item.productId,
                             quantity: newQuantity
                         })
                     });
@@ -756,10 +772,12 @@
                     if (response.ok) {
                         const result = await response.json();
                         if (result.success) {
+                            // Refresh data dari database untuk mendapatkan harga terbaru
                             await this.loadCartFromDatabase();
-                    this.renderCart();
-                    this.updateSummary();
-                    this.updateBadges();
+                            this.renderCart();
+                            this.updateSummary();
+                            this.updateBadges();
+                            this.showNotification('Quantity berhasil diupdate', 'success');
                         } else {
                             this.showNotification('Gagal update quantity: ' + result.message, 'error');
                         }
@@ -781,6 +799,13 @@
                         return;
                     }
 
+                    // Cari item berdasarkan itemId untuk mendapatkan productId yang benar
+                    const item = this.cart.find(cartItem => cartItem.id == itemId);
+                    if (!item) {
+                        this.showNotification('Item tidak ditemukan', 'error');
+                        return;
+                    }
+
                     const response = await fetch('/api/cart/remove', {
                         method: 'DELETE',
                         headers: {
@@ -788,18 +813,19 @@
                         },
                         body: new URLSearchParams({
                             userId: userId,
-                            productId: itemId
+                            productId: item.productId
                         })
                     });
 
                     if (response.ok) {
                         const result = await response.json();
                         if (result.success) {
+                            // Refresh data dari database untuk mendapatkan harga terbaru
                             await this.loadCartFromDatabase();
-                this.renderCart();
-                this.updateSummary();
-                this.updateBadges();
-                this.showNotification('Item berhasil dihapus dari keranjang', 'info');
+                            this.renderCart();
+                            this.updateSummary();
+                            this.updateBadges();
+                            this.showNotification('Item berhasil dihapus dari keranjang', 'info');
                         } else {
                             this.showNotification('Gagal hapus item: ' + result.message, 'error');
                         }
@@ -814,7 +840,8 @@
             
             updateSummary() {
                 const subtotal = this.cart.reduce((sum, item) => {
-                    const price = item.price || item.finalPrice || 0;
+                    // Gunakan harga dari database (priceAtTime) atau fallback ke price
+                    const price = item.price || item.priceAtTime || item.finalPrice || 0;
                     return sum + (price * item.quantity);
                 }, 0);
 
@@ -867,11 +894,13 @@
                 const checkoutData = {
                     items: this.cart,
                     subtotal: this.cart.reduce((sum, item) => {
-                        const price = item.price || item.finalPrice || 0;
+                        // Gunakan harga dari database (priceAtTime) atau fallback ke price
+                        const price = item.price || item.priceAtTime || item.finalPrice || 0;
                         return sum + (price * item.quantity);
                     }, 0),
                     shipping: this.cart.reduce((sum, item) => {
-                        const price = item.price || item.finalPrice || 0;
+                        // Gunakan harga dari database (priceAtTime) atau fallback ke price
+                        const price = item.price || item.priceAtTime || item.finalPrice || 0;
                         return sum + (price * item.quantity);
                     }, 0) >= this.freeShippingThreshold ? 0 : this.shippingCost,
                     discount: this.discount,
