@@ -490,7 +490,10 @@ public class GoldPriceService {
                     .goldPriceEnum(GoldPriceEnum.ADMIN)
                     .build();
                     
-            savePriceChangesFromAPI(latestPrice, newPrice);
+            // Simpan perubahan harga untuk setiap karat dengan source MANUAL
+            savePriceChange("24k", latestPrice.getHargaJual24k(), roundedHargaJual24k, "MANUAL", "Update manual harga emas 24k");
+            savePriceChange("22k", latestPrice.getHargaJual22k(), roundedHargaJual22k, "MANUAL", "Update manual harga emas 22k");
+            savePriceChange("18k", latestPrice.getHargaJual18k(), roundedHargaJual18k, "MANUAL", "Update manual harga emas 18k");
 
             GoldPrice savedPrice = goldPriceRepository.save(newPrice);
             log.info(">> Update manual semua harga emas berhasil disimpan (dibulatkan)");
@@ -657,8 +660,24 @@ public class GoldPriceService {
             // Simpan ke database
             GoldPrice savedGoldPrice = goldPriceRepository.save(latestGoldPrice);
             
-            // Simpan riwayat perubahan
-            savePriceChange("24k", oldHarga24k, newHarga24k, "MANUAL", "Update manual harga emas");
+            // Simpan riwayat perubahan untuk semua karat dengan source EXTERNAL_API
+            // Karena ini dipanggil dari updateAllPrices (API eksternal)
+            savePriceChange("24k", oldHarga24k, newHarga24k, "EXTERNAL_API", "Update dari API eksternal");
+            
+            // Hitung dan simpan perubahan untuk 22K dan 18K
+            double oldHarga22k = latestGoldPrice.getHargaJual22k();
+            double oldHarga18k = latestGoldPrice.getHargaJual18k();
+            
+            double newHarga22k = newPrices.get("22k");
+            double newHarga18k = newPrices.get("18k");
+            
+            if (Math.abs(newHarga22k - oldHarga22k) > 0.01) {
+                savePriceChange("22k", oldHarga22k, newHarga22k, "EXTERNAL_API", "Update dari API eksternal");
+            }
+            
+            if (Math.abs(newHarga18k - oldHarga18k) > 0.01) {
+                savePriceChange("18k", oldHarga18k, newHarga18k, "EXTERNAL_API", "Update dari API eksternal");
+            }
             
             log.info(">> Service: Update harga emas berhasil: {} -> {}", oldHarga24k, newHarga24k);
             
