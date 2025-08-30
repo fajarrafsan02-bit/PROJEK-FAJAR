@@ -3187,6 +3187,32 @@
                         console.log('Changes grouped by source:', sources);
                     }
                     
+                    // Debug karat ratio calculation
+                    console.log('=== KARAT RATIO DEBUG ===');
+                    if (this.currentPrices['24k'] > 0) {
+                        const basePrice24k = this.currentPrices['24k'];
+                        const expected22k = Math.round(basePrice24k * 0.9167);
+                        const expected18k = Math.round(basePrice24k * 0.75);
+                        const actual22k = this.currentPrices['22k'];
+                        const actual18k = this.currentPrices['18k'];
+                        
+                        console.log('Karat ratio calculation:');
+                        console.log(`  24K (base): ${basePrice24k}`);
+                        console.log(`  22K expected: ${expected22k} (${basePrice24k} * 0.9167)`);
+                        console.log(`  22K actual: ${actual22k}`);
+                        console.log(`  22K difference: ${actual22k - expected22k}`);
+                        console.log(`  18K expected: ${expected18k} (${basePrice24k} * 0.75)`);
+                        console.log(`  18K actual: ${actual18k}`);
+                        console.log(`  18K difference: ${actual18k - expected18k}`);
+                        
+                        // Check if ratios are correct
+                        const ratio22kCorrect = Math.abs(actual22k - expected22k) <= 1000; // Tolerance 1000 rupiah
+                        const ratio18kCorrect = Math.abs(actual18k - expected18k) <= 1000; // Tolerance 1000 rupiah
+                        
+                        console.log(`  22K ratio correct: ${ratio22kCorrect ? '✅' : '❌'}`);
+                        console.log(`  18K ratio correct: ${ratio18kCorrect ? '✅' : '❌'}`);
+                    }
+                    
                 } catch (error) {
                     console.error('Debug error:', error);
                 }
