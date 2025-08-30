@@ -2193,11 +2193,16 @@
                     let hasChanges = false;
                     let samePriceMessage = '';
                     let updateData = {};
+                    let forceUpdate = false;
+
+                    // Cek apakah user ingin force update (jika ada parameter atau flag)
+                    // Untuk sementara, kita buat lebih fleksibel dengan toleransi yang lebih kecil
+                    const tolerance = 10; // Toleransi hanya 10 rupiah (lebih fleksibel)
 
                     // Cek 24K
                     if (harga24k > 0) {
                         const currentPrice24k = currentPrices['24k'] || 0;
-                        if (currentPrice24k > 0 && Math.abs(harga24k - currentPrice24k) < 100) {
+                        if (currentPrice24k > 0 && Math.abs(harga24k - currentPrice24k) < tolerance) {
                             samePriceMessage += `24K: ${this.formatCurrency(currentPrice24k)} (sama), `;
                         } else {
                             hasChanges = true;
@@ -2208,7 +2213,7 @@
                     // Cek 22K
                     if (harga22k > 0) {
                         const currentPrice22k = currentPrices['22k'] || 0;
-                        if (currentPrice22k > 0 && Math.abs(harga22k - currentPrice22k) < 100) {
+                        if (currentPrice22k > 0 && Math.abs(harga22k - currentPrice22k) < tolerance) {
                             samePriceMessage += `22K: ${this.formatCurrency(currentPrice22k)} (sama), `;
                         } else {
                             hasChanges = true;
@@ -2219,7 +2224,7 @@
                     // Cek 18K
                     if (harga18k > 0) {
                         const currentPrice18k = currentPrices['18k'] || 0;
-                        if (currentPrice18k > 0 && Math.abs(harga18k - currentPrice18k) < 100) {
+                        if (currentPrice18k > 0 && Math.abs(harga18k - currentPrice18k) < tolerance) {
                             samePriceMessage += `18K: ${this.formatCurrency(currentPrice18k)} (sama), `;
                         } else {
                             hasChanges = true;
@@ -2227,15 +2232,34 @@
                         }
                     }
 
-                    // Jika tidak ada perubahan sama sekali
+                    // Jika tidak ada perubahan sama sekali, tanyakan user apakah ingin force update
                     if (!hasChanges) {
                         samePriceMessage = samePriceMessage.replace(/,\s*$/, ''); // Hapus koma terakhir
-                        this.showUpdateMessage(`Semua harga sudah sama dengan harga saat ini: ${samePriceMessage}`, 'warning');
-                        this.showNotification('Semua harga sudah sama dengan harga saat ini, tidak perlu update', 'info');
                         
-                        // Clear external price
-                        this.externalPrice = null;
-                        return;
+                        // Tampilkan pesan dengan opsi force update
+                        const forceUpdateMessage = `Semua harga sudah sama dengan harga saat ini: ${samePriceMessage}. Apakah Anda ingin tetap melakukan update?`;
+                        this.showUpdateMessage(forceUpdateMessage, 'warning');
+                        
+                        // Tanya user apakah ingin force update
+                        const userWantsUpdate = confirm(forceUpdateMessage + '\n\nKlik OK untuk tetap update, Cancel untuk batal.');
+                        
+                        if (userWantsUpdate) {
+                            // Force update semua harga yang ada
+                            if (harga24k > 0) updateData.harga24k = harga24k;
+                            if (harga22k > 0) updateData.harga22k = harga22k;
+                            if (harga18k > 0) updateData.harga18k = harga18k;
+                            
+                            hasChanges = true;
+                            forceUpdate = true;
+                            
+                            this.showUpdateMessage("Force update diaktifkan. Akan mengupdate semua harga yang tersedia dari API eksternal.", 'info');
+                        } else {
+                            this.showNotification('Update dibatalkan oleh user', 'info');
+                            
+                            // Clear external price
+                            this.externalPrice = null;
+                            return;
+                        }
                     }
 
                     // Jika ada beberapa harga yang sama, tampilkan warning
@@ -2361,13 +2385,19 @@
                     console.log('Current price 24K:', currentPrice24k);
                     console.log('New price from external:', hargaNumber);
                     
-                    if (currentPrice24k > 0 && Math.abs(hargaNumber - currentPrice24k) < 100) { // Toleransi 100 rupiah
-                        this.showUpdateMessage("Harga sudah sama dengan harga saat ini (" + this.formatCurrency(currentPrice24k) + "), tidak perlu update", 'warning');
-                        this.showNotification('Harga sudah sama dengan harga saat ini, tidak perlu update', 'info');
-                        
-                        // Clear external price
-                        this.externalPrice = null;
-                        return;
+                    // Gunakan toleransi yang lebih kecil
+                    const tolerance = 10; // Hanya 10 rupiah
+                    
+                    if (currentPrice24k > 0 && Math.abs(hargaNumber - currentPrice24k) < tolerance) {
+                        const forceUpdate = confirm(`Harga sudah sama dengan harga saat ini (${this.formatCurrency(currentPrice24k)}). Apakah Anda ingin tetap melakukan update?`);
+                        if (!forceUpdate) {
+                            this.showUpdateMessage("Update dibatalkan oleh user", 'info');
+                            this.showNotification('Update dibatalkan oleh user', 'info');
+                            
+                            // Clear external price
+                            this.externalPrice = null;
+                            return;
+                        }
                     }
 
                     this.showUpdateMessage("Mengirim request update...", 'info');
