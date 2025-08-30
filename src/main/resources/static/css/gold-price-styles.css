@@ -1,0 +1,282 @@
+/**
+ * Gold Price Styles - Styling untuk tampilan perubahan harga emas
+ * File ini dibuat terpisah untuk tidak mengubah kode yang sudah ada
+ */
+
+/* Enhanced gold price ticker styles */
+.gold-price-ticker {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d3748 100%);
+    border-radius: 20px;
+    padding: 25px;
+    margin: 30px 0;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    border: 2px solid #d4af37;
+    position: relative;
+    overflow: hidden;
+}
+
+.gold-price-ticker::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #d4af37, #ffd700, #d4af37);
+    animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.price-label {
+    color: #d4af37;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.price-value {
+    color: #ffffff;
+    font-size: 32px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    font-family: 'Playfair Display', serif;
+}
+
+/* Enhanced price change styles */
+.price-change {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px;
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.price-change::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.1;
+    transition: opacity 0.3s ease;
+}
+
+.price-change:hover::before {
+    opacity: 0.2;
+}
+
+.price-change.positive {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: 2px solid #10b981;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+.price-change.positive::before {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.price-change.negative {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: 2px solid #ef4444;
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+}
+
+.price-change.negative::before {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.price-change.neutral {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+    border: 2px solid #6b7280;
+    box-shadow: 0 8px 25px rgba(107, 114, 128, 0.3);
+}
+
+.price-change.neutral::before {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+}
+
+/* Icon animations */
+.price-change i {
+    font-size: 18px;
+    transition: transform 0.3s ease;
+}
+
+.price-change.positive i {
+    animation: bounceUp 0.6s ease-out;
+}
+
+.price-change.negative i {
+    animation: bounceDown 0.6s ease-out;
+}
+
+.price-change.neutral i {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes bounceUp {
+    0%, 20%, 53%, 80%, 100% {
+        transform: translate3d(0, 0, 0);
+    }
+    40%, 43% {
+        transform: translate3d(0, -8px, 0);
+    }
+    70% {
+        transform: translate3d(0, -4px, 0);
+    }
+    90% {
+        transform: translate3d(0, -2px, 0);
+    }
+}
+
+@keyframes bounceDown {
+    0%, 20%, 53%, 80%, 100% {
+        transform: translate3d(0, 0, 0);
+    }
+    40%, 43% {
+        transform: translate3d(0, 8px, 0);
+    }
+    70% {
+        transform: translate3d(0, 4px, 0);
+    }
+    90% {
+        transform: translate3d(0, 2px, 0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* Price change text styling */
+#priceChangeText {
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.4;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .gold-price-ticker {
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 15px;
+    }
+    
+    .price-label {
+        font-size: 16px;
+        margin-bottom: 12px;
+    }
+    
+    .price-value {
+        font-size: 28px;
+        margin-bottom: 15px;
+    }
+    
+    .price-change {
+        padding: 12px;
+        font-size: 14px;
+        gap: 8px;
+    }
+    
+    .price-change i {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .gold-price-ticker {
+        padding: 15px;
+        margin: 15px 0;
+    }
+    
+    .price-label {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    
+    .price-value {
+        font-size: 24px;
+        margin-bottom: 12px;
+    }
+    
+    .price-change {
+        padding: 10px;
+        font-size: 13px;
+        gap: 6px;
+    }
+    
+    .price-change i {
+        font-size: 14px;
+    }
+}
+
+/* Loading state */
+.price-change.loading {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+    border: 2px solid #6b7280;
+}
+
+.price-change.loading i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Success state animation */
+.price-change.success {
+    animation: successPulse 0.6s ease-out;
+}
+
+@keyframes successPulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 12px 35px rgba(16, 185, 129, 0.5);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    }
+}
+
+/* Error state animation */
+.price-change.error {
+    animation: errorShake 0.6s ease-out;
+}
+
+@keyframes errorShake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
