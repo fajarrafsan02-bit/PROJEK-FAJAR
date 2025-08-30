@@ -391,6 +391,32 @@
             box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
         }
 
+        /* Manual Update Form Styles */
+        .manual-update-form {
+            margin-top: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-help {
+            display: block;
+            font-size: 12px;
+            color: var(--gray-elegant);
+            margin-top: 5px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
         /* History Section */
         .history-section {
             background: var(--white-pure);
@@ -1014,6 +1040,41 @@
                     </div>
                 </div>
 
+                <!-- Manual Update Prices Form -->
+                <div class="update-section">
+                    <h2 class="section-title">Update Harga Emas Manual</h2>
+                    <form id="manualUpdateForm" class="manual-update-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">24 Karat (99.9%)</label>
+                                <input type="text" class="form-input" id="price24k" placeholder="Masukkan harga 24K" data-purity="24k">
+                                <small class="form-help">Harga per gram dalam rupiah</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">22 Karat (91.7%)</label>
+                                <input type="text" class="form-input" id="price22k" placeholder="Masukkan harga 22K" data-purity="22k">
+                                <small class="form-help">Harga per gram dalam rupiah</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">18 Karat (75%)</label>
+                                <input type="text" class="form-input" id="price18k" placeholder="Masukkan harga 18K" data-purity="18k">
+                                <small class="form-help">Harga per gram dalam rupiah</small>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="manualUpdateBtn">
+                                <i class="fas fa-save"></i> Update Harga Manual
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="loadCurrentBtn">
+                                <i class="fas fa-refresh"></i> Muat Harga Saat Ini
+                            </button>
+                        </div>
+                    </form>
+                    <div id="manualUpdateMessage" class="alert alert-info mt-3" style="display: none;">
+                        <!-- Message will be shown here -->
+                    </div>
+                </div>
+
                 <!-- Price History -->
                 <div class="history-section">
                     <h2 class="section-title">Riwayat Perubahan Harga</h2>
@@ -1146,6 +1207,20 @@
                 // Update price button
                 document.getElementById('updatePriceBtn').addEventListener('click', () => {
                     this.updatePriceFromExternal();
+                });
+
+                // Manual update form
+                const manualUpdateForm = document.getElementById('manualUpdateForm');
+                if (manualUpdateForm) {
+                    manualUpdateForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        this.handleManualPriceUpdate(e);
+                    });
+                }
+
+                // Load current prices button
+                document.getElementById('loadCurrentBtn').addEventListener('click', () => {
+                    this.loadCurrentPricesToForm();
                 });
 
                 // Mobile burger button
@@ -1698,6 +1773,7 @@
             }
 
             loadCurrentPricesInForm() {
+                // Setup event listeners untuk calculator
                 ['calcPurity', 'calcWeight', 'calcMarkup'].forEach(id => {
                     const element = document.getElementById(id);
                     if (element) {
@@ -1707,23 +1783,19 @@
                     }
                 });
 
-                if (this.currentPrices['24k']) {
-                    const price24kElement = document.getElementById('price24k');
-                    if (price24kElement) {
-                        price24kElement.value = this.formatCurrency(this.currentPrices['24k']).replace('Rp ', '');
-                    }
+                // Load current prices ke form manual update jika ada
+                const price24kElement = document.getElementById('price24k');
+                const price22kElement = document.getElementById('price22k');
+                const price18kElement = document.getElementById('price18k');
+
+                if (price24kElement && this.currentPrices['24k']) {
+                    price24kElement.value = this.formatCurrency(this.currentPrices['24k']).replace('Rp ', '');
                 }
-                if (this.currentPrices['22k']) {
-                    const price22kElement = document.getElementById('price22k');
-                    if (price22kElement) {
-                        price22kElement.value = this.formatCurrency(this.currentPrices['22k']).replace('Rp ', '');
-                    }
+                if (price22kElement && this.currentPrices['22k']) {
+                    price22kElement.value = this.formatCurrency(this.currentPrices['22k']).replace('Rp ', '');
                 }
-                if (this.currentPrices['18k']) {
-                    const price18kElement = document.getElementById('price18k');
-                    if (price18kElement) {
-                        price18kElement.value = this.formatCurrency(this.currentPrices['18k']).replace('Rp ', '');
-                    }
+                if (price18kElement && this.currentPrices['18k']) {
+                    price18kElement.value = this.formatCurrency(this.currentPrices['18k']).replace('Rp ', '');
                 }
             }
 
@@ -1872,6 +1944,159 @@
                     Material: ${this.formatCurrency(materialCost)} + Markup (${markup}%): ${this.formatCurrency(markupAmount)}
                 </small>
             `;
+            }
+
+            // Method untuk load current prices ke form
+            loadCurrentPricesToForm() {
+                try {
+                    const price24kElement = document.getElementById('price24k');
+                    const price22kElement = document.getElementById('price22k');
+                    const price18kElement = document.getElementById('price18k');
+
+                    if (price24kElement && this.currentPrices['24k']) {
+                        price24kElement.value = this.formatCurrency(this.currentPrices['24k']).replace('Rp ', '');
+                    }
+                    if (price22kElement && this.currentPrices['22k']) {
+                        price22kElement.value = this.formatCurrency(this.currentPrices['22k']).replace('Rp ', '');
+                    }
+                    if (price18kElement && this.currentPrices['18k']) {
+                        price18kElement.value = this.formatCurrency(this.currentPrices['18k']).replace('Rp ', '');
+                    }
+
+                    this.showManualUpdateMessage('Harga saat ini telah dimuat ke form', 'info');
+                    this.showNotification('Harga saat ini telah dimuat ke form', 'success');
+                } catch (error) {
+                    console.error('Error loading current prices to form:', error);
+                    this.showManualUpdateMessage('Gagal memuat harga saat ini', 'error');
+                }
+            }
+
+            // Method untuk handle manual price update
+            async handleManualPriceUpdate(e) {
+                e.preventDefault();
+                
+                const updateBtn = document.getElementById('manualUpdateBtn');
+                const originalText = updateBtn.innerHTML;
+                
+                // Show loading state
+                updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+                updateBtn.disabled = true;
+
+                try {
+                    const price24kElement = document.getElementById('price24k');
+                    const price22kElement = document.getElementById('price22k');
+                    const price18kElement = document.getElementById('price18k');
+
+                    const hargaJual24k = this.parsePriceInput(price24kElement);
+                    const hargaJual22k = this.parsePriceInput(price22kElement);
+                    const hargaJual18k = this.parsePriceInput(price18kElement);
+
+                    // Validasi input
+                    if (hargaJual24k <= 0 && hargaJual22k <= 0 && hargaJual18k <= 0) {
+                        throw new Error('Minimal satu harga harus diisi dengan nilai yang valid');
+                    }
+
+                    // Validasi: cek apakah harga sama dengan harga saat ini
+                    const currentPrices = this.currentPrices;
+                    let hasChanges = false;
+                    let samePriceMessage = '';
+                    let updatedPrices = {};
+
+                    if (hargaJual24k > 0) {
+                        if (currentPrices['24k'] > 0 && Math.abs(hargaJual24k - currentPrices['24k']) < 100) {
+                            samePriceMessage += `24K: ${this.formatCurrency(currentPrices['24k'])} (sama), `;
+                        } else if (currentPrices['24k'] > 0) {
+                            hasChanges = true;
+                            updatedPrices['24k'] = hargaJual24k;
+                        } else {
+                            hasChanges = true;
+                            updatedPrices['24k'] = hargaJual24k;
+                        }
+                    }
+
+                    if (hargaJual22k > 0) {
+                        if (currentPrices['22k'] > 0 && Math.abs(hargaJual22k - currentPrices['22k']) < 100) {
+                            samePriceMessage += `22K: ${this.formatCurrency(currentPrices['22k'])} (sama), `;
+                        } else if (currentPrices['22k'] > 0) {
+                            hasChanges = true;
+                            updatedPrices['22k'] = hargaJual22k;
+                        } else {
+                            hasChanges = true;
+                            updatedPrices['22k'] = hargaJual22k;
+                        }
+                    }
+
+                    if (hargaJual18k > 0) {
+                        if (currentPrices['18k'] > 0 && Math.abs(hargaJual18k - currentPrices['18k']) < 100) {
+                            samePriceMessage += `18K: ${this.formatCurrency(currentPrices['18k'])} (sama), `;
+                        } else if (currentPrices['18k'] > 0) {
+                            hasChanges = true;
+                            updatedPrices['18k'] = hargaJual18k;
+                        } else {
+                            hasChanges = true;
+                            updatedPrices['18k'] = hargaJual18k;
+                        }
+                    }
+
+                    // Jika tidak ada perubahan, tampilkan pesan
+                    if (!hasChanges && samePriceMessage) {
+                        samePriceMessage = samePriceMessage.replace(/,\s*$/, ''); // Hapus koma terakhir
+                        this.showManualUpdateMessage(`Semua harga sudah sama dengan harga saat ini: ${samePriceMessage}`, 'info');
+                        this.showNotification(`Semua harga sudah sama dengan harga saat ini: ${samePriceMessage}`, 'info');
+                        return;
+                    }
+
+                    // Jika ada harga yang sama, tampilkan warning
+                    if (samePriceMessage) {
+                        samePriceMessage = samePriceMessage.replace(/,\s*$/, ''); // Hapus koma terakhir
+                        this.showManualUpdateMessage(`Beberapa harga sama: ${samePriceMessage}`, 'warning');
+                    }
+
+                    // Kirim request update untuk harga yang berubah
+                    const response = await fetch(`${this.baseUrl}/update/manual?hargaJual24k=${hargaJual24k}&hargaJual22k=${hargaJual22k}&hargaJual18k=${hargaJual18k}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.showManualUpdateMessage('Harga emas berhasil diperbarui!', 'success');
+                        this.showNotification('Harga emas berhasil diperbarui!', 'success');
+
+                        // Refresh data
+                        await this.loadCurrentPrices();
+                        await this.loadPriceChanges();
+                        await this.loadPriceHistory();
+                        this.renderCurrentPrices();
+                        this.loadCurrentPricesToForm();
+
+                        // Clear form jika update berhasil
+                        if (price24kElement) price24kElement.value = '';
+                        if (price22kElement) price22kElement.value = '';
+                        if (price18kElement) price18kElement.value = '';
+                    } else {
+                        throw new Error(result.message || 'Gagal mengupdate harga emas');
+                    }
+                } catch (error) {
+                    console.error('Error updating manual prices:', error);
+                    this.showManualUpdateMessage('Error: ' + error.message, 'error');
+                    this.showNotification('Gagal mengupdate harga emas: ' + error.message, 'error');
+                } finally {
+                    // Restore button state
+                    updateBtn.innerHTML = originalText;
+                    updateBtn.disabled = false;
+                }
+            }
+
+            // Method untuk show manual update message
+            showManualUpdateMessage(message, type = 'info') {
+                const messageElement = document.getElementById('manualUpdateMessage');
+                if (messageElement) {
+                    messageElement.textContent = message;
+                    messageElement.className = `alert alert-${type} mt-3`;
+                    messageElement.style.display = 'block';
+                }
             }
 
             async quickUpdate(purity) {
