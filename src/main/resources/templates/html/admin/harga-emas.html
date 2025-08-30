@@ -1203,9 +1203,12 @@
                 }
 
                 // Calculator
-                document.getElementById('calculateBtn').addEventListener('click', () => {
-                    this.calculateProductPrice();
-                });
+                const calculateBtn = document.getElementById('calculateBtn');
+                if (calculateBtn) {
+                    calculateBtn.addEventListener('click', () => {
+                        this.calculateProductPrice();
+                    });
+                }
 
                 // Auto-calculate when inputs change
                 ['calcPurity', 'calcWeight', 'calcMarkup'].forEach(id => {
@@ -1218,19 +1221,20 @@
                 });
 
                 // Update all prices button
-                document.getElementById('updateAllBtn').addEventListener('click', () => {
-                    this.updateAllPrices();
-                });
+                const updateAllBtn = document.getElementById('updateAllBtn');
+                if (updateAllBtn) {
+                    updateAllBtn.addEventListener('click', () => {
+                        this.updateAllPrices();
+                    });
+                }
 
                 // Fetch external price button
-                document.getElementById('fetchExternalBtn').addEventListener('click', () => {
-                    this.fetchExternalPrice();
-                });
-
-                // Update price button
-                document.getElementById('updatePriceBtn').addEventListener('click', () => {
-                    this.updatePriceFromExternal();
-                });
+                const fetchExternalBtn = document.getElementById('fetchExternalBtn');
+                if (fetchExternalBtn) {
+                    fetchExternalBtn.addEventListener('click', () => {
+                        this.fetchExternalPrice();
+                    });
+                }
 
                 // Manual update form
                 const manualUpdateForm = document.getElementById('manualUpdateForm');
@@ -1242,24 +1246,36 @@
                 }
 
                 // Load current prices button
-                document.getElementById('loadCurrentBtn').addEventListener('click', () => {
-                    this.loadCurrentPricesToForm();
-                });
+                const loadCurrentBtn = document.getElementById('loadCurrentBtn');
+                if (loadCurrentBtn) {
+                    loadCurrentBtn.addEventListener('click', () => {
+                        this.loadCurrentPricesToForm();
+                    });
+                }
 
                 // Mobile burger button
-                document.getElementById('mobileBurger').addEventListener('click', () => {
-                    this.toggleMobileSidebar();
-                });
+                const mobileBurger = document.getElementById('mobileBurger');
+                if (mobileBurger) {
+                    mobileBurger.addEventListener('click', () => {
+                        this.toggleMobileSidebar();
+                    });
+                }
 
                 // Desktop sidebar toggle
-                document.getElementById('sidebarToggle').addEventListener('click', () => {
-                    this.toggleDesktopSidebar();
-                });
+                const sidebarToggle = document.getElementById('sidebarToggle');
+                if (sidebarToggle) {
+                    sidebarToggle.addEventListener('click', () => {
+                        this.toggleDesktopSidebar();
+                    });
+                }
 
                 // Backdrop close
-                document.getElementById('sidebarBackdrop').addEventListener('click', () => {
-                    this.closeMobileSidebar();
-                });
+                const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+                if (sidebarBackdrop) {
+                    sidebarBackdrop.addEventListener('click', () => {
+                        this.closeMobileSidebar();
+                    });
+                }
 
                 // ESC key to close mobile sidebar
                 document.addEventListener('keydown', (e) => {
