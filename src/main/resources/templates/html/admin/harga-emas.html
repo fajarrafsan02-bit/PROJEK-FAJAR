@@ -2408,7 +2408,7 @@
                 }
             }
 
-                        // Method untuk ambil harga eksternal dari backend (yang sudah menggunakan Metal Price API)
+            // Method untuk ambil harga eksternal dari backend (yang sudah menggunakan Metal Price API)
             async fetchExternalPrice() {
                 try {
                     this.showUpdateMessage("Mengambil harga emas dari backend...", 'info');
@@ -2441,7 +2441,6 @@
                     this.showUpdateMessage("❌ Error: " + error.message, 'error');
                     this.showNotification('Gagal mengambil harga eksternal: ' + error.message, 'error');
                 }
-            }
             }
 
             // Method untuk update status API indicator
@@ -2737,5 +2736,5 @@
     </script>
 </body>
 
-</html></html>
+</html>
 
