@@ -1349,6 +1349,11 @@
                                 );
                                 return;
                             }
+                        } else if (payload.success && payload.data && payload.data.length === 0) {
+                            // Tidak ada perubahan harga dalam database
+                            console.log('No price changes found - displaying stable price');
+                            this.updatePriceChangeDisplay(0, 0, 'Harga stabil', 'STABLE', null);
+                            return;
                         }
                     }
                     
@@ -1432,11 +1437,11 @@
                             );
                         } else {
                             console.log('No price change detected - prices are the same or invalid');
-                            this.updatePriceChangeDisplay(0, 0, 'Tidak ada perubahan harga');
+                            this.updatePriceChangeDisplay(0, 0, 'Harga stabil', 'STABLE', null);
                         }
                     } else {
-                        console.log('Insufficient price history data');
-                        this.updatePriceChangeDisplay(0, 0, 'Tidak ada data perubahan');
+                        console.log('Insufficient price history data - only one price record');
+                        this.updatePriceChangeDisplay(0, 0, 'Harga stabil', 'STABLE', null);
                     }
                 } catch (error) {
                     console.error('Error fetching price history fallback:', error);
@@ -1523,7 +1528,11 @@
                 
                 if (changeAmount === 0 || changeType === 'STABLE') {
                     // Tidak ada perubahan
-                    priceChangeTextElement.textContent = 'Tidak ada perubahan';
+                    if (changeType === 'STABLE' || customMessage === 'Harga stabil') {
+                        priceChangeTextElement.innerHTML = 'Harga stabil<br><small style="color: #666; font-size: 0.8em;">Tidak ada perubahan terbaru</small>';
+                    } else {
+                        priceChangeTextElement.innerHTML = 'Harga stabil<br><small style="color: #666; font-size: 0.8em;">Tidak ada perubahan terbaru</small>';
+                    }
                     priceChangeElement.className = 'price-change neutral';
                     iconElement.className = 'fas fa-minus';
                 } else if (changeAmount > 0 || changeType === 'INCREASE') {
