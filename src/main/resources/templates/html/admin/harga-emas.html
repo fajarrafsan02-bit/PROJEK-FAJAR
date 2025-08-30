@@ -391,6 +391,25 @@
             box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
         }
 
+        /* Currency Input Styles */
+        .form-input[data-purity] {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: var(--black-luxury);
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        }
+
+        .form-input[data-purity]:focus {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+        }
+
+        .form-input[data-purity]::placeholder {
+            color: var(--gray-elegant);
+            font-style: italic;
+        }
+
         /* Manual Update Form Styles */
         .manual-update-form {
             margin-top: 20px;
@@ -1182,6 +1201,7 @@
 
             async init() {
                 this.setupEventListeners();
+                this.setupCurrencyInputFormatters(); // Setup currency input formatters
                 // Load data secara berurutan
                 await this.loadCurrentPrices();
                 await this.loadPriceChanges();
@@ -1366,12 +1386,6 @@
                     const number = parseInt(value);
                     input.value = this.formatCurrency(number).replace('Rp ', '');
                 }
-            }
-
-            parsePriceInput(input) {
-                if (!input || !input.value) return 0;
-                const value = input.value.replace(/[^\d]/g, '');
-                return value ? parseInt(value) : 0;
             }
 
             async loadCurrentPrices() {
@@ -1844,9 +1858,9 @@
                     const price22kElement = document.getElementById('price22k');
                     const price18kElement = document.getElementById('price18k');
 
-                    const hargaJual24k = this.parsePriceInput(price24kElement);
-                    const hargaJual22k = this.parsePriceInput(price22kElement);
-                    const hargaJual18k = this.parsePriceInput(price18kElement);
+                    const hargaJual24k = this.parseCurrencyInput(price24kElement);
+                    const hargaJual22k = this.parseCurrencyInput(price22kElement);
+                    const hargaJual18k = this.parseCurrencyInput(price18kElement);
 
                     if (hargaJual24k <= 0 || hargaJual22k <= 0 || hargaJual18k <= 0) {
                         throw new Error('Semua harga harus diisi dengan nilai yang valid');
@@ -1922,9 +1936,9 @@
 
             async updateGoldPriceManual(purity, hargaJual, hargaBeli) {
                 try {
-                    const hargaJual24k = this.parsePriceInput(document.getElementById('price24k'));
-                    const hargaJual22k = this.parsePriceInput(document.getElementById('price22k'));
-                    const hargaJual18k = this.parsePriceInput(document.getElementById('price18k'));
+                    const hargaJual24k = this.parseCurrencyInput(document.getElementById('price24k'));
+                    const hargaJual22k = this.parseCurrencyInput(document.getElementById('price22k'));
+                    const hargaJual18k = this.parseCurrencyInput(document.getElementById('price18k'));
 
                     if (hargaJual24k <= 0 || hargaJual22k <= 0 || hargaJual18k <= 0) {
                         this.showNotification('Semua harga harus diisi dengan nilai yang valid', 'error');
@@ -2006,6 +2020,70 @@
                 }
             }
 
+            // Method untuk format input currency dengan format Rp 000.000
+            formatCurrencyInput(input) {
+                // Hapus semua karakter non-digit
+                let value = input.value.replace(/\D/g, '');
+                
+                // Jika kosong, return
+                if (value === '') {
+                    input.value = '';
+                    return;
+                }
+                
+                // Konversi ke number dan format
+                const number = parseInt(value);
+                if (isNaN(number)) {
+                    input.value = '';
+                    return;
+                }
+                
+                // Format dengan separator ribuan
+                const formatted = number.toLocaleString('id-ID');
+                input.value = `Rp ${formatted}`;
+            }
+
+            // Method untuk parse input currency (hapus Rp dan separator)
+            parseCurrencyInput(input) {
+                let value = input.value;
+                
+                // Hapus "Rp " dan separator ribuan
+                value = value.replace(/Rp\s?/g, '').replace(/\./g, '');
+                
+                // Konversi ke number
+                const number = parseInt(value);
+                return isNaN(number) ? 0 : number;
+            }
+
+            // Method untuk setup currency input formatters
+            setupCurrencyInputFormatters() {
+                const currencyInputs = ['price24k', 'price22k', 'price18k'];
+                
+                currencyInputs.forEach(id => {
+                    const input = document.getElementById(id);
+                    if (input) {
+                        // Format saat input berubah
+                        input.addEventListener('input', (e) => {
+                            this.formatCurrencyInput(e.target);
+                        });
+                        
+                        // Format saat focus (jika kosong, tambah Rp)
+                        input.addEventListener('focus', (e) => {
+                            if (e.target.value === '') {
+                                e.target.value = 'Rp ';
+                            }
+                        });
+                        
+                        // Format saat blur (jika kosong, hapus Rp)
+                        input.addEventListener('blur', (e) => {
+                            if (e.target.value === 'Rp ' || e.target.value === '') {
+                                e.target.value = '';
+                            }
+                        });
+                    }
+                });
+            }
+
             // Method untuk load current prices ke form
             loadCurrentPricesToForm() {
                 try {
@@ -2014,13 +2092,13 @@
                     const price18kElement = document.getElementById('price18k');
 
                     if (price24kElement && this.currentPrices['24k']) {
-                        price24kElement.value = this.formatCurrency(this.currentPrices['24k']).replace('Rp ', '');
+                        price24kElement.value = this.formatCurrency(this.currentPrices['24k']);
                     }
                     if (price22kElement && this.currentPrices['22k']) {
-                        price22kElement.value = this.formatCurrency(this.currentPrices['22k']).replace('Rp ', '');
+                        price22kElement.value = this.formatCurrency(this.currentPrices['22k']);
                     }
                     if (price18kElement && this.currentPrices['18k']) {
-                        price18kElement.value = this.formatCurrency(this.currentPrices['18k']).replace('Rp ', '');
+                        price18kElement.value = this.formatCurrency(this.currentPrices['18k']);
                     }
 
                     this.showManualUpdateMessage('Harga saat ini telah dimuat ke form', 'info');
@@ -2047,9 +2125,9 @@
                     const price22kElement = document.getElementById('price22k');
                     const price18kElement = document.getElementById('price18k');
 
-                    const hargaJual24k = this.parsePriceInput(price24kElement);
-                    const hargaJual22k = this.parsePriceInput(price22kElement);
-                    const hargaJual18k = this.parsePriceInput(price18kElement);
+                    const hargaJual24k = this.parseCurrencyInput(price24kElement);
+                    const hargaJual22k = this.parseCurrencyInput(price22kElement);
+                    const hargaJual18k = this.parseCurrencyInput(price18kElement);
 
                     // Validasi input
                     if (hargaJual24k <= 0 && hargaJual22k <= 0 && hargaJual18k <= 0) {
