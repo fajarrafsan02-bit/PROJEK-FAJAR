@@ -2278,20 +2278,72 @@
 
                     console.log('Sending request with data:', updateData);
 
-                    // Kirim request ke backend
-                    // Update langsung dari data API eksternal yang sudah di-fetch
-                    // Tidak perlu kirim request ke backend, langsung update di database
-                    this.showUpdateMessage("Mengupdate harga emas langsung dari API eksternal...", 'info');
-                    
-                    // Simulasi update berhasil (karena data sudah di-fetch)
-                    // Dalam implementasi nyata, backend akan handle ini
-                    const updateMessage = Object.keys(updateData).map(key => {
-                        const karat = key.replace('harga', '').toUpperCase();
-                        return `${karat}: ${this.formatCurrency(updateData[key])}`;
-                    }).join(', ');
-                    
-                    this.showUpdateMessage(`Update berhasil! Harga yang diupdate: ${updateMessage}`, 'success');
-                    this.showNotification('Update harga emas berhasil!', 'success');
+                    // Update langsung ke database dengan harga dari API eksternal
+                    if (hasChanges) {
+                        // Kirim request update ke backend
+                        const response = await fetch('/gold-price/update', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(updateData)
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: Gagal mengupdate harga emas`);
+                        }
+
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            this.showUpdateMessage(`Update berhasil! Harga yang diupdate: ${updateMessage}`, 'success');
+                            this.showNotification('Update harga emas berhasil!', 'success');
+                        } else {
+                            throw new Error(result.message || 'Gagal mengupdate harga emas');
+                        }
+                    } else {
+                        // Jika tidak ada perubahan, tanyakan force update
+                        samePriceMessage = samePriceMessage.replace(/,\s*$/, '');
+                        
+                        const forceUpdateMessage = `Semua harga sudah sama dengan harga saat ini: ${samePriceMessage}. Apakah Anda ingin tetap melakukan update?`;
+                        this.showUpdateMessage(forceUpdateMessage, 'warning');
+                        
+                        const userWantsUpdate = confirm(forceUpdateMessage + '\n\nKlik OK untuk tetap update, Cancel untuk batal.');
+                        
+                        if (userWantsUpdate) {
+                            // Force update semua harga yang ada
+                            const forceUpdateData = {};
+                            if (harga24k > 0) forceUpdateData.harga24k = harga24k;
+                            if (harga22k > 0) forceUpdateData.harga22k = harga22k;
+                            if (harga18k > 0) forceUpdateData.harga18k = harga18k;
+                            
+                            this.showUpdateMessage("Force update diaktifkan. Mengupdate semua harga...", 'info');
+                            
+                            const response = await fetch('/gold-price/update', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(forceUpdateData)
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`HTTP ${response.status}: Gagal melakukan force update`);
+                            }
+
+                            const result = await response.json();
+                            
+                            if (result.success) {
+                                this.showUpdateMessage("Force update berhasil! Semua harga telah diperbarui.", 'success');
+                                this.showNotification('Force update berhasil!', 'success');
+                            } else {
+                                throw new Error(result.message || 'Gagal melakukan force update');
+                            }
+                        } else {
+                            this.showUpdateMessage('Update dibatalkan oleh user', 'info');
+                            this.showNotification('Update dibatalkan oleh user', 'info');
+                        }
+                    }
 
                     // Clear external price
                     this.externalPrice = null;
@@ -2301,8 +2353,6 @@
                     await this.loadPriceChanges();
                     await this.loadPriceHistory();
                     this.renderCurrentPrices();
-                    
-                    return; // Skip ke bagian response handling
 
                 } catch (error) {
                     console.error('Error updating all prices:', error);
