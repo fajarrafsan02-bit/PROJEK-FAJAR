@@ -2337,6 +2337,13 @@
                         if (result.success) {
                             this.showUpdateMessage(`Update berhasil! Harga yang diupdate: ${updateMessage}`, 'success');
                             this.showNotification('Update harga emas berhasil!', 'success');
+                            
+                            // Refresh data dan update status indicator
+                            await this.loadCurrentPrices();
+                            await this.loadPriceChanges();
+                            await this.loadPriceHistory();
+                            this.renderCurrentPrices();
+                            this.updateApiStatusWithCurrentPrices();
                         } else {
                             throw new Error(result.message || 'Gagal mengupdate harga emas');
                         }
@@ -2375,6 +2382,13 @@
                             if (result.success) {
                                 this.showUpdateMessage("Force update berhasil! Semua harga telah diperbarui.", 'success');
                                 this.showNotification('Force update berhasil!', 'success');
+                                
+                                // Refresh data dan update status indicator
+                                await this.loadCurrentPrices();
+                                await this.loadPriceChanges();
+                                await this.loadPriceHistory();
+                                this.renderCurrentPrices();
+                                this.updateApiStatusWithCurrentPrices();
                             } else {
                                 throw new Error(result.message || 'Gagal melakukan force update');
                             }
@@ -2392,6 +2406,9 @@
                     await this.loadPriceChanges();
                     await this.loadPriceHistory();
                     this.renderCurrentPrices();
+                    
+                    // Update status indicator dengan harga terbaru
+                    this.updateApiStatusWithCurrentPrices();
 
                 } catch (error) {
                     console.error('Error updating all prices:', error);
@@ -2400,6 +2417,37 @@
 
                 } finally {
                     this.isUpdating = false;
+                }
+            }
+
+            // Method untuk update status API indicator dengan harga terbaru dari database
+            updateApiStatusWithCurrentPrices() {
+                const statusElement = document.getElementById('apiStatus');
+                if (statusElement) {
+                    // Show the status element
+                    statusElement.style.display = 'block';
+                    
+                    // Gunakan harga terbaru dari currentPrices
+                    const current24k = this.currentPrices['24k'] || 0;
+                    const current22k = this.currentPrices['22k'] || 0;
+                    const current18k = this.currentPrices['18k'] || 0;
+                    
+                    // Debug: log data yang digunakan
+                    console.log('Updating status indicator with current prices:', {
+                        '24k': current24k,
+                        '22k': current22k,
+                        '18k': current18k,
+                        allPrices: this.currentPrices
+                    });
+                    
+                    statusElement.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            <strong>✅ Harga Emas Terbaru</strong><br>
+                            <small>24K: ${this.formatCurrency(current24k)} | 22K: ${this.formatCurrency(current22k)} | 18K: ${this.formatCurrency(current18k)}</small><br>
+                            <small>Last Update: ${new Date().toLocaleString('id-ID')}</small>
+                        </div>
+                    `;
                 }
             }
 
