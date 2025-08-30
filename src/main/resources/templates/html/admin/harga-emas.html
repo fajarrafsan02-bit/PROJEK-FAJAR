@@ -1035,6 +1035,7 @@
                         <button class="btn btn-primary" id="updateAllBtn"><i class="fas fa-sync-alt"></i> Update
                             Semua</button>
                         <button class="btn btn-secondary" id="refreshBtn" style="background: var(--info-color);"><i class="fas fa-refresh"></i> Refresh</button>
+                        <button class="btn btn-secondary" id="reliableRefreshBtn" style="background: var(--success-color);"><i class="fas fa-shield-alt"></i> Reliable Refresh</button>
                         <button class="btn btn-secondary" id="debugBtn" style="background: var(--warning-color);"><i class="fas fa-bug"></i> Debug</button>
                     </div>
                 </div>
@@ -1370,6 +1371,26 @@
                 if (debugBtn) {
                     debugBtn.addEventListener('click', () => {
                         this.debugPriceChanges();
+                    });
+                }
+
+                // Reliable Refresh button
+                const reliableRefreshBtn = document.getElementById('reliableRefreshBtn');
+                if (reliableRefreshBtn) {
+                    reliableRefreshBtn.addEventListener('click', async () => {
+                        const originalText = reliableRefreshBtn.innerHTML;
+                        reliableRefreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+                        reliableRefreshBtn.disabled = true;
+                        
+                        try {
+                            await this.reliableRefreshData();
+                            this.showNotification('Reliable refresh berhasil!', 'success');
+                        } catch (error) {
+                            this.showNotification('Reliable refresh gagal: ' + error.message, 'error');
+                        } finally {
+                            reliableRefreshBtn.innerHTML = originalText;
+                            reliableRefreshBtn.disabled = false;
+                        }
                     });
                 }
             }
@@ -2447,20 +2468,40 @@
                         this.showManualUpdateMessage('Harga emas berhasil diperbarui!', 'success');
                         this.showNotification('Harga emas berhasil diperbarui!', 'success');
 
-                        // Refresh data secara berurutan
+                        // Tunggu sebentar agar backend selesai menyimpan data
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+
+                        // Refresh data secara berurutan dengan delay
+                        console.log('Refreshing data after manual update...');
+                        
+                        // 1. Load current prices terlebih dahulu
                         await this.loadCurrentPrices();
+                        console.log('Current prices refreshed:', this.currentPrices);
+                        
+                        // 2. Load price changes dari database (yang baru)
                         await this.loadPriceChanges();
+                        console.log('Price changes refreshed:', this.priceChanges);
+                        
+                        // 3. Load price history
                         await this.loadPriceHistory();
+                        console.log('Price history refreshed, length:', this.priceHistory.length);
                         
-                        // Hitung ulang perubahan harga
-                        await this.calculatePriceChanges();
+                        // 4. Jika tidak ada data perubahan yang valid dari database, hitung dari history
+                        if (!this.hasValidPriceChanges()) {
+                            console.log('No valid price changes from database, calculating from history...');
+                            await this.calculatePriceChanges();
+                        }
                         
-                        // Render ulang tampilan
+                        // 5. Render ulang tampilan
                         this.renderCurrentPrices();
-                        this.updateApiStatusWithCurrentPrices();
+                        this.loadCurrentPricesInForm();
                         
-                        // Refresh kalkulator jika ada input yang sudah diisi
-                        this.refreshCalculator();
+                        // Clear form jika update berhasil
+                        if (price24kElement) price24kElement.value = '';
+                        if (price22kElement) price22kElement.value = '';
+                        if (price18kElement) price18kElement.value = '';
+                        
+                        console.log('Manual update completed and data refreshed');
                     } else {
                         throw new Error(result.message || 'Gagal mengupdate harga emas');
                     }
@@ -2504,19 +2545,36 @@
 
                         await this.updateGoldPriceManual(purityNumber, hargaJual, hargaBeli);
 
-                        // Refresh data secara berurutan
+                        // Tunggu sebentar agar backend selesai menyimpan data
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+
+                        // Refresh data secara berurutan dengan delay
+                        console.log(`Refreshing data after quick update for ${purity}...`);
+                        
+                        // 1. Load current prices terlebih dahulu
                         await this.loadCurrentPrices();
+                        console.log('Current prices refreshed:', this.currentPrices);
+                        
+                        // 2. Load price changes dari database (yang baru)
                         await this.loadPriceChanges();
+                        console.log('Price changes refreshed:', this.priceChanges);
+                        
+                        // 3. Load price history
                         await this.loadPriceHistory();
+                        console.log('Price history refreshed, length:', this.priceHistory.length);
                         
-                        // Hitung ulang perubahan harga
-                        await this.calculatePriceChanges();
+                        // 4. Jika tidak ada data perubahan yang valid dari database, hitung dari history
+                        if (!this.hasValidPriceChanges()) {
+                            console.log('No valid price changes from database, calculating from history...');
+                            await this.calculatePriceChanges();
+                        }
                         
-                        // Render ulang tampilan
+                        // 5. Render ulang tampilan
                         this.renderCurrentPrices();
                         this.loadCurrentPricesInForm();
 
                         this.showNotification(`Harga emas ${purity.toUpperCase()} berhasil diperbarui!`, 'success');
+                        console.log(`Quick update for ${purity} completed and data refreshed`);
                     } catch (error) {
                         this.showNotification(`Gagal memperbarui harga emas ${purity.toUpperCase()}`, 'error');
                     }
@@ -2690,20 +2748,38 @@
                             this.showUpdateMessage(`Update berhasil! Harga yang diupdate: ${updateMessage}`, 'success');
                             this.showNotification('Update harga emas berhasil!', 'success');
                             
-                            // Refresh data secara berurutan
+                            // Tunggu sebentar agar backend selesai menyimpan data
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                            
+                            // Refresh data secara berurutan dengan delay
+                            console.log('Refreshing data after update all...');
+                            
+                            // 1. Load current prices terlebih dahulu
                             await this.loadCurrentPrices();
+                            console.log('Current prices refreshed:', this.currentPrices);
+                            
+                            // 2. Load price changes dari database (yang baru)
                             await this.loadPriceChanges();
+                            console.log('Price changes refreshed:', this.priceChanges);
+                            
+                            // 3. Load price history
                             await this.loadPriceHistory();
+                            console.log('Price history refreshed, length:', this.priceHistory.length);
                             
-                            // Hitung ulang perubahan harga
-                            await this.calculatePriceChanges();
+                            // 4. Jika tidak ada data perubahan yang valid dari database, hitung dari history
+                            if (!this.hasValidPriceChanges()) {
+                                console.log('No valid price changes from database, calculating from history...');
+                                await this.calculatePriceChanges();
+                            }
                             
-                            // Render ulang tampilan
+                            // 5. Render ulang tampilan
                             this.renderCurrentPrices();
                             this.updateApiStatusWithCurrentPrices();
                             
                             // Refresh kalkulator jika ada input yang sudah diisi
                             this.refreshCalculator();
+                            
+                            console.log('Update all completed and data refreshed');
                         } else {
                             throw new Error(result.message || 'Gagal mengupdate harga emas');
                         }
@@ -2743,15 +2819,38 @@
                                 this.showUpdateMessage("Force update berhasil! Semua harga telah diperbarui.", 'success');
                                 this.showNotification('Force update berhasil!', 'success');
                                 
-                                // Refresh data dan update status indicator
+                                // Tunggu sebentar agar backend selesai menyimpan data
+                                await new Promise(resolve => setTimeout(resolve, 1000));
+                                
+                                // Refresh data secara berurutan dengan delay
+                                console.log('Refreshing data after force update...');
+                                
+                                // 1. Load current prices terlebih dahulu
                                 await this.loadCurrentPrices();
+                                console.log('Current prices refreshed:', this.currentPrices);
+                                
+                                // 2. Load price changes dari database (yang baru)
                                 await this.loadPriceChanges();
+                                console.log('Price changes refreshed:', this.priceChanges);
+                                
+                                // 3. Load price history
                                 await this.loadPriceHistory();
+                                console.log('Price history refreshed, length:', this.priceHistory.length);
+                                
+                                // 4. Jika tidak ada data perubahan yang valid dari database, hitung dari history
+                                if (!this.hasValidPriceChanges()) {
+                                    console.log('No valid price changes from database, calculating from history...');
+                                    await this.calculatePriceChanges();
+                                }
+                                
+                                // 5. Render ulang tampilan
                                 this.renderCurrentPrices();
                                 this.updateApiStatusWithCurrentPrices();
                                 
                                 // Refresh kalkulator jika ada input yang sudah diisi
                                 this.refreshCalculator();
+                                
+                                console.log('Force update completed and data refreshed');
                             } else {
                                 throw new Error(result.message || 'Gagal melakukan force update');
                             }
@@ -3089,7 +3188,12 @@
                     await this.loadCurrentPrices();
                     await this.loadPriceChanges();
                     await this.loadPriceHistory();
-                    await this.calculatePriceChanges();
+                    
+                    // Jika tidak ada data perubahan yang valid dari database, hitung dari history
+                    if (!this.hasValidPriceChanges()) {
+                        console.log('No valid price changes from database, calculating from history...');
+                        await this.calculatePriceChanges();
+                    }
                     
                     // Render ulang
                     this.renderCurrentPrices();
@@ -3100,6 +3204,43 @@
                 } catch (error) {
                     console.error('Error during force refresh:', error);
                     this.showNotification('Gagal refresh data: ' + error.message, 'error');
+                }
+            }
+
+            // Method untuk refresh data dengan lebih reliable
+            async reliableRefreshData() {
+                try {
+                    console.log('Starting reliable data refresh...');
+                    
+                    // 1. Load current prices
+                    await this.loadCurrentPrices();
+                    console.log('Step 1: Current prices loaded');
+                    
+                    // 2. Load price changes dari database
+                    await this.loadPriceChanges();
+                    console.log('Step 2: Price changes loaded');
+                    
+                    // 3. Load price history
+                    await this.loadPriceHistory();
+                    console.log('Step 3: Price history loaded');
+                    
+                    // 4. Jika tidak ada data perubahan yang valid dari database, hitung dari history
+                    if (!this.hasValidPriceChanges()) {
+                        console.log('Step 4: Calculating price changes from history...');
+                        await this.calculatePriceChanges();
+                    } else {
+                        console.log('Step 4: Valid price changes found in database');
+                    }
+                    
+                    // 5. Render ulang tampilan
+                    this.renderCurrentPrices();
+                    this.loadCurrentPricesInForm();
+                    
+                    console.log('Reliable refresh completed successfully');
+                    return true;
+                } catch (error) {
+                    console.error('Error during reliable refresh:', error);
+                    return false;
                 }
             }
 
