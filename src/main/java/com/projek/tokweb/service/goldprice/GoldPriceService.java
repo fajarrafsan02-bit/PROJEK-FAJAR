@@ -620,7 +620,7 @@ public class GoldPriceService {
             log.info(">> Service: Memulai fetch harga emas eksternal");
             
             // Fetch harga dari API eksternal
-            String apiUrl = "https://api.metals.live/v1/spot/gold";
+            String apiUrl = "https://api.metalpriceapi.com/v1/latest";
             RestTemplate restTemplate = new RestTemplate();
             
             log.info(">> Service: Mengirim request ke API: {}", apiUrl);
