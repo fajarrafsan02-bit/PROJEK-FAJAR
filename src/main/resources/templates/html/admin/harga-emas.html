@@ -417,6 +417,40 @@
             flex-wrap: wrap;
         }
 
+        /* API Status Styles */
+        .api-status {
+            margin-bottom: 20px;
+        }
+
+        .api-status .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 0;
+        }
+
+        .api-status .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .api-status .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .api-status .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info-color);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .api-status small {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
         /* History Section */
         .history-section {
             background: var(--white-pure);
@@ -1026,6 +1060,16 @@
                 <!-- Update Prices Form -->
                 <div class="update-section">
                     <h2 class="section-title">Update Harga Emas Eksternal</h2>
+                    
+                    <!-- API Status Indicator -->
+                    <div id="apiStatus" class="api-status mb-3">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Status API</strong><br>
+                            Klik "Ambil Harga Eksternal" untuk cek status Metal Price API
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
                         <button type="button" id="fetchExternalBtn" class="btn btn-info me-2">
                             <i class="fas fa-sync-alt"></i> Ambil Harga Eksternal
@@ -2364,31 +2408,81 @@
                 }
             }
 
-            // Method untuk ambil harga eksternal
+                        // Method untuk ambil harga eksternal dari backend (yang sudah menggunakan Metal Price API)
             async fetchExternalPrice() {
                 try {
-                    this.showUpdateMessage("Mengambil harga emas dari API eksternal...", 'info');
+                    this.showUpdateMessage("Mengambil harga emas dari backend...", 'info');
 
+                    // Panggil backend yang sudah menggunakan Metal Price API
                     const response = await fetch('/gold-price/fetch-external');
                     if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: Gagal mengambil harga eksternal`);
+                        throw new Error(`HTTP ${response.status}: Gagal mengambil harga dari backend`);
                     }
 
                     const result = await response.json();
+                    console.log('Backend Response:', result);
 
-                    if (result.success) {
+                    if (result.success && result.data) {
+                        // Data sudah di-parse oleh backend
                         this.externalPrice = result.data;
-                        this.showUpdateMessage(`Harga eksternal berhasil diambil: ${this.formatCurrency(this.externalPrice.harga24k)}`, 'success');
+                        
+                        // Update status API indicator
+                        this.updateApiStatus();
+                        
+                        this.showUpdateMessage(`✅ Harga emas berhasil diambil dari ${this.externalPrice.source}:\n24K: ${this.formatCurrency(this.externalPrice.harga24k)}\n22K: ${this.formatCurrency(this.externalPrice.harga22k)}\n18K: ${this.formatCurrency(this.externalPrice.harga18k)}`, 'success');
+                        this.showNotification('Harga emas berhasil diambil!', 'success');
 
-                        this.showNotification('Harga eksternal berhasil diambil!', 'success');
                     } else {
                         throw new Error(result.message || 'Gagal mengambil harga eksternal');
                     }
 
                 } catch (error) {
                     console.error('Error fetching external price:', error);
-                    this.showUpdateMessage("Error: " + error.message, 'error');
+                    this.showUpdateMessage("❌ Error: " + error.message, 'error');
                     this.showNotification('Gagal mengambil harga eksternal: ' + error.message, 'error');
+                }
+            }
+            }
+
+            // Method untuk update status API indicator
+            updateApiStatus() {
+                const statusElement = document.getElementById('apiStatus');
+                if (statusElement && this.externalPrice) {
+                    if (this.externalPrice.source === "Metal Price API") {
+                        statusElement.innerHTML = `
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i>
+                                <strong>✅ Metal Price API Aktif</strong><br>
+                                <small>24K: ${this.formatCurrency(this.externalPrice.harga24k)} | 22K: ${this.formatCurrency(this.externalPrice.harga22k)} | 18K: ${this.formatCurrency(this.externalPrice.harga18k)}</small><br>
+                                <small>Last Update: ${new Date(this.externalPrice.timestamp * 1000).toLocaleString('id-ID')}</small>
+                            </div>
+                        `;
+                    } else if (this.externalPrice.source === "Backend Fallback") {
+                        statusElement.innerHTML = `
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>⚠️ Menggunakan Backend Fallback</strong><br>
+                                <small>Metal Price API tidak tersedia, menggunakan data dari database</small><br>
+                                <small>Note: ${this.externalPrice.note || 'Data mungkin tidak reliable'}</small>
+                            </div>
+                        `;
+                    } else {
+                        statusElement.innerHTML = `
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>ℹ️ Data Tersedia</strong><br>
+                                <small>Source: ${this.externalPrice.source || 'Unknown'}</small>
+                            </div>
+                        `;
+                    }
+                } else {
+                    statusElement.innerHTML = `
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Status API</strong><br>
+                            Klik "Ambil Harga Eksternal" untuk cek status Metal Price API
+                        </div>
+                    `;
                 }
             }
 
