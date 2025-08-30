@@ -1750,6 +1750,42 @@
                         throw new Error('Semua harga harus diisi dengan nilai yang valid');
                     }
 
+                    // Validasi: cek apakah harga sama dengan harga saat ini
+                    const currentPrices = this.currentPrices;
+                    let hasChanges = false;
+                    let samePriceMessage = '';
+
+                    if (currentPrices['24k'] > 0 && Math.abs(hargaJual24k - currentPrices['24k']) < 100) {
+                        samePriceMessage += `24K: ${this.formatCurrency(currentPrices['24k'])} (sama), `;
+                    } else if (currentPrices['24k'] > 0) {
+                        hasChanges = true;
+                    }
+
+                    if (currentPrices['22k'] > 0 && Math.abs(hargaJual22k - currentPrices['22k']) < 100) {
+                        samePriceMessage += `22K: ${this.formatCurrency(currentPrices['22k'])} (sama), `;
+                    } else if (currentPrices['22k'] > 0) {
+                        hasChanges = true;
+                    }
+
+                    if (currentPrices['18k'] > 0 && Math.abs(hargaJual18k - currentPrices['18k']) < 100) {
+                        samePriceMessage += `18K: ${this.formatCurrency(currentPrices['18k'])} (sama), `;
+                    } else if (currentPrices['18k'] > 0) {
+                        hasChanges = true;
+                    }
+
+                    // Jika semua harga sama, tidak perlu update
+                    if (!hasChanges && samePriceMessage) {
+                        samePriceMessage = samePriceMessage.replace(/,\s*$/, ''); // Hapus koma terakhir
+                        this.showNotification(`Semua harga sudah sama dengan harga saat ini: ${samePriceMessage}`, 'info');
+                        return;
+                    }
+
+                    // Jika ada harga yang sama, tampilkan warning
+                    if (samePriceMessage) {
+                        samePriceMessage = samePriceMessage.replace(/,\s*$/, ''); // Hapus koma terakhir
+                        this.showNotification(`Beberapa harga sama: ${samePriceMessage}`, 'warning');
+                    }
+
                     const response = await fetch(`${this.baseUrl}/update/manual?hargaJual24k=${hargaJual24k}&hargaJual22k=${hargaJual22k}&hargaJual18k=${hargaJual18k}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' }
@@ -1843,9 +1879,16 @@
                 const newPrice = prompt(`Update harga emas ${purity.toUpperCase()}:\n\nHarga saat ini: ${this.formatCurrency(currentPrice)}\n\nMasukkan harga baru (tanpa titik/koma):`, currentPrice);
 
                 if (newPrice && !isNaN(newPrice) && parseInt(newPrice) > 0) {
+                    const hargaJual = parseInt(newPrice);
+                    
+                    // Validasi: cek apakah harga sama dengan harga saat ini
+                    if (currentPrice > 0 && Math.abs(hargaJual - currentPrice) < 100) { // Toleransi 100 rupiah
+                        this.showNotification(`Harga sudah sama dengan harga saat ini (${this.formatCurrency(currentPrice)}), tidak perlu update`, 'info');
+                        return;
+                    }
+                    
                     try {
                         const purityNumber = parseInt(purity);
-                        const hargaJual = parseInt(newPrice);
                         const hargaBeli = hargaJual * 0.95; // Assuming 5% spread
 
                         await this.updateGoldPriceManual(purityNumber, hargaJual, hargaBeli);
@@ -1916,6 +1959,21 @@
                     }
 
                     console.log('Final external price to use:', hargaNumber);
+                    
+                    // Validasi: cek apakah harga sama dengan harga saat ini
+                    const currentPrice24k = this.currentPrices['24k'] || 0;
+                    console.log('Current price 24K:', currentPrice24k);
+                    console.log('New price from external:', hargaNumber);
+                    
+                    if (currentPrice24k > 0 && Math.abs(hargaNumber - currentPrice24k) < 100) { // Toleransi 100 rupiah
+                        this.showUpdateMessage("Harga sudah sama dengan harga saat ini (" + this.formatCurrency(currentPrice24k) + "), tidak perlu update", 'warning');
+                        this.showNotification('Harga sudah sama dengan harga saat ini, tidak perlu update', 'info');
+                        
+                        // Clear external price
+                        this.externalPrice = null;
+                        return;
+                    }
+                    
                     this.showUpdateMessage("Mengirim request update dengan harga: " + this.formatCurrency(hargaNumber), 'info');
 
                     // Prepare request data
@@ -2026,6 +2084,20 @@
 
                     if (!hargaNumber || hargaNumber <= 0) {
                         throw new Error("Harga eksternal tidak valid");
+                    }
+
+                    // Validasi: cek apakah harga sama dengan harga saat ini
+                    const currentPrice24k = this.currentPrices['24k'] || 0;
+                    console.log('Current price 24K:', currentPrice24k);
+                    console.log('New price from external:', hargaNumber);
+                    
+                    if (currentPrice24k > 0 && Math.abs(hargaNumber - currentPrice24k) < 100) { // Toleransi 100 rupiah
+                        this.showUpdateMessage("Harga sudah sama dengan harga saat ini (" + this.formatCurrency(currentPrice24k) + "), tidak perlu update", 'warning');
+                        this.showNotification('Harga sudah sama dengan harga saat ini, tidak perlu update', 'info');
+                        
+                        // Clear external price
+                        this.externalPrice = null;
+                        return;
                     }
 
                     this.showUpdateMessage("Mengirim request update...", 'info');
@@ -2181,11 +2253,22 @@
 
             showNotification(message, type = 'info') {
                 const notification = document.createElement('div');
+                
+                // Tentukan warna berdasarkan tipe notifikasi
+                let backgroundColor = '#3b82f6'; // default info
+                if (type === 'success') {
+                    backgroundColor = '#10b981';
+                } else if (type === 'error') {
+                    backgroundColor = '#ef4444';
+                } else if (type === 'warning') {
+                    backgroundColor = '#f59e0b';
+                }
+                
                 notification.style.cssText = `
                 position: fixed;
                 top: 20px;
                 right: 20px;
-                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                background: ${backgroundColor};
                 color: white;
                 padding: 15px 20px;
                 border-radius: 10px;
