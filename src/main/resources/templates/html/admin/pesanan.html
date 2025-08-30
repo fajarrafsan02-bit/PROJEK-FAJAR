@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Kelola Pesanan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .status-badge {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+        }
+        .order-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid #dee2e6;
+        }
+        .order-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .order-card.pending-payment { border-left-color: #ffc107; }
+        .order-card.pending-confirmation { border-left-color: #17a2b8; }
+        .order-card.paid { border-left-color: #28a745; }
+        .order-card.processing { border-left-color: #007bff; }
+        .order-card.shipped { border-left-color: #6f42c1; }
+        .order-card.delivered { border-left-color: #20c997; }
+        .order-card.cancelled { border-left-color: #dc3545; }
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+        }
+        .search-box {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+        }
+        .search-box::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .btn-action {
+            margin: 0.1rem;
+            min-width: 80px;
+        }
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .loading-spinner {
+            display: none;
+        }
+        .loading .loading-spinner {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row bg-white shadow-sm py-3 mb-4">
+            <div class="col">
+                <h2 class="mb-0 text-primary">
+                    <i class="fas fa-shopping-cart me-2"></i>
+                    Kelola Pesanan
+                </h2>
+                <p class="text-muted mb-0">Manajemen pesanan customer</p>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="stats-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-1" id="totalOrders">0</h3>
+                            <p class="mb-0">Total Pesanan</p>
+                        </div>
+                        <i class="fas fa-shopping-cart fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff8c00 100%);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-1" id="pendingPayment">0</h3>
+                            <p class="mb-0">Menunggu Pembayaran</p>
+                        </div>
+                        <i class="fas fa-clock fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-1" id="pendingConfirmation">0</h3>
+                            <p class="mb-0">Menunggu Konfirmasi</p>
+                        </div>
+                        <i class="fas fa-user-check fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-1" id="paid">0</h3>
+                            <p class="mb-0">Sudah Dibayar</p>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="searchInput" placeholder="Cari berdasarkan nomor pesanan, nama customer, atau nomor telepon...">
+                    <button class="btn btn-primary" type="button" id="searchBtn">
+                        <i class="fas fa-search"></i> Cari
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" id="statusFilter">
+                    <option value="">Semua Status</option>
+                    <option value="PENDING_PAYMENT">Menunggu Pembayaran</option>
+                    <option value="PENDING_CONFIRMATION">Menunggu Konfirmasi</option>
+                    <option value="PAID">Sudah Dibayar</option>
+                    <option value="PROCESSING">Sedang Diproses</option>
+                    <option value="SHIPPED">Dikirim</option>
+                    <option value="DELIVERED">Terkirim</option>
+                    <option value="CANCELLED">Dibatalkan</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Daftar Pesanan</h5>
+                <div>
+                    <button class="btn btn-outline-primary btn-sm" id="refreshBtn">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" id="attentionBtn">
+                        <i class="fas fa-exclamation-triangle"></i> Perhatian
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>No. Pesanan</th>
+                                <th>Customer</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Tanggal</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2 text-muted">Memuat data pesanan...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-white">
+                <nav aria-label="Orders pagination">
+                    <ul class="pagination justify-content-center mb-0" id="pagination">
+                        <!-- Pagination will be generated here -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Detail Pesanan
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="orderDetailContent">
+                    <!-- Order detail content will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Order Modal -->
+    <div class="modal fade" id="confirmOrderModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Konfirmasi Pesanan
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Apakah Anda yakin ingin mengkonfirmasi pesanan ini sebagai <strong>SUDAH DIBAYAR</strong>?</p>
+                    <div class="mb-3">
+                        <label for="confirmNotes" class="form-label">Catatan Admin (Opsional)</label>
+                        <textarea class="form-control" id="confirmNotes" rows="3" placeholder="Masukkan catatan jika diperlukan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-success" id="confirmOrderBtn">
+                        <span class="loading-spinner spinner-border spinner-border-sm me-2"></span>
+                        Konfirmasi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Status Modal -->
+    <div class="modal fade" id="updateStatusModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-edit me-2"></i>
+                        Update Status Pesanan
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="newStatus" class="form-label">Status Baru</label>
+                        <select class="form-select" id="newStatus">
+                            <option value="PENDING_PAYMENT">Menunggu Pembayaran</option>
+                            <option value="PENDING_CONFIRMATION">Menunggu Konfirmasi</option>
+                            <option value="PAID">Sudah Dibayar</option>
+                            <option value="PROCESSING">Sedang Diproses</option>
+                            <option value="SHIPPED">Dikirim</option>
+                            <option value="DELIVERED">Terkirim</option>
+                            <option value="CANCELLED">Dibatalkan</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="statusNotes" class="form-label">Catatan Admin (Opsional)</label>
+                        <textarea class="form-control" id="statusNotes" rows="3" placeholder="Masukkan catatan jika diperlukan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="updateStatusBtn">
+                        <span class="loading-spinner spinner-border spinner-border-sm me-2"></span>
+                        Update Status
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Order Modal -->
+    <div class="modal fade" id="cancelOrderModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-times-circle me-2"></i>
+                        Batalkan Pesanan
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Apakah Anda yakin ingin membatalkan pesanan ini?</p>
+                    <div class="mb-3">
+                        <label for="cancelReason" class="form-label">Alasan Pembatalan (Opsional)</label>
+                        <textarea class="form-control" id="cancelReason" rows="3" placeholder="Masukkan alasan pembatalan jika diperlukan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="cancelOrderBtn">
+                        <span class="loading-spinner spinner-border spinner-border-sm me-2"></span>
+                        Batalkan Pesanan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        class OrderManager {
+            constructor() {
+                this.currentPage = 0;
+                this.pageSize = 10;
+                this.currentOrderId = null;
+                this.orders = [];
+                this.totalPages = 0;
+                this.totalElements = 0;
+                
+                this.initializeEventListeners();
+                this.loadOrders();
+                this.loadStatistics();
+            }
+            
+            initializeEventListeners() {
+                // Search functionality
+                document.getElementById('searchBtn').addEventListener('click', () => this.searchOrders());
+                document.getElementById('searchInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.searchOrders();
+                });
+                
+                // Filter functionality
+                document.getElementById('statusFilter').addEventListener('change', () => this.loadOrders());
+                
+                // Refresh and attention buttons
+                document.getElementById('refreshBtn').addEventListener('click', () => this.loadOrders());
+                document.getElementById('attentionBtn').addEventListener('click', () => this.loadOrdersNeedingAttention());
+                
+                // Modal buttons
+                document.getElementById('confirmOrderBtn').addEventListener('click', () => this.confirmOrder());
+                document.getElementById('updateStatusBtn').addEventListener('click', () => this.updateOrderStatus());
+                document.getElementById('cancelOrderBtn').addEventListener('click', () => this.cancelOrder());
+            }
+            
+            async loadOrders() {
+                try {
+                    this.showLoading();
+                    
+                    const statusFilter = document.getElementById('statusFilter').value;
+                    let url = `/admin/api/orders?page=${this.currentPage}&size=${this.pageSize}&sortBy=createdAt&sortDirection=desc`;
+                    
+                    if (statusFilter) {
+                        url = `/admin/api/orders/status/${statusFilter}?page=${this.currentPage}&size=${this.pageSize}`;
+                    }
+                    
+                    const response = await axios.get(url);
+                    
+                    if (response.data.success) {
+                        this.orders = response.data.data.content;
+                        this.totalPages = response.data.data.totalPages;
+                        this.totalElements = response.data.data.totalElements;
+                        this.renderOrders();
+                        this.renderPagination();
+                    } else {
+                        this.showError('Gagal memuat data pesanan');
+                    }
+                } catch (error) {
+                    console.error('Error loading orders:', error);
+                    this.showError('Terjadi kesalahan saat memuat data pesanan');
+                } finally {
+                    this.hideLoading();
+                }
+            }
+            
+            async searchOrders() {
+                const searchTerm = document.getElementById('searchInput').value.trim();
+                if (!searchTerm) {
+                    this.loadOrders();
+                    return;
+                }
+                
+                try {
+                    this.showLoading();
+                    
+                    // Try search by order number first
+                    let response = await axios.get(`/admin/api/orders/search/order-number?orderNumber=${searchTerm}`);
+                    
+                    if (response.data.success && response.data.data.length > 0) {
+                        this.orders = response.data.data;
+                        this.totalPages = 1;
+                        this.totalElements = this.orders.length;
+                        this.renderOrders();
+                        this.renderPagination();
+                        return;
+                    }
+                    
+                    // If not found, try search by customer
+                    response = await axios.get(`/admin/api/orders/search/customer?searchTerm=${searchTerm}`);
+                    
+                    if (response.data.success) {
+                        this.orders = response.data.data;
+                        this.totalPages = 1;
+                        this.totalElements = this.orders.length;
+                        this.renderOrders();
+                        this.renderPagination();
+                    } else {
+                        this.showError('Tidak ada pesanan yang ditemukan');
+                    }
+                } catch (error) {
+                    console.error('Error searching orders:', error);
+                    this.showError('Terjadi kesalahan saat mencari pesanan');
+                } finally {
+                    this.hideLoading();
+                }
+            }
+            
+            async loadOrdersNeedingAttention() {
+                try {
+                    this.showLoading();
+                    
+                    const response = await axios.get('/admin/api/orders/attention');
+                    
+                    if (response.data.success) {
+                        this.orders = response.data.data;
+                        this.totalPages = 1;
+                        this.totalElements = this.orders.length;
+                        this.renderOrders();
+                        this.renderPagination();
+                        
+                        // Update filter dropdown
+                        document.getElementById('statusFilter').value = '';
+                    } else {
+                        this.showError('Gagal memuat pesanan yang memerlukan perhatian');
+                    }
+                } catch (error) {
+                    console.error('Error loading orders needing attention:', error);
+                    this.showError('Terjadi kesalahan saat memuat pesanan yang memerlukan perhatian');
+                } finally {
+                    this.hideLoading();
+                }
+            }
+            
+            async loadStatistics() {
+                try {
+                    const response = await axios.get('/admin/api/orders/statistics');
+                    
+                    if (response.data.success) {
+                        const stats = response.data.data;
+                        document.getElementById('totalOrders').textContent = stats.totalOrders;
+                        document.getElementById('pendingPayment').textContent = stats.pendingPayment;
+                        document.getElementById('pendingConfirmation').textContent = stats.pendingConfirmation;
+                        document.getElementById('paid').textContent = stats.paid;
+                    }
+                } catch (error) {
+                    console.error('Error loading statistics:', error);
+                }
+            }
+            
+            renderOrders() {
+                const tbody = document.getElementById('ordersTableBody');
+                
+                if (this.orders.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Tidak ada pesanan yang ditemukan</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                tbody.innerHTML = this.orders.map(order => `
+                    <tr class="order-row" data-order-id="${order.id}">
+                        <td>
+                            <strong>${order.orderNumber}</strong>
+                            <br>
+                            <small class="text-muted">ID: ${order.id}</small>
+                        </td>
+                        <td>
+                            <div>
+                                <strong>${order.customerName || 'N/A'}</strong>
+                                <br>
+                                <small class="text-muted">
+                                    ${order.customerPhone || 'N/A'} | ${order.customerEmail || 'N/A'}
+                                </small>
+                            </div>
+                        </td>
+                        <td>
+                            <strong class="text-primary">Rp ${this.formatCurrency(order.totalAmount)}</strong>
+                        </td>
+                        <td>
+                            ${this.getStatusBadge(order.status)}
+                        </td>
+                        <td>
+                            <div>
+                                <strong>${this.formatDate(order.createdAt)}</strong>
+                                <br>
+                                <small class="text-muted">${this.formatTime(order.createdAt)}</small>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="btn-group-vertical btn-group-sm">
+                                <button class="btn btn-outline-info btn-sm btn-action" onclick="orderManager.viewOrderDetail(${order.id})">
+                                    <i class="fas fa-eye"></i> Detail
+                                </button>
+                                ${this.getActionButtons(order)}
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+            
+            getStatusBadge(status) {
+                const statusMap = {
+                    'PENDING_PAYMENT': { class: 'bg-warning', text: 'Menunggu Pembayaran' },
+                    'PENDING_CONFIRMATION': { class: 'bg-info', text: 'Menunggu Konfirmasi' },
+                    'PAID': { class: 'bg-success', text: 'Sudah Dibayar' },
+                    'PROCESSING': { class: 'bg-primary', text: 'Sedang Diproses' },
+                    'SHIPPED': { class: 'bg-purple', text: 'Dikirim' },
+                    'DELIVERED': { class: 'bg-success', text: 'Terkirim' },
+                    'CANCELLED': { class: 'bg-danger', text: 'Dibatalkan' }
+                };
+                
+                const statusInfo = statusMap[status] || { class: 'bg-secondary', text: status };
+                return `<span class="badge ${statusInfo.class} status-badge">${statusInfo.text}</span>`;
+            }
+            
+            getActionButtons(order) {
+                let buttons = '';
+                
+                if (order.status === 'PENDING_PAYMENT' || order.status === 'PENDING_CONFIRMATION') {
+                    buttons += `
+                        <button class="btn btn-outline-success btn-sm btn-action" onclick="orderManager.showConfirmModal(${order.id})">
+                            <i class="fas fa-check"></i> Konfirmasi
+                        </button>
+                    `;
+                }
+                
+                if (order.status !== 'CANCELLED' && order.status !== 'DELIVERED') {
+                    buttons += `
+                        <button class="btn btn-outline-primary btn-sm btn-action" onclick="orderManager.showUpdateStatusModal(${order.id})">
+                            <i class="fas fa-edit"></i> Update Status
+                        </button>
+                    `;
+                }
+                
+                if (order.status === 'PENDING_PAYMENT' || order.status === 'PENDING_CONFIRMATION') {
+                    buttons += `
+                        <button class="btn btn-outline-danger btn-sm btn-action" onclick="orderManager.showCancelModal(${order.id})">
+                            <i class="fas fa-times"></i> Batalkan
+                        </button>
+                    `;
+                }
+                
+                return buttons;
+            }
+            
+            renderPagination() {
+                const pagination = document.getElementById('pagination');
+                
+                if (this.totalPages <= 1) {
+                    pagination.innerHTML = '';
+                    return;
+                }
+                
+                let paginationHTML = '';
+                
+                // Previous button
+                paginationHTML += `
+                    <li class="page-item ${this.currentPage === 0 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="orderManager.goToPage(${this.currentPage - 1})">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                `;
+                
+                // Page numbers
+                for (let i = 0; i < this.totalPages; i++) {
+                    if (i === 0 || i === this.totalPages - 1 || (i >= this.currentPage - 1 && i <= this.currentPage + 1)) {
+                        paginationHTML += `
+                            <li class="page-item ${i === this.currentPage ? 'active' : ''}">
+                                <a class="page-link" href="#" onclick="orderManager.goToPage(${i})">${i + 1}</a>
+                            </li>
+                        `;
+                    } else if (i === this.currentPage - 2 || i === this.currentPage + 2) {
+                        paginationHTML += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                    }
+                }
+                
+                // Next button
+                paginationHTML += `
+                    <li class="page-item ${this.currentPage === this.totalPages - 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="orderManager.goToPage(${this.currentPage + 1})">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                `;
+                
+                pagination.innerHTML = paginationHTML;
+            }
+            
+            goToPage(page) {
+                if (page >= 0 && page < this.totalPages) {
+                    this.currentPage = page;
+                    this.loadOrders();
+                }
+            }
+            
+            async viewOrderDetail(orderId) {
+                try {
+                    const response = await axios.get(`/admin/api/orders/${orderId}`);
+                    
+                    if (response.data.success) {
+                        const order = response.data.data;
+                        this.renderOrderDetail(order);
+                        
+                        const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+                        modal.show();
+                    } else {
+                        this.showError('Gagal memuat detail pesanan');
+                    }
+                } catch (error) {
+                    console.error('Error loading order detail:', error);
+                    this.showError('Terjadi kesalahan saat memuat detail pesanan');
+                }
+            }
+            
+            renderOrderDetail(order) {
+                const content = document.getElementById('orderDetailContent');
+                
+                content.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Informasi Pesanan</h6>
+                            <table class="table table-sm">
+                                <tr><td>No. Pesanan:</td><td><strong>${order.orderNumber}</strong></td></tr>
+                                <tr><td>Status:</td><td>${this.getStatusBadge(order.status)}</td></tr>
+                                <tr><td>Total:</td><td><strong>Rp ${this.formatCurrency(order.totalAmount)}</strong></td></tr>
+                                <tr><td>Metode Pembayaran:</td><td>${order.paymentMethod || 'N/A'}</td></tr>
+                                <tr><td>Tanggal Pesanan:</td><td>${this.formatDateTime(order.createdAt)}</td></tr>
+                                ${order.paidAt ? `<tr><td>Tanggal Bayar:</td><td>${this.formatDateTime(order.paidAt)}</td></tr>` : ''}
+                                ${order.cancelledAt ? `<tr><td>Tanggal Dibatalkan:</td><td>${this.formatDateTime(order.cancelledAt)}</td></tr>` : ''}
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Informasi Customer</h6>
+                            <table class="table table-sm">
+                                <tr><td>Nama:</td><td><strong>${order.customerName || 'N/A'}</strong></td></tr>
+                                <tr><td>Telepon:</td><td>${order.customerPhone || 'N/A'}</td></tr>
+                                <tr><td>Email:</td><td>${order.customerEmail || 'N/A'}</td></tr>
+                                <tr><td>Alamat:</td><td>${order.shippingAddress || 'N/A'}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    ${order.notes ? `
+                        <div class="mt-3">
+                            <h6 class="text-primary">Catatan</h6>
+                            <p class="text-muted">${order.notes}</p>
+                        </div>
+                    ` : ''}
+                    
+                    ${order.items && order.items.length > 0 ? `
+                        <div class="mt-3">
+                            <h6 class="text-primary">Item Pesanan</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Produk</th>
+                                            <th>Harga Satuan</th>
+                                            <th>Jumlah</th>
+                                            <th>Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${order.items.map(item => `
+                                            <tr>
+                                                <td>${item.product ? item.product.name : 'N/A'}</td>
+                                                <td>Rp ${this.formatCurrency(item.unitPrice)}</td>
+                                                <td>${item.quantity}</td>
+                                                <td>Rp ${this.formatCurrency(item.subtotal)}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+            }
+            
+            showConfirmModal(orderId) {
+                this.currentOrderId = orderId;
+                document.getElementById('confirmNotes').value = '';
+                
+                const modal = new bootstrap.Modal(document.getElementById('confirmOrderModal'));
+                modal.show();
+            }
+            
+            showUpdateStatusModal(orderId) {
+                this.currentOrderId = orderId;
+                document.getElementById('newStatus').value = 'PENDING_CONFIRMATION';
+                document.getElementById('statusNotes').value = '';
+                
+                const modal = new bootstrap.Modal(document.getElementById('updateStatusModal'));
+                modal.show();
+            }
+            
+            showCancelModal(orderId) {
+                this.currentOrderId = orderId;
+                document.getElementById('cancelReason').value = '';
+                
+                const modal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
+                modal.show();
+            }
+            
+            async confirmOrder() {
+                if (!this.currentOrderId) return;
+                
+                try {
+                    this.setLoading('confirmOrderBtn', true);
+                    
+                    const notes = document.getElementById('confirmNotes').value.trim();
+                    const requestBody = notes ? { notes } : null;
+                    
+                    const response = await axios.post(`/admin/api/orders/${this.currentOrderId}/confirm`, requestBody);
+                    
+                    if (response.data.success) {
+                        this.showSuccess('Pesanan berhasil dikonfirmasi');
+                        
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('confirmOrderModal'));
+                        modal.hide();
+                        
+                        // Refresh data
+                        this.loadOrders();
+                        this.loadStatistics();
+                    } else {
+                        this.showError('Gagal mengkonfirmasi pesanan');
+                    }
+                } catch (error) {
+                    console.error('Error confirming order:', error);
+                    this.showError('Terjadi kesalahan saat mengkonfirmasi pesanan');
+                } finally {
+                    this.setLoading('confirmOrderBtn', false);
+                }
+            }
+            
+            async updateOrderStatus() {
+                if (!this.currentOrderId) return;
+                
+                try {
+                    this.setLoading('updateStatusBtn', true);
+                    
+                    const newStatus = document.getElementById('newStatus').value;
+                    const notes = document.getElementById('statusNotes').value.trim();
+                    
+                    const requestBody = {
+                        status: newStatus,
+                        notes: notes || null
+                    };
+                    
+                    const response = await axios.put(`/admin/api/orders/${this.currentOrderId}/status`, requestBody);
+                    
+                    if (response.data.success) {
+                        this.showSuccess('Status pesanan berhasil diubah');
+                        
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('updateStatusModal'));
+                        modal.hide();
+                        
+                        // Refresh data
+                        this.loadOrders();
+                        this.loadStatistics();
+                    } else {
+                        this.showError('Gagal mengubah status pesanan');
+                    }
+                } catch (error) {
+                    console.error('Error updating order status:', error);
+                    this.showError('Terjadi kesalahan saat mengubah status pesanan');
+                } finally {
+                    this.setLoading('updateStatusBtn', false);
+                }
+            }
+            
+            async cancelOrder() {
+                if (!this.currentOrderId) return;
+                
+                try {
+                    this.setLoading('cancelOrderBtn', true);
+                    
+                    const reason = document.getElementById('cancelReason').value.trim();
+                    const requestBody = reason ? { notes: reason } : null;
+                    
+                    const response = await axios.post(`/admin/api/orders/${this.currentOrderId}/cancel`, requestBody);
+                    
+                    if (response.data.success) {
+                        this.showSuccess('Pesanan berhasil dibatalkan');
+                        
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('cancelOrderModal'));
+                        modal.hide();
+                        
+                        // Refresh data
+                        this.loadOrders();
+                        this.loadStatistics();
+                    } else {
+                        this.showError('Gagal membatalkan pesanan');
+                    }
+                } catch (error) {
+                    console.error('Error cancelling order:', error);
+                    this.showError('Terjadi kesalahan saat membatalkan pesanan');
+                } finally {
+                    this.setLoading('cancelOrderBtn', false);
+                }
+            }
+            
+            setLoading(buttonId, loading) {
+                const button = document.getElementById(buttonId);
+                if (loading) {
+                    button.classList.add('loading');
+                    button.disabled = true;
+                } else {
+                    button.classList.remove('loading');
+                    button.disabled = false;
+                }
+            }
+            
+            showLoading() {
+                document.getElementById('ordersTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Memuat data pesanan...</p>
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            hideLoading() {
+                // Loading is handled in renderOrders
+            }
+            
+            showSuccess(message) {
+                // You can implement a toast notification here
+                alert('✅ ' + message);
+            }
+            
+            showError(message) {
+                // You can implement a toast notification here
+                alert('❌ ' + message);
+            }
+            
+            formatCurrency(amount) {
+                if (!amount) return '0';
+                return new Intl.NumberFormat('id-ID').format(amount);
+            }
+            
+            formatDate(dateString) {
+                if (!dateString) return 'N/A';
+                const date = new Date(dateString);
+                return date.toLocaleDateString('id-ID');
+            }
+            
+            formatTime(dateString) {
+                if (!dateString) return 'N/A';
+                const date = new Date(dateString);
+                return date.toLocaleTimeString('id-ID');
+            }
+            
+            formatDateTime(dateString) {
+                if (!dateString) return 'N/A';
+                const date = new Date(dateString);
+                return `${date.toLocaleDateString('id-ID')} ${date.toLocaleTimeString('id-ID')}`;
+            }
+        }
+        
+        // Initialize Order Manager when page loads
+        let orderManager;
+        document.addEventListener('DOMContentLoaded', () => {
+            orderManager = new OrderManager();
+        });
+    </script>
+</body>
+</html>

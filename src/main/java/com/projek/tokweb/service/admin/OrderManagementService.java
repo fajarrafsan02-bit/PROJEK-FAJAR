@@ -1,0 +1,315 @@
+package com.projek.tokweb.service.admin;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.projek.tokweb.models.customer.Order;
+import com.projek.tokweb.models.customer.OrderStatus;
+import com.projek.tokweb.models.customer.PaymentTransaction;
+import com.projek.tokweb.models.customer.PaymentStatus;
+import com.projek.tokweb.repository.customer.OrderRepository;
+import com.projek.tokweb.repository.customer.PaymentTransactionRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class OrderManagementService {
+    
+    private final OrderRepository orderRepository;
+    private final PaymentTransactionRepository paymentTransactionRepository;
+    
+    /**
+     * Get all orders with pagination
+     */
+    public Page<Order> getAllOrders(int page, int size, String sortBy, String sortDirection) {
+        Sort sort = sortDirection.equalsIgnoreCase("desc") ? 
+            Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return orderRepository.findAllOrderByCreatedAtDesc(pageable);
+    }
+    
+    /**
+     * Get orders by status with pagination
+     */
+    public Page<Order> getOrdersByStatus(OrderStatus status, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return orderRepository.findByStatus(status, pageable);
+    }
+    
+    /**
+     * Get orders by multiple statuses
+     */
+    public List<Order> getOrdersByStatuses(List<OrderStatus> statuses) {
+        return orderRepository.findByStatusInOrderByCreatedAtDesc(statuses);
+    }
+    
+    /**
+     * Get order by ID
+     */
+    public Optional<Order> getOrderById(Long orderId) {
+        return orderRepository.findById(orderId);
+    }
+    
+    /**
+     * Get order by order number
+     */
+    public Optional<Order> getOrderByOrderNumber(String orderNumber) {
+        return orderRepository.findByOrderNumber(orderNumber);
+    }
+    
+    /**
+     * Search orders by customer name or phone
+     */
+    public List<Order> searchOrdersByCustomer(String searchTerm) {
+        return orderRepository.findByCustomerNameOrPhoneContainingOrderByCreatedAtDesc(searchTerm, searchTerm);
+    }
+    
+    /**
+     * Search orders by order number
+     */
+    public List<Order> searchOrdersByOrderNumber(String orderNumber) {
+        return orderRepository.findByOrderNumberContainingOrderByCreatedAtDesc(orderNumber);
+    }
+    
+    /**
+     * Confirm order (change status to PAID)
+     */
+    @Transactional
+    public Order confirmOrder(Long orderId, String adminNotes) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new IllegalArgumentException("Order tidak ditemukan: " + orderId));
+        
+        if (!order.canBeMarkedAsPaid()) {
+            throw new IllegalStateException("Order tidak dapat dikonfirmasi dengan status: " + order.getStatus());
+        }
+        
+        // Update order status
+        order.setStatus(OrderStatus.PAID);
+        order.setPaidAt(LocalDateTime.now());
+        order.setNotes(adminNotes != null ? adminNotes : "Dikonfirmasi oleh admin");
+        
+        // Update payment transaction if exists
+        List<PaymentTransaction> transactions = paymentTransactionRepository.findByOrder(order);
+        if (!transactions.isEmpty()) {
+            PaymentTransaction latestTransaction = transactions.get(0);
+            latestTransaction.setStatus(PaymentStatus.SUCCESS);
+            latestTransaction.setCompletedAt(LocalDateTime.now());
+            latestTransaction.setNotes("Dikonfirmasi oleh admin");
+            paymentTransactionRepository.save(latestTransaction);
+        }
+        
+        Order savedOrder = orderRepository.save(order);
+        log.info("Order {} dikonfirmasi oleh admin", orderId);
+        
+        return savedOrder;
+    }
+    
+    /**
+     * Update order status
+     */
+    @Transactional
+    public Order updateOrderStatus(Long orderId, OrderStatus newStatus, String adminNotes) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new IllegalArgumentException("Order tidak ditemukan: " + orderId));
+        
+        if (!order.getStatus().canTransitionTo(newStatus)) {
+            throw new IllegalStateException("Tidak dapat mengubah status dari " + order.getStatus() + " ke " + newStatus);
+        }
+        
+        // Update order status
+        order.setStatus(newStatus);
+        order.setNotes(adminNotes != null ? adminNotes : "Status diubah oleh admin");
+        
+        // Set specific timestamps based on status
+        switch (newStatus) {
+            case PAID:
+                order.setPaidAt(LocalDateTime.now());
+                break;
+            case CANCELLED:
+                order.setCancelledAt(LocalDateTime.now());
+                break;
+            default:
+                break;
+        }
+        
+        Order savedOrder = orderRepository.save(order);
+        log.info("Order {} status diubah dari {} ke {} oleh admin", orderId, order.getStatus(), newStatus);
+        
+        return savedOrder;
+    }
+    
+    /**
+     * Cancel order
+     */
+    @Transactional
+    public Order cancelOrder(Long orderId, String reason) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new IllegalArgumentException("Order tidak ditemukan: " + orderId));
+        
+        if (!order.canBeCancelled()) {
+            throw new IllegalStateException("Order tidak dapat dibatalkan dengan status: " + order.getStatus());
+        }
+        
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setCancelledAt(LocalDateTime.now());
+        order.setNotes("Dibatalkan oleh admin. Alasan: " + (reason != null ? reason : "Tidak ada alasan"));
+        
+        Order savedOrder = orderRepository.save(order);
+        log.info("Order {} dibatalkan oleh admin. Alasan: {}", orderId, reason);
+        
+        return savedOrder;
+    }
+    
+    /**
+     * Get order statistics
+     */
+    public OrderStatistics getOrderStatistics() {
+        long totalOrders = orderRepository.count();
+        long pendingPayment = orderRepository.countByStatus(OrderStatus.PENDING_PAYMENT);
+        long pendingConfirmation = orderRepository.countByStatus(OrderStatus.PENDING_CONFIRMATION);
+        long paid = orderRepository.countByStatus(OrderStatus.PAID);
+        long processing = orderRepository.countByStatus(OrderStatus.PROCESSING);
+        long shipped = orderRepository.countByStatus(OrderStatus.SHIPPED);
+        long delivered = orderRepository.countByStatus(OrderStatus.DELIVERED);
+        long cancelled = orderRepository.countByStatus(OrderStatus.CANCELLED);
+        
+        return OrderStatistics.builder()
+            .totalOrders(totalOrders)
+            .pendingPayment(pendingPayment)
+            .pendingConfirmation(pendingConfirmation)
+            .paid(paid)
+            .processing(processing)
+            .shipped(shipped)
+            .delivered(delivered)
+            .cancelled(cancelled)
+            .build();
+    }
+    
+    /**
+     * Get recent orders (last 7 days)
+     */
+    public List<Order> getRecentOrders() {
+        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+        return orderRepository.findAll().stream()
+            .filter(order -> order.getCreatedAt().isAfter(sevenDaysAgo))
+            .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+            .limit(10)
+            .toList();
+    }
+    
+    /**
+     * Get orders that need attention (pending payment, pending confirmation)
+     */
+    public List<Order> getOrdersNeedingAttention() {
+        List<OrderStatus> attentionStatuses = List.of(
+            OrderStatus.PENDING_PAYMENT, 
+            OrderStatus.PENDING_CONFIRMATION
+        );
+        return orderRepository.findByStatusInOrderByCreatedAtDesc(attentionStatuses);
+    }
+    
+    // Inner class for statistics
+    public static class OrderStatistics {
+        private final long totalOrders;
+        private final long pendingPayment;
+        private final long pendingConfirmation;
+        private final long paid;
+        private final long processing;
+        private final long shipped;
+        private final long delivered;
+        private final long cancelled;
+        
+        public OrderStatistics(long totalOrders, long pendingPayment, long pendingConfirmation, 
+                             long paid, long processing, long shipped, long delivered, long cancelled) {
+            this.totalOrders = totalOrders;
+            this.pendingPayment = pendingPayment;
+            this.pendingConfirmation = pendingConfirmation;
+            this.paid = paid;
+            this.processing = processing;
+            this.shipped = shipped;
+            this.delivered = delivered;
+            this.cancelled = cancelled;
+        }
+        
+        // Getters
+        public long getTotalOrders() { return totalOrders; }
+        public long getPendingPayment() { return pendingPayment; }
+        public long getPendingConfirmation() { return pendingConfirmation; }
+        public long getPaid() { return paid; }
+        public long getProcessing() { return processing; }
+        public long getShipped() { return shipped; }
+        public long getDelivered() { return delivered; }
+        public long getCancelled() { return cancelled; }
+        
+        public static OrderStatisticsBuilder builder() {
+            return new OrderStatisticsBuilder();
+        }
+        
+        public static class OrderStatisticsBuilder {
+            private long totalOrders;
+            private long pendingPayment;
+            private long pendingConfirmation;
+            private long paid;
+            private long processing;
+            private long shipped;
+            private long delivered;
+            private long cancelled;
+            
+            public OrderStatisticsBuilder totalOrders(long totalOrders) {
+                this.totalOrders = totalOrders;
+                return this;
+            }
+            
+            public OrderStatisticsBuilder pendingPayment(long pendingPayment) {
+                this.pendingPayment = pendingPayment;
+                return this;
+            }
+            
+            public OrderStatisticsBuilder pendingConfirmation(long pendingConfirmation) {
+                this.pendingConfirmation = pendingConfirmation;
+                return this;
+            }
+            
+            public OrderStatisticsBuilder paid(long paid) {
+                this.paid = paid;
+                return this;
+            }
+            
+            public OrderStatisticsBuilder processing(long processing) {
+                this.processing = processing;
+                return this;
+            }
+            
+            public OrderStatisticsBuilder shipped(long shipped) {
+                this.shipped = shipped;
+                return this;
+            }
+            
+            public OrderStatisticsBuilder delivered(long delivered) {
+                this.delivered = delivered;
+                return this;
+            }
+            
+            public OrderStatisticsBuilder cancelled(long cancelled) {
+                this.cancelled = cancelled;
+                return this;
+            }
+            
+            public OrderStatistics build() {
+                return new OrderStatistics(totalOrders, pendingPayment, pendingConfirmation, 
+                                        paid, processing, shipped, delivered, cancelled);
+            }
+        }
+    }
+}
