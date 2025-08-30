@@ -2408,111 +2408,40 @@
                 }
             }
 
-            // Method untuk ambil harga eksternal dari metalpriceapi.com
+                        // Method untuk ambil harga eksternal dari backend (yang sudah menggunakan Metal Price API)
             async fetchExternalPrice() {
                 try {
-                    this.showUpdateMessage("Mengambil harga emas dari Metal Price API...", 'info');
+                    this.showUpdateMessage("Mengambil harga emas dari backend...", 'info');
 
-                    // URL API dengan parameter yang benar
-                    const apiUrl = 'https://api.metalpriceapi.com/v1/latest?api_key=8690a386dcff535d89d68325dc10367e&base=IDR&currencies=EUR,XAU,XAG';
-                    
-                    console.log('Fetching from API:', apiUrl);
-
-                    const response = await fetch(apiUrl);
+                    // Panggil backend yang sudah menggunakan Metal Price API
+                    const response = await fetch('/gold-price/fetch-external');
                     if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: Gagal mengambil harga dari Metal Price API`);
+                        throw new Error(`HTTP ${response.status}: Gagal mengambil harga dari backend`);
                     }
 
                     const result = await response.json();
-                    console.log('API Response:', result);
+                    console.log('Backend Response:', result);
 
-                    if (result.success && result.rates) {
-                        // Parse harga dari API response
-                        // XAU = Gold (troy ounce), XAG = Silver (troy ounce)
-                        // 1 troy ounce = 31.1035 gram
+                    if (result.success && result.data) {
+                        // Data sudah di-parse oleh backend
+                        this.externalPrice = result.data;
                         
-                        let harga24k = 0;
-                        let harga22k = 0;
-                        let harga18k = 0;
-
-                        if (result.rates.XAU) {
-                            // Convert dari troy ounce ke gram dan dari IDR base
-                            // 1 IDR = XAU troy ounce
-                            // 1 gram = 1 / (31.1035 * XAU) IDR
-                            const goldPricePerGram = 1 / (31.1035 * result.rates.XAU);
-                            
-                            // Harga 24K (99.9% pure)
-                            harga24k = Math.round(goldPricePerGram);
-                            
-                            // Harga 22K (91.7% pure) = 24K * 0.917
-                            harga22k = Math.round(harga24k * 0.917);
-                            
-                            // Harga 18K (75% pure) = 24K * 0.75
-                            harga18k = Math.round(harga24k * 0.75);
-                            
-                            console.log('Calculated prices:', {
-                                goldPricePerGram,
-                                harga24k,
-                                harga22k,
-                                harga18k
-                            });
-                        }
-
-                        // Validasi harga yang dihitung
-                        if (harga24k < 1000000 || harga24k > 10000000) {
-                            throw new Error(`Harga yang dihitung tidak masuk akal: 24K = ${this.formatCurrency(harga24k)}. Mungkin ada masalah dengan data API.`);
-                        }
-
-                        // Simpan data ke externalPrice dengan format yang konsisten
-                        this.externalPrice = {
-                            harga24k: harga24k,
-                            harga22k: harga22k,
-                            harga18k: harga18k,
-                            source: "Metal Price API",
-                            timestamp: result.timestamp,
-                            apiResponse: result
-                        };
-
-                        this.showUpdateMessage(`✅ Harga emas berhasil diambil dari Metal Price API:\n24K: ${this.formatCurrency(harga24k)}\n22K: ${this.formatCurrency(harga22k)}\n18K: ${this.formatCurrency(harga18k)}`, 'success');
-                        this.showNotification('Harga emas berhasil diambil dari Metal Price API!', 'success');
-
                         // Update status API indicator
                         this.updateApiStatus();
+                        
+                        this.showUpdateMessage(`✅ Harga emas berhasil diambil dari ${this.externalPrice.source}:\n24K: ${this.formatCurrency(this.externalPrice.harga24k)}\n22K: ${this.formatCurrency(this.externalPrice.harga22k)}\n18K: ${this.formatCurrency(this.externalPrice.harga18k)}`, 'success');
+                        this.showNotification('Harga emas berhasil diambil!', 'success');
 
                     } else {
-                        throw new Error('Response dari Metal Price API tidak valid atau tidak berisi data rates');
+                        throw new Error(result.message || 'Gagal mengambil harga eksternal');
                     }
 
                 } catch (error) {
-                    console.error('Error fetching from Metal Price API:', error);
-                    
-                    // Fallback: coba ambil dari backend (jika ada)
-                    try {
-                        this.showUpdateMessage("Mencoba fallback ke backend...", 'info');
-                        
-                        const fallbackResponse = await fetch('/gold-price/fetch-external');
-                        if (fallbackResponse.ok) {
-                            const fallbackResult = await fallbackResponse.json();
-                            if (fallbackResult.success) {
-                                this.externalPrice = {
-                                    ...fallbackResult.data,
-                                    source: "Backend Fallback",
-                                    note: "Metal Price API gagal, menggunakan fallback backend"
-                                };
-                                
-                                this.showUpdateMessage("⚠️ Menggunakan fallback backend karena Metal Price API gagal", 'warning');
-                                this.showNotification('Menggunakan fallback backend', 'warning');
-                                return;
-                            }
-                        }
-                    } catch (fallbackError) {
-                        console.error('Fallback juga gagal:', fallbackError);
-                    }
-                    
+                    console.error('Error fetching external price:', error);
                     this.showUpdateMessage("❌ Error: " + error.message, 'error');
-                    this.showNotification('Gagal mengambil harga emas: ' + error.message, 'error');
+                    this.showNotification('Gagal mengambil harga eksternal: ' + error.message, 'error');
                 }
-                }
+            }
             }
 
             // Method untuk update status API indicator

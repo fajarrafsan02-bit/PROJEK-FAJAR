@@ -69,8 +69,8 @@ public class GoldPriceService {
         try {
             log.info(">> Memulai fetch dan save harga emas terbaru");
             
-            // Fetch harga dari API eksternal
-            String apiUrl = "https://api.metals.live/v1/spot/gold";
+            // Fetch harga dari Metal Price API
+            String apiUrl = "https://api.metalpriceapi.com/v1/latest?api_key=8690a386dcff535d89d68325dc10367e&base=IDR&currencies=EUR,XAU,XAG";
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.getForEntity(apiUrl, String.class);
 
@@ -78,22 +78,36 @@ public class GoldPriceService {
                 ObjectMapper mapper = new ObjectMapper();
                 JsonNode rootNode = mapper.readTree(response.getBody());
                 
-                if (rootNode.isArray() && rootNode.size() > 0) {
-                    JsonNode priceNode = rootNode.get(0).get("price");
-                    if (priceNode != null && priceNode.isNumber()) {
-                        double harga24k = priceNode.asDouble();
-                        log.info(">> Harga 24k dari API: {}", harga24k);
-
-                        if (harga24k <= 0) {
-                            throw new RuntimeException("Invalid price value: " + harga24k);
+                // Parse response dari Metal Price API
+                if (rootNode.has("success") && rootNode.get("success").asBoolean() && rootNode.has("rates")) {
+                    JsonNode ratesNode = rootNode.get("rates");
+                    
+                    if (ratesNode.has("XAU")) {
+                        // XAU = Gold (troy ounce), 1 troy ounce = 31.1035 gram
+                        double xauRate = ratesNode.get("XAU").asDouble();
+                        log.info(">> XAU rate dari Metal Price API: {}", xauRate);
+                        
+                        if (xauRate <= 0) {
+                            throw new RuntimeException("Invalid XAU rate: " + xauRate);
+                        }
+                        
+                        // Convert dari troy ounce ke gram dan dari IDR base
+                        // 1 IDR = XAU troy ounce
+                        // 1 gram = 1 / (31.1035 * XAU) IDR
+                        double goldPricePerGram = 1 / (31.1035 * xauRate);
+                        log.info(">> Harga emas per gram (IDR): {}", goldPricePerGram);
+                        
+                        // Validasi harga yang masuk akal (1jt - 10jt per gram)
+                        if (goldPricePerGram < 1000000 || goldPricePerGram > 10000000) {
+                            throw new RuntimeException("Harga yang dihitung tidak masuk akal: " + goldPricePerGram + " IDR/gram");
                         }
                         
                         GoldPrice oldPrice = getLatestGoldPrice();
                         log.info(">> Harga emas lama: {}", oldPrice);
 
                         // Hitung harga dengan pembulatan
-                        Map<String, Double> hargaJual = calculatePricesByPurity(harga24k, true);
-                        Map<String, Double> hargaBeli = calculatePricesByPurity(harga24k, false);
+                        Map<String, Double> hargaJual = calculatePricesByPurity(goldPricePerGram, true);
+                        Map<String, Double> hargaBeli = calculatePricesByPurity(goldPricePerGram, false);
 
                         GoldPrice goldPrice = GoldPrice.builder()
                                 .hargaJual24k(hargaJual.get("24k"))
@@ -120,16 +134,16 @@ public class GoldPriceService {
 
                         return saved;
                     } else {
-                        log.error(">> API tidak mengembalikan harga yang valid");
-                        throw new RuntimeException("API tidak mengembalikan harga yang valid");
+                        log.error(">> Metal Price API tidak mengembalikan XAU rate yang valid");
+                        throw new RuntimeException("Metal Price API tidak mengembalikan XAU rate yang valid");
                     }
                 } else {
-                    log.error(">> API returned non-OK status: {}", response.getStatusCode());
-                    throw new RuntimeException("Gagal mengambil harga emas dari API. Status: " + response.getStatusCode());
+                    log.error(">> Metal Price API tidak mengembalikan response yang valid");
+                    throw new RuntimeException("Metal Price API tidak mengembalikan response yang valid");
                 }
             } else {
-                log.error(">> API returned non-OK status: {}", response.getStatusCode());
-                throw new RuntimeException("Gagal mengambil harga emas dari API. Status: " + response.getStatusCode());
+                log.error(">> Metal Price API returned non-OK status: {}", response.getStatusCode());
+                throw new RuntimeException("Gagal mengambil harga emas dari Metal Price API. Status: " + response.getStatusCode());
             }
         } catch (Exception e) {
             log.error(">> Error in fetchAndSaveLatestPrice: {}", e.getMessage());
@@ -613,17 +627,17 @@ public class GoldPriceService {
     }
 
     /**
-     * Fetch harga emas dari API eksternal tanpa menyimpan ke database
+     * Fetch harga emas dari Metal Price API (metalpriceapi.com)
      */
     public Map<String, Object> fetchExternalPriceOnly() {
         try {
-            log.info(">> Service: Memulai fetch harga emas eksternal");
+            log.info(">> Service: Memulai fetch harga emas dari Metal Price API");
             
-            // Fetch harga dari API eksternal
-            String apiUrl = "https://api.metals.live/v1/spot/gold";
+            // URL API metalpriceapi.com dengan parameter yang benar
+            String apiUrl = "https://api.metalpriceapi.com/v1/latest?api_key=8690a386dcff535d89d68325dc10367e&base=IDR&currencies=EUR,XAU,XAG";
             RestTemplate restTemplate = new RestTemplate();
             
-            log.info(">> Service: Mengirim request ke API: {}", apiUrl);
+            log.info(">> Service: Mengirim request ke Metal Price API: {}", apiUrl);
             
             ResponseEntity<String> response = restTemplate.getForEntity(apiUrl, String.class);
             
@@ -635,7 +649,7 @@ public class GoldPriceService {
                 
                 if (responseBody == null || responseBody.trim().isEmpty()) {
                     log.error(">> Service: Response body kosong");
-                    throw new RuntimeException("API mengembalikan response kosong");
+                    throw new RuntimeException("Metal Price API mengembalikan response kosong");
                 }
                 
                 // Log response body untuk debugging (hanya 200 karakter pertama)
@@ -646,7 +660,7 @@ public class GoldPriceService {
                 // Cek apakah response dimulai dengan HTML (biasanya error page)
                 if (responseBody.trim().startsWith("<")) {
                     log.error(">> Service: API mengembalikan HTML, kemungkinan error page");
-                    throw new RuntimeException("API mengembalikan halaman error HTML");
+                    throw new RuntimeException("Metal Price API mengembalikan halaman error HTML");
                 }
                 
                 ObjectMapper mapper = new ObjectMapper();
@@ -657,56 +671,71 @@ public class GoldPriceService {
                 } catch (Exception e) {
                     log.error(">> Service: Error parsing JSON: {}", e.getMessage());
                     log.error(">> Service: Response body yang gagal di-parse: {}", responseBody);
-                    throw new RuntimeException("Gagal parse response JSON dari API: " + e.getMessage());
+                    throw new RuntimeException("Gagal parse response JSON dari Metal Price API: " + e.getMessage());
                 }
                 
-                if (rootNode.isArray() && rootNode.size() > 0) {
-                    JsonNode priceNode = rootNode.get(0).get("price");
-                    if (priceNode != null && priceNode.isNumber()) {
-                        double harga24k = priceNode.asDouble();
-                        log.info(">> Service: Harga 24k dari API eksternal: {}", harga24k);
-
-                        if (harga24k <= 0) {
-                            throw new RuntimeException("Invalid price value: " + harga24k);
+                // Parse response dari Metal Price API
+                if (rootNode.has("success") && rootNode.get("success").asBoolean() && rootNode.has("rates")) {
+                    JsonNode ratesNode = rootNode.get("rates");
+                    
+                    if (ratesNode.has("XAU")) {
+                        // XAU = Gold (troy ounce), 1 troy ounce = 31.1035 gram
+                        double xauRate = ratesNode.get("XAU").asDouble();
+                        log.info(">> Service: XAU rate dari Metal Price API: {}", xauRate);
+                        
+                        if (xauRate <= 0) {
+                            throw new RuntimeException("Invalid XAU rate: " + xauRate);
+                        }
+                        
+                        // Convert dari troy ounce ke gram dan dari IDR base
+                        // 1 IDR = XAU troy ounce
+                        // 1 gram = 1 / (31.1035 * XAU) IDR
+                        double goldPricePerGram = 1 / (31.1035 * xauRate);
+                        log.info(">> Service: Harga emas per gram (IDR): {}", goldPricePerGram);
+                        
+                        // Validasi harga yang masuk akal (1jt - 10jt per gram)
+                        if (goldPricePerGram < 1000000 || goldPricePerGram > 10000000) {
+                            throw new RuntimeException("Harga yang dihitung tidak masuk akal: " + goldPricePerGram + " IDR/gram");
                         }
                         
                         // Hitung harga dengan pembulatan
-                        Map<String, Double> hargaJual = calculatePricesByPurity(harga24k, true);
-                        Map<String, Double> hargaBeli = calculatePricesByPurity(harga24k, false);
+                        Map<String, Double> hargaJual = calculatePricesByPurity(goldPricePerGram, true);
+                        Map<String, Double> hargaBeli = calculatePricesByPurity(goldPricePerGram, false);
 
                         Map<String, Object> result = new HashMap<>();
-                        result.put("harga24k", NumberFormatter.roundGoldPrice(harga24k));
+                        result.put("harga24k", NumberFormatter.roundGoldPrice(goldPricePerGram));
                         result.put("hargaJual24k", hargaJual.get("24k"));
                         result.put("hargaBeli24k", hargaBeli.get("24k"));
                         result.put("hargaJual22k", hargaJual.get("22k"));
                         result.put("hargaBeli22k", hargaBeli.get("22k"));
                         result.put("hargaJual18k", hargaJual.get("18k"));
                         result.put("hargaBeli18k", hargaBeli.get("18k"));
-                        result.put("timestamp", LocalDateTime.now());
-                        result.put("source", "API Eksternal");
+                        result.put("timestamp", rootNode.has("timestamp") ? rootNode.get("timestamp").asLong() : System.currentTimeMillis() / 1000);
+                        result.put("source", "Metal Price API");
+                        result.put("apiResponse", rootNode.toString());
 
-                        log.info(">> Service: Harga eksternal berhasil diambil: {}", result);
+                        log.info(">> Service: Harga emas berhasil diambil dari Metal Price API: {}", result);
                         return result;
                         
                     } else {
-                        log.error(">> Service: API tidak mengembalikan harga yang valid");
-                        log.error(">> Service: Price node: {}", priceNode);
-                        throw new RuntimeException("API tidak mengembalikan harga yang valid");
+                        log.error(">> Service: Metal Price API tidak mengembalikan XAU rate yang valid");
+                        log.error(">> Service: Rates node: {}", ratesNode);
+                        throw new RuntimeException("Metal Price API tidak mengembalikan XAU rate yang valid");
                     }
                 } else {
-                    log.error(">> Service: API tidak mengembalikan array yang valid");
+                    log.error(">> Service: Metal Price API tidak mengembalikan response yang valid");
                     log.error(">> Service: Root node: {}", rootNode);
-                    throw new RuntimeException("API tidak mengembalikan array yang valid");
+                    throw new RuntimeException("Metal Price API tidak mengembalikan response yang valid");
                 }
             } else {
-                log.error(">> Service: API returned non-OK status: {}", response.getStatusCode());
+                log.error(">> Service: Metal Price API returned non-OK status: {}", response.getStatusCode());
                 log.error(">> Service: Response body: {}", response.getBody());
-                throw new RuntimeException("Gagal mengambil harga emas dari API. Status: " + response.getStatusCode());
+                throw new RuntimeException("Gagal mengambil harga emas dari Metal Price API. Status: " + response.getStatusCode());
             }
         } catch (Exception e) {
             log.error(">> Service: Error in fetchExternalPriceOnly: {}", e.getMessage(), e);
             
-            // Jika ada masalah dengan API eksternal, gunakan harga default atau harga terbaru dari database
+            // Jika ada masalah dengan Metal Price API, gunakan harga default atau harga terbaru dari database
             try {
                 log.info(">> Service: Mencoba menggunakan harga terbaru dari database sebagai fallback");
                 GoldPrice latestPrice = getLatestGoldPrice();
@@ -722,16 +751,16 @@ public class GoldPriceService {
                     fallbackResult.put("hargaBeli18k", latestPrice.getHargaBeli18k());
                     fallbackResult.put("timestamp", LocalDateTime.now());
                     fallbackResult.put("source", "Database Fallback");
-                    fallbackResult.put("note", "API eksternal tidak tersedia, menggunakan harga terbaru dari database");
+                    fallbackResult.put("note", "Metal Price API tidak tersedia, menggunakan harga terbaru dari database");
                     
                     log.info(">> Service: Menggunakan fallback dari database: {}", fallbackResult);
                     return fallbackResult;
                 } else {
-                    throw new RuntimeException("Gagal mengambil harga emas eksternal dan tidak ada fallback dari database: " + e.getMessage());
+                    throw new RuntimeException("Gagal mengambil harga emas dari Metal Price API dan tidak ada fallback dari database: " + e.getMessage());
                 }
             } catch (Exception fallbackError) {
                 log.error(">> Service: Error dalam fallback: {}", fallbackError.getMessage());
-                throw new RuntimeException("Gagal mengambil harga emas eksternal: " + e.getMessage());
+                throw new RuntimeException("Gagal mengambil harga emas dari Metal Price API: " + e.getMessage());
             }
         }
     }
