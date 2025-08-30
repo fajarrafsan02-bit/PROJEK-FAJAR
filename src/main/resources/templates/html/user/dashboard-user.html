@@ -11,7 +11,6 @@
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/gold-price-styles.css">
     <style>
         * {
             margin: 0;
@@ -918,12 +917,19 @@
                     this.updateCartBadge();
                 }, 30000); // Refresh setiap 30 detik
                 
+                // Refresh perubahan harga emas secara berkala
+                setInterval(async () => {
+                    console.log('Periodic price change refresh...');
+                    await this.fetchPriceChange();
+                }, 60000); // Refresh setiap 1 menit
+                
                 // Tambahkan event listener untuk memastikan cart badge selalu up-to-date
                 document.addEventListener('visibilitychange', async () => {
                     if (!document.hidden) {
-                        // Ketika halaman kembali aktif, refresh cart data
+                        // Ketika halaman kembali aktif, refresh cart data dan harga emas
                         await this.loadCartFromDatabase();
                         this.updateCartBadge();
+                        await this.fetchPriceChange();
                     }
                 });
             }
@@ -1302,8 +1308,10 @@
                                 this.updateProductPrices();
                             }
                             
-                            // Fetch perubahan harga untuk perbandingan
-                            await this.fetchPriceChange();
+                            // Fetch perubahan harga untuk perbandingan - tunggu sebentar agar data tersimpan
+                            setTimeout(async () => {
+                                await this.fetchPriceChange();
+                            }, 1000);
                         } else {
                             console.warn('Invalid gold price from API:', goldData.hargaJual24k);
                         }
@@ -1317,51 +1325,49 @@
 
             async fetchPriceChange() {
                 try {
-                    // Ambil riwayat perubahan harga emas dari endpoint yang lebih spesifik
+                    // Coba endpoint changes terlebih dahulu
                     const res = await fetch('/gold-price/changes/latest');
-                    if (!res.ok) {
-                        // Fallback ke endpoint history jika endpoint changes tidak tersedia
-                        console.log('Latest changes endpoint not available, using history fallback');
-                        await this.fetchPriceChangeFromHistory();
-                        return;
-                    }
-                    
-                    const payload = await res.json();
-                    console.log('Price changes API response:', payload);
-                    
-                    if (payload.success && payload.data && payload.data.length > 0) {
-                        // Ambil perubahan terbaru untuk 24K
-                        const latestChange = payload.data.find(change => 
-                            change.purity === '24k' || change.purity === '24K'
-                        );
+                    if (res.ok) {
+                        const payload = await res.json();
+                        console.log('Price changes API response:', payload);
                         
-                        if (latestChange) {
-                            // Tampilkan perubahan berdasarkan data dari database
-                            this.updatePriceChangeDisplay(
-                                latestChange.changeAmount,
-                                latestChange.changePercent,
-                                null,
-                                latestChange.changeType,
-                                latestChange.changeDate
+                        if (payload.success && payload.data && payload.data.length > 0) {
+                            // Ambil perubahan terbaru untuk 24K
+                            const latestChange = payload.data.find(change => 
+                                change.purity === '24k' || change.purity === '24K'
                             );
-                        } else {
-                            this.updatePriceChangeDisplay(0, 0, 'Tidak ada data perubahan untuk 24K');
+                            
+                            if (latestChange) {
+                                console.log('Using changes endpoint data:', latestChange);
+                                // Tampilkan perubahan berdasarkan data dari database
+                                this.updatePriceChangeDisplay(
+                                    latestChange.changeAmount,
+                                    latestChange.changePercent,
+                                    null,
+                                    latestChange.changeType,
+                                    latestChange.changeDate
+                                );
+                                return;
+                            }
                         }
-                    } else {
-                        // Fallback ke history jika tidak ada data changes
-                        await this.fetchPriceChangeFromHistory();
                     }
+                    
+                    // Fallback ke endpoint history jika endpoint changes tidak tersedia atau tidak ada data
+                    console.log('Using history fallback for price changes');
+                    await this.fetchPriceChangeFromHistory();
+                    
                 } catch (error) {
                     console.error('Error fetching price changes:', error);
                     // Fallback ke history jika ada error
+                    console.log('Falling back to history due to error');
                     await this.fetchPriceChangeFromHistory();
                 }
             }
 
             async fetchPriceChangeFromHistory() {
                 try {
-                    // Ambil riwayat harga emas untuk perbandingan manual
-                    const res = await fetch('/gold-price/history?page=0&size=2&sortBy=tanggalAmbil&sortDirection=desc');
+                    // Ambil riwayat harga emas untuk perbandingan manual - ambil lebih banyak data
+                    const res = await fetch('/gold-price/history?page=0&size=10&sortBy=tanggalAmbil&sortDirection=desc');
                     if (!res.ok) {
                         console.error('Failed to fetch price history:', res.status);
                         this.updatePriceChangeDisplay(0, 0, 'Gagal memuat data perubahan harga');
@@ -1373,12 +1379,32 @@
                     
                     if (payload.success && payload.data?.content && payload.data.content.length >= 2) {
                         const currentPrice = this.goldPrice;
-                        const previousPriceData = payload.data.content[1]; // Harga kedua terbaru
                         
-                        // Parse harga sebelumnya
-                        const previousPrice = parseInt(String(previousPriceData.hargaJual24k).replace(/[^\d]/g, '')) || 0;
+                        // Cari data harga yang berbeda dengan harga saat ini
+                        let previousPriceData = null;
+                        let previousPrice = 0;
                         
-                        if (previousPrice > 0) {
+                        for (let i = 1; i < payload.data.content.length; i++) {
+                            const priceData = payload.data.content[i];
+                            const parsedPrice = parseInt(String(priceData.hargaJual24k).replace(/[^\d]/g, '')) || 0;
+                            
+                            if (parsedPrice > 0 && parsedPrice !== currentPrice) {
+                                previousPriceData = priceData;
+                                previousPrice = parsedPrice;
+                                break;
+                            }
+                        }
+                        
+                        console.log('Price comparison:', {
+                            currentPrice,
+                            previousPrice,
+                            previousPriceData: previousPriceData ? {
+                                harga: previousPriceData.hargaJual24k,
+                                tanggal: previousPriceData.tanggalAmbil
+                            } : null
+                        });
+                        
+                        if (previousPrice > 0 && previousPrice !== currentPrice) {
                             // Hitung perubahan
                             const changeAmount = currentPrice - previousPrice;
                             const changePercent = ((changeAmount / previousPrice) * 100);
@@ -1387,6 +1413,14 @@
                             let changeType = 'STABLE';
                             if (changeAmount > 0) changeType = 'INCREASE';
                             else if (changeAmount < 0) changeType = 'DECREASE';
+                            
+                            console.log('Price change calculated:', {
+                                changeAmount,
+                                changePercent: changePercent.toFixed(2) + '%',
+                                changeType,
+                                fromPrice: previousPrice,
+                                toPrice: currentPrice
+                            });
                             
                             // Update tampilan perubahan harga
                             this.updatePriceChangeDisplay(
@@ -1397,9 +1431,11 @@
                                 previousPriceData.tanggalAmbil
                             );
                         } else {
-                            this.updatePriceChangeDisplay(0, 0, 'Tidak ada data perubahan');
+                            console.log('No price change detected - prices are the same or invalid');
+                            this.updatePriceChangeDisplay(0, 0, 'Tidak ada perubahan harga');
                         }
                     } else {
+                        console.log('Insufficient price history data');
                         this.updatePriceChangeDisplay(0, 0, 'Tidak ada data perubahan');
                     }
                 } catch (error) {
@@ -1628,6 +1664,43 @@
                 window.location.href = `/user/katalog?category=${encodeURIComponent(category || '')}`;
             }
 
+            // Method untuk debug dan test perubahan harga emas
+            async debugPriceChanges() {
+                console.log('=== DEBUG PRICE CHANGES ===');
+                console.log('Current gold price:', this.goldPrice);
+                
+                try {
+                    // Test endpoint history
+                    const res = await fetch('/gold-price/history?page=0&size=5&sortBy=tanggalAmbil&sortDirection=desc');
+                    if (res.ok) {
+                        const data = await res.json();
+                        console.log('History data:', data);
+                        
+                        if (data.success && data.data?.content) {
+                            console.log('Price history items:');
+                            data.data.content.forEach((item, index) => {
+                                const price = parseInt(String(item.hargaJual24k).replace(/[^\d]/g, '')) || 0;
+                                console.log(`${index + 1}. Harga: ${price}, Tanggal: ${item.tanggalAmbil}`);
+                            });
+                        }
+                    }
+                    
+                    // Test endpoint changes
+                    const changesRes = await fetch('/gold-price/changes/latest');
+                    if (changesRes.ok) {
+                        const changesData = await changesRes.json();
+                        console.log('Changes data:', changesData);
+                    } else {
+                        console.log('Changes endpoint not available');
+                    }
+                    
+                } catch (error) {
+                    console.error('Debug error:', error);
+                }
+                
+                console.log('=== END DEBUG ===');
+            }
+
             showNotification(message, type = 'info') {
                 const notification = document.createElement('div');
                 notification.style.cssText = `
@@ -1842,8 +1915,6 @@
         document.head.appendChild(style);
     </script>
     <script src="/js/cart-badge-utility.js"></script>
-    <script src="/js/gold-price-updater.js"></script>
-    <script src="/js/gold-price-history.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => { 
             window.homepageManager = new HomepageManager(); 
