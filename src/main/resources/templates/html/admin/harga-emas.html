@@ -1204,17 +1204,41 @@
             async init() {
                 this.setupEventListeners();
                 this.setupCurrencyInputFormatters(); // Setup currency input formatters
+                
+                console.log('Initializing GoldPriceManager...');
+                
                 // Load data secara berurutan
                 await this.loadCurrentPrices();
-                await this.loadPriceChanges();
-                await this.loadPriceHistory();
+                console.log('Current prices loaded:', this.currentPrices);
                 
-                // Hitung perubahan harga yang lebih akurat
-                await this.calculatePriceChanges();
-
+                await this.loadPriceChanges();
+                console.log('Price changes loaded:', this.priceChanges);
+                
+                await this.loadPriceHistory();
+                console.log('Price history loaded, length:', this.priceHistory.length);
+                
+                // Hitung perubahan harga yang lebih akurat jika tidak ada data dari database
+                if (!this.hasValidPriceChanges()) {
+                    console.log('No valid price changes from database, calculating from history...');
+                    await this.calculatePriceChanges();
+                }
+                
                 // Setelah semua data ter-load, baru render
                 this.renderCurrentPrices();
                 this.loadCurrentPricesInForm();
+                
+                console.log('Initialization completed');
+            }
+
+            // Method untuk cek apakah ada data perubahan harga yang valid
+            hasValidPriceChanges() {
+                if (!this.priceChanges) return false;
+                
+                const requiredPurities = ['24k', '22k', '18k'];
+                return requiredPurities.some(purity => {
+                    const change = this.priceChanges[purity];
+                    return change && change.oldPrice > 0 && change.newPrice > 0;
+                });
             }
 
             setupEventListeners() {
@@ -1452,22 +1476,29 @@
 
                     console.log('Price changes response:', result);
 
-                    if (result.success && result.data && result.data.length > 0) {
+                    if (result.success && result.data && Array.isArray(result.data) && result.data.length > 0) {
                         const changes = result.data;
                         this.priceChanges = {};
                         
+                        // Process each change from database
                         changes.forEach(change => {
                             if (change.purity) {
-                                this.priceChanges[change.purity] = {
-                                    purity: change.purity,
+                                // Convert purity to lowercase for consistency
+                                const purityKey = change.purity.toLowerCase();
+                                
+                                this.priceChanges[purityKey] = {
+                                    purity: purityKey,
                                     oldPrice: change.oldPrice || 0,
                                     newPrice: change.newPrice || 0,
                                     changeAmount: change.changeAmount || 0,
                                     changePercent: change.changePercent || 0,
                                     changeType: change.changeType || 'STABLE',
                                     changeDate: change.changeDate ? new Date(change.changeDate) : new Date(),
-                                    updatedBy: change.changeSource || 'System'
+                                    updatedBy: change.changeSource || 'System',
+                                    notes: change.notes || ''
                                 };
+                                
+                                console.log(`Processed change for ${purityKey}:`, this.priceChanges[purityKey]);
                             }
                         });
 
@@ -1475,6 +1506,7 @@
                         const requiredPurities = ['24k', '22k', '18k'];
                         requiredPurities.forEach(purity => {
                             if (!this.priceChanges[purity]) {
+                                // Jika tidak ada perubahan untuk purity ini, buat data default
                                 this.priceChanges[purity] = {
                                     purity: purity,
                                     oldPrice: 0,
@@ -1488,12 +1520,13 @@
                                 };
                             }
                         });
+                        
+                        console.log('Final price changes from database:', this.priceChanges);
                     } else {
-                        // Jika tidak ada data perubahan, coba ambil dari history untuk perbandingan
+                        console.log('No valid changes data from database, trying history fallback...');
+                        // Jika tidak ada data perubahan yang valid, coba ambil dari history untuk perbandingan
                         await this.loadPriceChangesFromHistory();
                     }
-
-                    console.log('Price changes loaded:', this.priceChanges);
 
                 } catch (error) {
                     console.error('Error loading price changes:', error);
@@ -1515,8 +1548,8 @@
                         const latest = result.data.content[0];
                         const previous = result.data.content[1];
 
-                        console.log('Latest price:', latest);
-                        console.log('Previous price:', previous);
+                        console.log('Latest price from history:', latest);
+                        console.log('Previous price from history:', previous);
 
                         this.priceChanges = {};
                         const requiredPurities = ['24k', '22k', '18k'];
@@ -1527,6 +1560,8 @@
 
                             const latestPrice = latest[purityKey] || 0;
                             const previousPrice = previous[purityKey] || 0;
+
+                            console.log(`Processing ${purity}: latest=${latestPrice}, previous=${previousPrice}`);
 
                             if (latestPrice > 0 && previousPrice > 0) {
                                 const change = latestPrice - previousPrice;
@@ -1541,8 +1576,11 @@
                                     changePercent: changePercent,
                                     changeType: changeType,
                                     changeDate: new Date(latest.tanggalAmbil),
-                                    updatedBy: latest.goldPriceEnum || 'System'
+                                    updatedBy: latest.goldPriceEnum || 'System',
+                                    source: 'HISTORY_FALLBACK'
                                 };
+
+                                console.log(`Created change from history for ${purity}:`, this.priceChanges[purity]);
                             } else {
                                 this.priceChanges[purity] = {
                                     purity: purity,
@@ -1552,13 +1590,15 @@
                                     changePercent: 0,
                                     changeType: 'STABLE',
                                     changeDate: new Date(latest.tanggalAmbil),
-                                    updatedBy: latest.goldPriceEnum || 'System'
+                                    updatedBy: latest.goldPriceEnum || 'System',
+                                    source: 'HISTORY_FALLBACK'
                                 };
                             }
                         });
 
                         console.log('Price changes from history:', this.priceChanges);
                     } else {
+                        console.log('No sufficient history data available, creating default changes');
                         // Jika tidak ada history yang cukup, buat data default
                         this.createDefaultPriceChanges();
                     }
@@ -1743,6 +1783,8 @@
                     let changeText = 'Belum ada perubahan harga';
                     let changeTime = '';
 
+                    console.log(`Rendering ${item.key}:`, { currentPrice, changeData });
+
                     if (changeData && changeData.oldPrice > 0 && changeData.newPrice > 0) {
                         // Gunakan data dari database jika tersedia
                         change = changeData.changeAmount || (changeData.newPrice - changeData.oldPrice);
@@ -1775,9 +1817,16 @@
                             } else if (diffHours > 0) {
                                 changeTime = `${diffHours} jam yang lalu`;
                             } else {
-                                changeTime = 'Baru saja';
+                                const diffMinutes = Math.floor(diffMs / (1000 * 60));
+                                if (diffMinutes > 0) {
+                                    changeTime = `${diffMinutes} menit yang lalu`;
+                                } else {
+                                    changeTime = 'Baru saja';
+                                }
                             }
                         }
+                        
+                        console.log(`Change data for ${item.key}:`, { change, changePercent, changeType, changeTime });
                     } else if (currentPrice > 0) {
                         // Jika tidak ada data perubahan yang valid, coba cari dari history
                         const hasHistory = this.priceHistory && this.priceHistory.length > 0;
@@ -1814,7 +1863,12 @@
                                 } else if (diffHours > 0) {
                                     changeTime = `${diffHours} jam yang lalu`;
                                 } else {
-                                    changeTime = 'Baru saja';
+                                    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+                                    if (diffMinutes > 0) {
+                                        changeTime = `${diffMinutes} menit yang lalu`;
+                                    } else {
+                                        changeTime = 'Baru saja';
+                                    }
                                 }
                             } else {
                                 // Tidak ada perubahan
@@ -2950,6 +3004,7 @@
                 console.log('Price changes:', this.priceChanges);
                 console.log('External price:', this.externalPrice);
                 console.log('Price history length:', this.priceHistory ? this.priceHistory.length : 0);
+                console.log('Has valid price changes:', this.hasValidPriceChanges());
                 
                 try {
                     // Test endpoint history
@@ -2976,6 +3031,7 @@
                             console.log('Price changes from API:');
                             changesData.data.forEach((change, index) => {
                                 console.log(`${index + 1}. ${change.purity}: ${change.oldPrice} -> ${change.newPrice} (${change.changeType}, ${change.changePercent}%)`);
+                                console.log(`   Date: ${change.changeDate}, Source: ${change.changeSource}, Notes: ${change.notes}`);
                             });
                         }
                     } else {
@@ -2999,6 +3055,18 @@
                     } else {
                         console.log('Latest endpoint not available or error:', latestRes.status);
                     }
+                    
+                    // Debug rendering data
+                    console.log('=== RENDERING DEBUG ===');
+                    const requiredPurities = ['24k', '22k', '18k'];
+                    requiredPurities.forEach(purity => {
+                        const changeData = this.priceChanges[purity];
+                        console.log(`${purity}:`, {
+                            currentPrice: this.currentPrices[purity],
+                            changeData: changeData,
+                            hasValidChange: changeData && changeData.oldPrice > 0 && changeData.newPrice > 0
+                        });
+                    });
                     
                 } catch (error) {
                     console.error('Debug error:', error);
