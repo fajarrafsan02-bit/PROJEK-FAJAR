@@ -1867,29 +1867,56 @@
             async updateAllPrices() {
                 try {
                     this.isUpdating = true;
-                    this.showUpdateMessage("Memulai update harga emas...", 'info');
+                    this.showUpdateMessage("Memulai update harga emas dari API eksternal...", 'info');
 
-                    // Ambil nilai dari input field
-                    const inputElement = document.getElementById('newHarga24k');
-                    if (!inputElement) {
-                        throw new Error("Input field tidak ditemukan");
+                    // Ambil harga dari API eksternal terlebih dahulu
+                    await this.fetchExternalPrice();
+
+                    // Validasi harga eksternal
+                    if (!this.externalPrice) {
+                        throw new Error("Tidak ada data harga eksternal yang tersedia");
                     }
 
-                    const hargaInput = inputElement.value.trim();
-                    console.log('Input value from DOM:', hargaInput);
-
-                    if (!hargaInput) {
-                        throw new Error("Harga 24K harus diisi");
+                    // Cek struktur data harga eksternal
+                    console.log('External price data:', this.externalPrice);
+                    
+                    let hargaNumber = 0;
+                    
+                    // Coba berbagai kemungkinan field untuk harga 24K
+                    if (this.externalPrice.harga24k) {
+                        hargaNumber = this.externalPrice.harga24k;
+                    } else if (this.externalPrice.harga24K) {
+                        hargaNumber = this.externalPrice.harga24K;
+                    } else if (this.externalPrice.price24k) {
+                        hargaNumber = this.externalPrice.price24k;
+                    } else if (this.externalPrice.price24K) {
+                        hargaNumber = this.externalPrice.price24K;
+                    } else if (this.externalPrice.price) {
+                        hargaNumber = this.externalPrice.price;
+                    } else if (this.externalPrice.harga) {
+                        hargaNumber = this.externalPrice.harga;
+                    } else {
+                        // Jika tidak ada field yang cocok, coba ambil dari field pertama yang ada
+                        const availableFields = Object.keys(this.externalPrice);
+                        console.log('Available fields in external price:', availableFields);
+                        
+                        if (availableFields.length > 0) {
+                            const firstField = availableFields[0];
+                            const firstValue = this.externalPrice[firstField];
+                            
+                            if (typeof firstValue === 'number' && firstValue > 0) {
+                                hargaNumber = firstValue;
+                                console.log(`Using first available field: ${firstField} = ${firstValue}`);
+                            }
+                        }
                     }
 
-                    const hargaNumber = parseFloat(hargaInput);
-                    console.log('Parsed harga number:', hargaNumber);
-
-                    if (isNaN(hargaNumber) || hargaNumber <= 0) {
-                        throw new Error("Harga 24K harus berupa angka yang lebih dari 0");
+                    if (!hargaNumber || hargaNumber <= 0) {
+                        throw new Error("Harga dari API eksternal tidak valid atau tidak ditemukan");
                     }
 
-                    this.showUpdateMessage("Mengirim request update...", 'info');
+                    console.log('Final external price to use:', hargaNumber);
+                    this.showUpdateMessage("Mengirim request update dengan harga: " + this.formatCurrency(hargaNumber), 'info');
 
                     // Prepare request data
                     const requestData = {
@@ -1930,12 +1957,12 @@
                     if (result.success) {
                         this.showUpdateMessage("Update berhasil! Harga emas: " + this.formatCurrency(hargaNumber), 'success');
 
-                        // Clear input field
-                        inputElement.value = '';
+                        // Clear external price
                         this.externalPrice = null;
 
                         // Refresh data
                         await this.loadPriceHistory();
+                        await this.loadPriceChanges();
                         this.renderCurrentPrices();
 
                         // Tampilkan notifikasi sukses
@@ -2066,6 +2093,53 @@
                 } finally {
                     this.isUpdating = false;
                 }
+            }
+
+            // Method untuk debug dan test perubahan harga emas
+            async debugPriceChanges() {
+                console.log('=== DEBUG ADMIN PRICE CHANGES ===');
+                console.log('Current prices:', this.currentPrices);
+                console.log('Price changes:', this.priceChanges);
+                console.log('External price:', this.externalPrice);
+                
+                try {
+                    // Test endpoint history
+                    const res = await fetch('/gold-price/history?page=0&size=5&sortBy=tanggalAmbil&sortDirection=desc');
+                    if (res.ok) {
+                        const data = await res.json();
+                        console.log('History data:', data);
+                        
+                        if (data.success && data.data?.content) {
+                            console.log('Price history items:');
+                            data.data.content.forEach((item, index) => {
+                                console.log(`${index + 1}. 24K: ${item.hargaJual24k}, 22K: ${item.hargaJual22k}, 18K: ${item.hargaJual18k}, Tanggal: ${item.tanggalAmbil}`);
+                            });
+                        }
+                    }
+                    
+                    // Test endpoint changes
+                    const changesRes = await fetch('/gold-price/changes/latest');
+                    if (changesRes.ok) {
+                        const changesData = await changesRes.json();
+                        console.log('Changes data:', changesData);
+                    } else {
+                        console.log('Changes endpoint not available');
+                    }
+                    
+                    // Test endpoint external
+                    const externalRes = await fetch('/gold-price/fetch-external');
+                    if (externalRes.ok) {
+                        const externalData = await externalRes.json();
+                        console.log('External price data:', externalData);
+                    } else {
+                        console.log('External endpoint not available');
+                    }
+                    
+                } catch (error) {
+                    console.error('Debug error:', error);
+                }
+                
+                console.log('=== END DEBUG ===');
             }
 
             // Method untuk show update message
