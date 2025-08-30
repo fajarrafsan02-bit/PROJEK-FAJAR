@@ -1013,7 +1013,6 @@
                     <div class="header-actions">
                         <button class="btn btn-secondary" id="historyBtn"><i class="fas fa-history"></i> Riwayat
                             Harga</button>
-                        <button class="btn btn-info" id="fetchExternalBtn"><i class="fas fa-sync-alt"></i> Ambil Harga Eksternal</button>
                         <button class="btn btn-primary" id="updateAllBtn"><i class="fas fa-sync-alt"></i> Update
                             Semua</button>
                     </div>
@@ -1225,14 +1224,6 @@
                 if (updateAllBtn) {
                     updateAllBtn.addEventListener('click', () => {
                         this.updateAllPrices();
-                    });
-                }
-
-                // Fetch external price button
-                const fetchExternalBtn = document.getElementById('fetchExternalBtn');
-                if (fetchExternalBtn) {
-                    fetchExternalBtn.addEventListener('click', () => {
-                        this.fetchExternalPrice();
                     });
                 }
 
@@ -1968,10 +1959,28 @@
                     return;
                 }
 
+                // Pastikan harga emas tersedia
+                if (!this.currentPrices || !this.currentPrices[purity] || this.currentPrices[purity] <= 0) {
+                    document.getElementById('calculationResult').style.display = 'none';
+                    this.showNotification('Harga emas untuk ' + purity + ' belum tersedia. Silakan update harga emas terlebih dahulu.', 'warning');
+                    return;
+                }
+
                 const goldPrice = this.currentPrices[purity];
                 const materialCost = goldPrice * weight;
                 const markupAmount = materialCost * (markup / 100);
                 const totalPrice = materialCost + markupAmount;
+
+                // Debug: log kalkulasi
+                console.log('Kalkulasi harga produk:', {
+                    purity: purity,
+                    weight: weight,
+                    markup: markup,
+                    goldPrice: goldPrice,
+                    materialCost: materialCost,
+                    markupAmount: markupAmount,
+                    totalPrice: totalPrice
+                });
 
                 document.getElementById('resultValue').textContent = this.formatCurrency(totalPrice);
                 document.getElementById('calculationResult').style.display = 'block';
@@ -1983,6 +1992,18 @@
                     Material: ${this.formatCurrency(materialCost)} + Markup (${markup}%): ${this.formatCurrency(markupAmount)}
                 </small>
             `;
+            }
+
+            // Method untuk refresh kalkulator setelah harga emas di-update
+            refreshCalculator() {
+                // Jika ada input yang sudah diisi, hitung ulang
+                const purity = document.getElementById('calcPurity').value;
+                const weight = parseFloat(document.getElementById('calcWeight').value) || 0;
+                const markup = parseFloat(document.getElementById('calcMarkup').value) || 0;
+                
+                if (purity && weight > 0 && markup > 0) {
+                    this.calculateProductPrice();
+                }
             }
 
             // Method untuk load current prices ke form
@@ -2344,6 +2365,9 @@
                             await this.loadPriceHistory();
                             this.renderCurrentPrices();
                             this.updateApiStatusWithCurrentPrices();
+                            
+                            // Refresh kalkulator jika ada input yang sudah diisi
+                            this.refreshCalculator();
                         } else {
                             throw new Error(result.message || 'Gagal mengupdate harga emas');
                         }
@@ -2389,6 +2413,9 @@
                                 await this.loadPriceHistory();
                                 this.renderCurrentPrices();
                                 this.updateApiStatusWithCurrentPrices();
+                                
+                                // Refresh kalkulator jika ada input yang sudah diisi
+                                this.refreshCalculator();
                             } else {
                                 throw new Error(result.message || 'Gagal melakukan force update');
                             }
@@ -2409,6 +2436,9 @@
                     
                     // Update status indicator dengan harga terbaru
                     this.updateApiStatusWithCurrentPrices();
+                    
+                    // Refresh kalkulator jika ada input yang sudah diisi
+                    this.refreshCalculator();
 
                 } catch (error) {
                     console.error('Error updating all prices:', error);
