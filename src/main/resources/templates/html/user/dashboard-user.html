@@ -910,6 +910,21 @@
                 this.startPriceUpdates();
                 this.loadCategories(); // Load categories on init
                 this.loadFeaturedProducts(); // Load featured products on init
+                
+                // Refresh cart badge secara berkala untuk memastikan selalu up-to-date
+                setInterval(async () => {
+                    await this.loadCartFromDatabase();
+                    this.updateCartBadge();
+                }, 30000); // Refresh setiap 30 detik
+                
+                // Tambahkan event listener untuk memastikan cart badge selalu up-to-date
+                document.addEventListener('visibilitychange', async () => {
+                    if (!document.hidden) {
+                        // Ketika halaman kembali aktif, refresh cart data
+                        await this.loadCartFromDatabase();
+                        this.updateCartBadge();
+                    }
+                });
             }
 
             setupEventListeners() {
@@ -937,9 +952,8 @@
                     if (e.target.closest('.add-to-cart')) {
                         e.preventDefault();
                         const product = this.extractProductData(e.target);
+                        // Hapus notifikasi dan update badge dari sini karena akan dihandle di addToCart
                         this.addToCart(product);
-                        this.showNotification('Produk berhasil ditambahkan ke keranjang!', 'success');
-                        this.updateCartBadge();
                     }
                     
                     // Handle wishlist
@@ -1176,8 +1190,13 @@
                     if (response.ok) {
                         const result = await response.json();
                         if (result.success) {
-                            this.showNotification('Produk berhasil ditambahkan ke keranjang!', 'success');
+                            // Refresh data keranjang dari database untuk mendapatkan data terbaru
+                            await this.loadCartFromDatabase();
+                            // Update badge dengan data terbaru
                             this.updateCartBadge();
+                            // Tampilkan notifikasi sukses
+                            this.showNotification('Produk berhasil ditambahkan ke keranjang!', 'success');
+                            console.log('Cart updated successfully, new count:', this.cart.length);
                         } else {
                             this.showNotification('Gagal menambahkan ke keranjang: ' + (result.message || 'Unknown error'), 'error');
                         }
@@ -1225,6 +1244,7 @@
             }
 
             updateCartBadge() {
+                // Update cart badge secara langsung untuk memastikan konsistensi
                 const badge = document.querySelector('.nav-icon[title="Keranjang"] .cart-badge');
                 if (!badge) {
                     console.warn('Cart badge not found');
@@ -1235,6 +1255,14 @@
                 const uniqueProductCount = this.cart.length;
                 badge.textContent = uniqueProductCount;
                 console.log('Cart badge updated:', uniqueProductCount, 'unique products');
+                
+                // Debug: log cart data untuk memastikan data sudah benar
+                console.log('Current cart data:', this.cart);
+                
+                // Jika ada utility manager, sync data dengan utility manager
+                if (window.cartBadgeManager && window.cartBadgeManager.cart) {
+                    window.cartBadgeManager.cart = [...this.cart];
+                }
             }
 
             updateWishlistBadge() {
@@ -1766,6 +1794,11 @@
                         if (result.success) {
                             this.cart = result.data.items || [];
                             console.log('Cart loaded from database:', this.cart);
+                            
+                            // Sync dengan utility manager jika tersedia
+                            if (window.cartBadgeManager && window.cartBadgeManager.cart) {
+                                window.cartBadgeManager.cart = [...this.cart];
+                            }
                         } else {
                             console.error('Gagal load cart:', result.message);
                             this.cart = [];
@@ -1806,7 +1839,12 @@
             }
 		`;
         document.head.appendChild(style);
-        document.addEventListener('DOMContentLoaded', () => { new HomepageManager(); });
+    </script>
+    <script src="/js/cart-badge-utility.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => { 
+            window.homepageManager = new HomepageManager(); 
+        });
     </script>
 </body>
 

@@ -82,11 +82,17 @@ class CartBadgeManager {
     }
 }
 
-// Auto-initialize jika DOM sudah ready
+// Auto-initialize jika DOM sudah ready dan tidak ada manager lain
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        window.cartBadgeManager = new CartBadgeManager();
+        // Hanya inisialisasi jika tidak ada HomepageManager
+        if (!window.homepageManager) {
+            window.cartBadgeManager = new CartBadgeManager();
+        }
     });
 } else {
-    window.cartBadgeManager = new CartBadgeManager();
+    // Hanya inisialisasi jika tidak ada HomepageManager
+    if (!window.homepageManager) {
+        window.cartBadgeManager = new CartBadgeManager();
+    }
 }
