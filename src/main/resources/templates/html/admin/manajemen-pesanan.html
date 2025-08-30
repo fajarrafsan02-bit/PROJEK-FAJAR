@@ -3,1424 +3,895 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manajemen Pesanan - Fajar Gold Admin</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <title>Admin - Kelola Pesanan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Menggunakan CSS yang sama dengan halaman sebelumnya */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        .status-badge {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
         }
-
-        :root {
-            --gold-primary: #d4af37;
-            --gold-light: #f7e98e;
-            --gold-dark: #b8860b;
-            --gold-accent: #ffd700;
-            --black-luxury: #0a0a0a;
-            --black-soft: #1a1a1a;
-            --white-pearl: #fff8dc;
-            --white-pure: #ffffff;
-            --gray-elegant: #4a5568;
-            --gray-light: #f7fafc;
-            --gray-medium: #e2e8f0;
-            --gray-dark: #2d3748;
-            --shadow-gold: 0 25px 50px rgba(212, 175, 55, 0.4);
-            --shadow-luxury: 0 30px 60px rgba(0, 0, 0, 0.2);
-            --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.1);
-            --gradient-gold: linear-gradient(135deg, #d4af37 0%, #ffd700 50%, #b8860b 100%);
-            --success-color: #10b981;
-            --error-color: #ef4444;
-            --warning-color: #f59e0b;
-            --info-color: #3b82f6;
-        }
-
-        body {
-            font-family: "Inter", sans-serif;
-            background: var(--gray-light);
-            color: var(--black-luxury);
-        }
-
-        .admin-container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar Styles - sama seperti di dashboard */
-        .sidebar {
-            width: 280px;
-            background: var(--gradient-gold);
-            box-shadow: var(--shadow-luxury);
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-            z-index: 1000;
+        .order-card {
             transition: all 0.3s ease;
+            border-left: 4px solid #dee2e6;
         }
-
-        .sidebar.collapsed {
-            width: 80px;
-        }
-
-        .sidebar-header {
-            padding: 30px 20px;
-            text-align: center;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-
-        .sidebar-toggle {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.1);
-            border: none;
-            color: var(--black-luxury);
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar-toggle:hover {
-            background: rgba(0, 0, 0, 0.2);
-            transform: scale(1.1);
-        }
-
-        .logo {
-            font-family: "Playfair Display", serif;
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--black-luxury);
-            margin-bottom: 8px;
-            letter-spacing: 2px;
-        }
-
-        .logo-subtitle {
-            font-size: 12px;
-            color: var(--black-soft);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
-        }
-
-        .sidebar-nav {
-            padding: 20px 0;
-        }
-
-        .nav-item {
-            margin-bottom: 5px;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 15px 25px;
-            color: var(--black-luxury);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            position: relative;
-            font-weight: 500;
-        }
-
-        .nav-link:hover,
-        .nav-link.active {
-            background: rgba(0, 0, 0, 0.1);
-            color: var(--black-luxury);
-            transform: translateX(5px);
-        }
-
-        .nav-link.active::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: var(--black-luxury);
-        }
-
-        .nav-icon {
-            width: 20px;
-            margin-right: 15px;
-            text-align: center;
-        }
-
-        .nav-text {
-            transition: opacity 0.3s ease;
-        }
-
-        .sidebar.collapsed .nav-text,
-        .sidebar.collapsed .logo-subtitle {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .sidebar.collapsed .logo {
-            font-size: 20px;
-        }
-
-        .main-content {
-            flex-grow: 1;
-            padding: 20px;
-            margin-left: 280px;
-            transition: margin-left 0.3s ease;
-        }
-
-        .sidebar.collapsed + .main-content {
-            margin-left: 80px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 30px;
-        }
-
-        /* Page Header */
-        .page-header {
-            background: var(--white-pure);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: var(--shadow-soft);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .page-title {
-            font-family: "Playfair Display", serif;
-            font-size: 32px;
-            font-weight: 600;
-            color: var(--black-luxury);
-            margin-bottom: 8px;
-        }
-
-        .page-subtitle {
-            color: var(--gray-elegant);
-            font-size: 16px;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 15px;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-        }
-
-        .btn-primary {
-            background: var(--gradient-gold);
-            color: var(--black-luxury);
-        }
-
-        .btn-primary:hover {
+        .order-card:hover {
             transform: translateY(-2px);
-            box-shadow: var(--shadow-gold);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-
-        .btn-secondary {
-            background: var(--gray-medium);
-            color: var(--gray-elegant);
-        }
-
-        .btn-secondary:hover {
-            background: var(--gray-dark);
-            color: var(--white-pure);
-        }
-
-        /* Order Stats */
-        .order-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: var(--white-pure);
+        .order-card.pending-payment { border-left-color: #ffc107; }
+        .order-card.pending-confirmation { border-left-color: #17a2b8; }
+        .order-card.paid { border-left-color: #28a745; }
+        .order-card.processing { border-left-color: #007bff; }
+        .order-card.shipped { border-left-color: #6f42c1; }
+        .order-card.delivered { border-left-color: #20c997; }
+        .order-card.cancelled { border-left-color: #dc3545; }
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             border-radius: 15px;
-            padding: 25px;
-            box-shadow: var(--shadow-soft);
-            text-align: center;
-            position: relative;
+            padding: 1.5rem;
+        }
+        .search-box {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+        }
+        .search-box::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        .table-responsive {
+            border-radius: 10px;
             overflow: hidden;
         }
-
-        .stat-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
+        .btn-action {
+            margin: 0.1rem;
+            min-width: 80px;
         }
-
-        .stat-card.pending::before { background: var(--warning-color); }
-        .stat-card.processing::before { background: var(--info-color); }
-        .stat-card.completed::before { background: var(--success-color); }
-        .stat-card.cancelled::before { background: var(--error-color); }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .stat-card.pending .stat-value { color: var(--warning-color); }
-        .stat-card.processing .stat-value { color: var(--info-color); }
-        .stat-card.completed .stat-value { color: var(--success-color); }
-        .stat-card.cancelled .stat-value { color: var(--error-color); }
-
-        .stat-label {
-            font-size: 14px;
-            color: var(--gray-elegant);
-            font-weight: 500;
-        }
-
-        /* Filters Section */
-        .filters-section {
-            background: var(--white-pure);
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: var(--shadow-soft);
-        }
-
-        .filters-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            align-items: end;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .filter-label {
-            font-weight: 600;
-            color: var(--black-luxury);
-            font-size: 14px;
-        }
-
-        .filter-input {
-            padding: 12px 16px;
-            border: 2px solid var(--gray-medium);
-            border-radius: 10px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .filter-input:focus {
-            outline: none;
-            border-color: var(--gold-primary);
-            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
-        }
-
-        /* Orders Table */
-        .orders-section {
-            background: var(--white-pure);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: var(--shadow-soft);
-        }
-
-        .section-title {
-            font-family: "Playfair Display", serif;
-            font-size: 24px;
-            font-weight: 600;
-            color: var(--black-luxury);
-            margin-bottom: 25px;
-        }
-
-        .orders-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        .orders-table th,
-        .orders-table td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid var(--gray-medium);
-        }
-
-        .orders-table th {
-            background: var(--gray-light);
-            font-weight: 600;
-            color: var(--black-luxury);
-            font-size: 14px;
-            position: sticky;
-            top: 0;
-        }
-
-        .orders-table td {
-            font-size: 14px;
-            color: var(--gray-elegant);
-        }
-
-        .orders-table tr:hover {
-            background: var(--gray-light);
-        }
-
-        /* Status Badge */
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .status-pending {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--warning-color);
-            border: 1px solid var(--warning-color);
-        }
-
-        .status-processing {
-            background: rgba(59, 130, 246, 0.1);
-            color: var(--info-color);
-            border: 1px solid var(--info-color);
-        }
-
-        .status-completed {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success-color);
-            border: 1px solid var(--success-color);
-        }
-
-        .status-cancelled {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--error-color);
-            border: 1px solid var(--error-color);
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-small {
-            padding: 6px 12px;
-            font-size: 12px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-view {
-            background: var(--info-color);
-            color: white;
-        }
-
-        .btn-edit {
-            background: var(--warning-color);
-            color: white;
-        }
-
-        .btn-delete {
-            background: var(--error-color);
-            color: white;
-        }
-
-        .btn-small:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 10000;
-            backdrop-filter: blur(5px);
-        }
-
-        .modal.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: var(--white-pure);
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 800px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-        }
-
         .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--gray-medium);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
         }
-
-        .modal-title {
-            font-family: "Playfair Display", serif;
-            font-size: 24px;
-            font-weight: 600;
-            color: var(--black-luxury);
+        .loading-spinner {
+            display: none;
         }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: var(--gray-elegant);
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-
-        .modal-close:hover {
-            background: var(--gray-medium);
-            color: var(--black-luxury);
-        }
-
-        .order-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-
-        .detail-section {
-            background: var(--gray-light);
-            border-radius: 15px;
-            padding: 20px;
-        }
-
-        .detail-title {
-            font-weight: 600;
-            color: var(--black-luxury);
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-
-        .detail-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .detail-label {
-            color: var(--gray-elegant);
-            font-weight: 500;
-        }
-
-        .detail-value {
-            color: var(--black-luxury);
-            font-weight: 600;
-        }
-
-        .order-items {
-            grid-column: 1 / -1;
-            margin-top: 20px;
-        }
-
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        .items-table th,
-        .items-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid var(--gray-medium);
-            font-size: 14px;
-        }
-
-        .items-table th {
-            background: var(--gray-medium);
-            font-weight: 600;
-            color: var(--black-luxury);
-        }
-
-        .status-update {
-            grid-column: 1 / -1;
-            margin-top: 20px;
-            padding: 20px;
-            background: var(--white-pure);
-            border-radius: 15px;
-            border: 2px solid var(--gray-medium);
-        }
-
-        .status-select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid var(--gray-medium);
-            border-radius: 10px;
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-            }
-
-            .page-header {
-                flex-direction: column;
-                gap: 20px;
-                text-align: center;
-            }
-
-            .order-stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .filters-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .orders-table {
-                font-size: 12px;
-            }
-
-            .orders-table th,
-            .orders-table td {
-                padding: 8px;
-            }
-
-            .order-details {
-                grid-template-columns: 1fr;
-            }
-
-            .modal-content {
-                padding: 20px;
-                margin: 20px;
-            }
-
-            .sidebar {
-                position: fixed;
-                left: -250px; /* Hide sidebar */
-                width: 250px;
-                transition: left 0.3s ease;
-            }
-
-            .sidebar.show {
-                left: 0; /* Show sidebar */
-            }
-
-            .sidebar.collapsed {
-                width: 60px;
-            }
-
-            .sidebar.collapsed.show {
-                left: 0;
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .sidebar.collapsed + .main-content {
-                margin-left: 0;
-            }
-        }
-
-        /* Loading Animation */
-        .loading {
+        .loading .loading-spinner {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(212, 175, 55, 0.3);
-            border-radius: 50%;
-            border-top-color: var(--gold-primary);
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
     </style>
 </head>
-<body>
-    <div class="admin-container">
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <button class="sidebar-toggle" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </button>
-        <div class="logo">Fajar Gold</div>
-        <div class="logo-subtitle">Admin Panel</div>
-    </div>
-    
-    <nav class="sidebar-nav">
-        <div class="nav-item">
-            <a href="admin-dashboard.html" class="nav-link">
-                <i class="fas fa-tachometer-alt nav-icon"></i>
-                <span class="nav-text">Dashboard</span>
-            </a>
-        </div>
-        <div class="nav-item">
-            <a href="manajemen-produk.html" class="nav-link">
-                <i class="fas fa-gem nav-icon"></i>
-                <span class="nav-text">Produk Emas</span>
-            </a>
-        </div>
-        <div class="nav-item">
-            <a href="harga-emas.html" class="nav-link">
-                <i class="fas fa-chart-line nav-icon"></i>
-                <span class="nav-text">Harga Emas</span>
-            </a>
-        </div>
-        <div class="nav-item">
-            <a href="manajemen-pesanan.html" class="nav-link active">
-                <i class="fas fa-shopping-cart nav-icon"></i>
-                <span class="nav-text">Pesanan</span>
-            </a>
-        </div>
-        <div class="nav-item">
-            <a href="#" class="nav-link">
-                <i class="fas fa-users nav-icon"></i>
-                <span class="nav-text">Pelanggan</span>
-            </a>
-        </div>
-        <div class="nav-item">
-            <a href="laporan.html" class="nav-link">
-                <i class="fas fa-chart-bar nav-icon"></i>
-                <span class="nav-text">Laporan</span>
-            </a>
-        </div>
-        <div class="nav-item">
-            <a href="#" class="nav-link">
-                <i class="fas fa-cog nav-icon"></i>
-                <span class="nav-text">Pengaturan</span>
-            </a>
-        </div>
-    </nav>
-</aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-    <div class="container">
-        <!-- Page Header -->
-        <div class="page-header">
-            <div>
-                <h1 class="page-title">Manajemen Pesanan</h1>
-                <p class="page-subtitle">Kelola semua pesanan pelanggan Fajar Gold</p>
-            </div>
-            <div class="header-actions">
-                <button class="btn btn-secondary" id="exportBtn">
-                    <i class="fas fa-download"></i>
-                    Export Data
-                </button>
-                <button class="btn btn-primary" id="refreshBtn">
-                    <i class="fas fa-sync-alt"></i>
-                    Refresh
-                </button>
+<body class="bg-light">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row bg-white shadow-sm py-3 mb-4">
+            <div class="col">
+                <h2 class="mb-0 text-primary">
+                    <i class="fas fa-shopping-cart me-2"></i>
+                    Kelola Pesanan
+                </h2>
+                <p class="text-muted mb-0">Manajemen pesanan customer</p>
             </div>
         </div>
 
-        <!-- Order Statistics -->
-        <div class="order-stats">
-            <div class="stat-card pending">
-                <div class="stat-value" id="pendingCount">12</div>
-                <div class="stat-label">Menunggu Konfirmasi</div>
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="stats-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-1" id="totalOrders">0</h3>
+                            <p class="mb-0">Total Pesanan</p>
+                        </div>
+                        <i class="fas fa-shopping-cart fa-2x opacity-75"></i>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card processing">
-                <div class="stat-value" id="processingCount">8</div>
-                <div class="stat-label">Sedang Diproses</div>
+            <div class="col-md-3 mb-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff8c00 100%);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-1" id="pendingPayment">0</h3>
+                            <p class="mb-0">Menunggu Pembayaran</p>
+                        </div>
+                        <i class="fas fa-clock fa-2x opacity-75"></i>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card completed">
-                <div class="stat-value" id="completedCount">45</div>
-                <div class="stat-label">Selesai</div>
+            <div class="col-md-3 mb-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-1" id="pendingConfirmation">0</h3>
+                            <p class="mb-0">Menunggu Konfirmasi</p>
+                        </div>
+                        <i class="fas fa-user-check fa-2x opacity-75"></i>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card cancelled">
-                <div class="stat-value" id="cancelledCount">3</div>
-                <div class="stat-label">Dibatalkan</div>
+            <div class="col-md-3 mb-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-1" id="paid">0</h3>
+                            <p class="mb-0">Sudah Dibayar</p>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Filters Section -->
-        <div class="filters-section">
-            <div class="filters-grid">
-                <div class="filter-group">
-                    <label class="filter-label">Cari Pesanan</label>
-                    <input type="text" class="filter-input" id="searchInput" placeholder="ID pesanan atau nama pelanggan...">
+        <!-- Search and Filter -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="searchInput" placeholder="Cari berdasarkan nomor pesanan, nama customer, atau nomor telepon...">
+                    <button class="btn btn-primary" type="button" id="searchBtn">
+                        <i class="fas fa-search"></i> Cari
+                    </button>
                 </div>
-                <div class="filter-group">
-                    <label class="filter-label">Status</label>
-                    <select class="filter-input" id="statusFilter">
-                        <option value="">Semua Status</option>
-                        <option value="pending">Menunggu Konfirmasi</option>
-                        <option value="processing">Sedang Diproses</option>
-                        <option value="completed">Selesai</option>
-                        <option value="cancelled">Dibatalkan</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label class="filter-label">Tanggal Mulai</label>
-                    <input type="date" class="filter-input" id="startDate">
-                </div>
-                <div class="filter-group">
-                    <label class="filter-label">Tanggal Akhir</label>
-                    <input type="date" class="filter-input" id="endDate">
-                </div>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" id="statusFilter">
+                    <option value="">Semua Status</option>
+                    <option value="PENDING_PAYMENT">Menunggu Pembayaran</option>
+                    <option value="PENDING_CONFIRMATION">Menunggu Konfirmasi</option>
+                    <option value="PAID">Sudah Dibayar</option>
+                    <option value="PROCESSING">Sedang Diproses</option>
+                    <option value="SHIPPED">Dikirim</option>
+                    <option value="DELIVERED">Terkirim</option>
+                    <option value="CANCELLED">Dibatalkan</option>
+                </select>
             </div>
         </div>
 
         <!-- Orders Table -->
-        <div class="orders-section">
-            <div class="section-header">
-                <h2 class="section-title">Daftar Pesanan</h2>
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Daftar Pesanan</h5>
+                <div>
+                    <button class="btn btn-outline-primary btn-sm" id="refreshBtn">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" id="attentionBtn">
+                        <i class="fas fa-exclamation-triangle"></i> Perhatian
+                    </button>
+                </div>
             </div>
-
-            <table class="orders-table">
-                <thead>
-                    <tr>
-                        <th>ID Pesanan</th>
-                        <th>Pelanggan</th>
-                        <th>Produk</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th>Tanggal</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="ordersTableBody">
-                    <!-- Orders will be loaded here -->
-                </tbody>
-            </table>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>No. Pesanan</th>
+                                <th>Customer</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Tanggal</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2 text-muted">Memuat data pesanan...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-white">
+                <nav aria-label="Orders pagination">
+                    <ul class="pagination justify-content-center mb-0" id="pagination">
+                        <!-- Pagination will be generated here -->
+                    </ul>
+                </nav>
+            </div>
         </div>
     </div>
 
     <!-- Order Detail Modal -->
-    <div class="modal" id="orderModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="modalTitle">Detail Pesanan</h3>
-                <button class="modal-close" id="modalClose">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <div class="order-details" id="orderDetails">
-                <!-- Order details will be loaded here -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Detail Pesanan
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="orderDetailContent">
+                    <!-- Order detail content will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
             </div>
         </div>
     </div>
-    </main>
+
+    <!-- Confirm Order Modal -->
+    <div class="modal fade" id="confirmOrderModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Konfirmasi Pesanan
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Apakah Anda yakin ingin mengkonfirmasi pesanan ini sebagai <strong>SUDAH DIBAYAR</strong>?</p>
+                    <div class="mb-3">
+                        <label for="confirmNotes" class="form-label">Catatan Admin (Opsional)</label>
+                        <textarea class="form-control" id="confirmNotes" rows="3" placeholder="Masukkan catatan jika diperlukan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-success" id="confirmOrderBtn">
+                        <span class="loading-spinner spinner-border spinner-border-sm me-2"></span>
+                        Konfirmasi
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- Update Status Modal -->
+    <div class="modal fade" id="updateStatusModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-edit me-2"></i>
+                        Update Status Pesanan
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="newStatus" class="form-label">Status Baru</label>
+                        <select class="form-select" id="newStatus">
+                            <option value="PENDING_PAYMENT">Menunggu Pembayaran</option>
+                            <option value="PENDING_CONFIRMATION">Menunggu Konfirmasi</option>
+                            <option value="PAID">Sudah Dibayar</option>
+                            <option value="PROCESSING">Sedang Diproses</option>
+                            <option value="SHIPPED">Dikirim</option>
+                            <option value="DELIVERED">Terkirim</option>
+                            <option value="CANCELLED">Dibatalkan</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="statusNotes" class="form-label">Catatan Admin (Opsional)</label>
+                        <textarea class="form-control" id="statusNotes" rows="3" placeholder="Masukkan catatan jika diperlukan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="updateStatusBtn">
+                        <span class="loading-spinner spinner-border spinner-border-sm me-2"></span>
+                        Update Status
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Order Modal -->
+    <div class="modal fade" id="cancelOrderModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-times-circle me-2"></i>
+                        Batalkan Pesanan
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Apakah Anda yakin ingin membatalkan pesanan ini?</p>
+                    <div class="mb-3">
+                        <label for="cancelReason" class="form-label">Alasan Pembatalan (Opsional)</label>
+                        <textarea class="form-control" id="cancelReason" rows="3" placeholder="Masukkan alasan pembatalan jika diperlukan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="cancelOrderBtn">
+                        <span class="loading-spinner spinner-border spinner-border-sm me-2"></span>
+                        Batalkan Pesanan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-        // Order Management System
         class OrderManager {
             constructor() {
+                this.currentPage = 0;
+                this.pageSize = 10;
+                this.currentOrderId = null;
                 this.orders = [];
-                this.filteredOrders = [];
-                this.currentOrder = null;
+                this.totalPages = 0;
+                this.totalElements = 0;
                 
-                this.init();
+                this.initializeEventListeners();
+                this.loadOrders();
+                this.loadStatistics();
             }
-
-            init() {
-                this.loadSampleData();
-                this.setupEventListeners();
-                this.renderOrders();
-                this.updateStats();
+            
+            initializeEventListeners() {
+                // Search functionality
+                document.getElementById('searchBtn').addEventListener('click', () => this.searchOrders());
+                document.getElementById('searchInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.searchOrders();
+                });
+                
+                // Filter functionality
+                document.getElementById('statusFilter').addEventListener('change', () => this.loadOrders());
+                
+                // Refresh and attention buttons
+                document.getElementById('refreshBtn').addEventListener('click', () => this.loadOrders());
+                document.getElementById('attentionBtn').addEventListener('click', () => this.loadOrdersNeedingAttention());
+                
+                // Modal buttons
+                document.getElementById('confirmOrderBtn').addEventListener('click', () => this.confirmOrder());
+                document.getElementById('updateStatusBtn').addEventListener('click', () => this.updateOrderStatus());
+                document.getElementById('cancelOrderBtn').addEventListener('click', () => this.cancelOrder());
             }
-
-            loadSampleData() {
-                // Sample order data
-                this.orders = [
-                    {
-                        id: 'ORD-2024-001',
-                        customer: {
-                            name: 'Budi Santoso',
-                            email: 'budi@email.com',
-                            phone: '081234567890',
-                            address: 'Jl. Sudirman No. 123, Jakarta'
-                        },
-                        items: [
-                            {
-                                name: 'Cincin Emas 24K',
-                                quantity: 1,
-                                weight: 5.2,
-                                price: 3250000
-                            }
-                        ],
-                        total: 3250000,
-                        status: 'pending',
-                        orderDate: new Date('2024-01-20T10:30:00'),
-                        notes: 'Mohon dikemas dengan baik'
-                    },
-                    {
-                        id: 'ORD-2024-002',
-                        customer: {
-                            name: 'Siti Aminah',
-                            email: 'siti@email.com',
-                            phone: '081234567891',
-                            address: 'Jl. Thamrin No. 456, Jakarta'
-                        },
-                        items: [
-                            {
-                                name: 'Kalung Emas 22K',
-                                quantity: 1,
-                                weight: 8.5,
-                                price: 6800000
-                            },
-                            {
-                                name: 'Anting Emas 22K',
-                                quantity: 1,
-                                weight: 3.2,
-                                price: 2560000
-                            }
-                        ],
-                        total: 9360000,
-                        status: 'processing',
-                        orderDate: new Date('2024-01-19T14:15:00'),
-                        notes: ''
-                    },
-                    {
-                        id: 'ORD-2024-003',
-                        customer: {
-                            name: 'Ahmad Rahman',
-                            email: 'ahmad@email.com',
-                            phone: '081234567892',
-                            address: 'Jl. Gatot Subroto No. 789, Jakarta'
-                        },
-                        items: [
-                            {
-                                name: 'Batangan Emas 10g',
-                                quantity: 2,
-                                weight: 20,
-                                price: 21000000
-                            }
-                        ],
-                        total: 21000000,
-                        status: 'completed',
-                        orderDate: new Date('2024-01-18T09:45:00'),
-                        notes: 'Pengiriman express'
-                    },
-                    {
-                        id: 'ORD-2024-004',
-                        customer: {
-                            name: 'Maya Sari',
-                            email: 'maya@email.com',
-                            phone: '081234567893',
-                            address: 'Jl. Kuningan No. 321, Jakarta'
-                        },
-                        items: [
-                            {
-                                name: 'Gelang Emas 18K',
-                                quantity: 1,
-                                weight: 12.3,
-                                price: 7200000
-                            }
-                        ],
-                        total: 7200000,
-                        status: 'cancelled',
-                        orderDate: new Date('2024-01-17T16:20:00'),
-                        notes: 'Dibatalkan oleh pelanggan'
+            
+            async loadOrders() {
+                try {
+                    this.showLoading();
+                    
+                    const statusFilter = document.getElementById('statusFilter').value;
+                    let url = `/admin/api/orders?page=${this.currentPage}&size=${this.pageSize}&sortBy=createdAt&sortDirection=desc`;
+                    
+                    if (statusFilter) {
+                        url = `/admin/api/orders/status/${statusFilter}?page=${this.currentPage}&size=${this.pageSize}`;
                     }
-                ];
-
-                this.filteredOrders = [...this.orders];
-            }
-
-            setupEventListeners() {
-                // Modal controls
-                document.getElementById('modalClose').addEventListener('click', () => {
-                    this.closeModal();
-                });
-
-                // Filters
-                document.getElementById('searchInput').addEventListener('input', () => {
-                    this.applyFilters();
-                });
-
-                document.getElementById('statusFilter').addEventListener('change', () => {
-                    this.applyFilters();
-                });
-
-                document.getElementById('startDate').addEventListener('change', () => {
-                    this.applyFilters();
-                });
-
-                document.getElementById('endDate').addEventListener('change', () => {
-                    this.applyFilters();
-                });
-
-                // Refresh button
-                document.getElementById('refreshBtn').addEventListener('click', () => {
-                    this.refreshOrders();
-                });
-
-                // Export button
-                document.getElementById('exportBtn').addEventListener('click', () => {
-                    this.exportOrders();
-                });
-
-                // Close modal when clicking outside
-                document.getElementById('orderModal').addEventListener('click', (e) => {
-                    if (e.target.id === 'orderModal') {
-                        this.closeModal();
+                    
+                    const response = await axios.get(url);
+                    
+                    if (response.data.success) {
+                        this.orders = response.data.data.content;
+                        this.totalPages = response.data.data.totalPages;
+                        this.totalElements = response.data.data.totalElements;
+                        this.renderOrders();
+                        this.renderPagination();
+                    } else {
+                        this.showError('Gagal memuat data pesanan');
                     }
-                });
-
-                // Sidebar toggle
-                document.getElementById('sidebarToggle').addEventListener('click', () => {
-                    document.getElementById('sidebar').classList.toggle('collapsed');
-                });
+                } catch (error) {
+                    console.error('Error loading orders:', error);
+                    this.showError('Terjadi kesalahan saat memuat data pesanan');
+                } finally {
+                    this.hideLoading();
+                }
             }
-
+            
+            async searchOrders() {
+                const searchTerm = document.getElementById('searchInput').value.trim();
+                if (!searchTerm) {
+                    this.loadOrders();
+                    return;
+                }
+                
+                try {
+                    this.showLoading();
+                    
+                    // Try search by order number first
+                    let response = await axios.get(`/admin/api/orders/search/order-number?orderNumber=${searchTerm}`);
+                    
+                    if (response.data.success && response.data.data.length > 0) {
+                        this.orders = response.data.data;
+                        this.totalPages = 1;
+                        this.totalElements = this.orders.length;
+                        this.renderOrders();
+                        this.renderPagination();
+                        return;
+                    }
+                    
+                    // If not found, try search by customer
+                    response = await axios.get(`/admin/api/orders/search/customer?searchTerm=${searchTerm}`);
+                    
+                    if (response.data.success) {
+                        this.orders = response.data.data;
+                        this.totalPages = 1;
+                        this.totalElements = this.orders.length;
+                        this.renderOrders();
+                        this.renderPagination();
+                    } else {
+                        this.showError('Tidak ada pesanan yang ditemukan');
+                    }
+                } catch (error) {
+                    console.error('Error searching orders:', error);
+                    this.showError('Terjadi kesalahan saat mencari pesanan');
+                } finally {
+                    this.hideLoading();
+                }
+            }
+            
+            async loadOrdersNeedingAttention() {
+                try {
+                    this.showLoading();
+                    
+                    const response = await axios.get('/admin/api/orders/attention');
+                    
+                    if (response.data.success) {
+                        this.orders = response.data.data;
+                        this.totalPages = 1;
+                        this.totalElements = this.orders.length;
+                        this.renderOrders();
+                        this.renderPagination();
+                        
+                        // Update filter dropdown
+                        document.getElementById('statusFilter').value = '';
+                    } else {
+                        this.showError('Gagal memuat pesanan yang memerlukan perhatian');
+                    }
+                } catch (error) {
+                    console.error('Error loading orders needing attention:', error);
+                    this.showError('Terjadi kesalahan saat memuat pesanan yang memerlukan perhatian');
+                } finally {
+                    this.hideLoading();
+                }
+            }
+            
+            async loadStatistics() {
+                try {
+                    const response = await axios.get('/admin/api/orders/statistics');
+                    
+                    if (response.data.success) {
+                        const stats = response.data.data;
+                        document.getElementById('totalOrders').textContent = stats.totalOrders;
+                        document.getElementById('pendingPayment').textContent = stats.pendingPayment;
+                        document.getElementById('pendingConfirmation').textContent = stats.pendingConfirmation;
+                        document.getElementById('paid').textContent = stats.paid;
+                    }
+                } catch (error) {
+                    console.error('Error loading statistics:', error);
+                }
+            }
+            
             renderOrders() {
                 const tbody = document.getElementById('ordersTableBody');
                 
-                if (this.filteredOrders.length === 0) {
+                if (this.orders.length === 0) {
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="7" style="text-align: center; padding: 40px; color: var(--gray-elegant);">
-                                <i class="fas fa-search" style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;"></i>
-                                <br>Tidak ada pesanan ditemukan
+                            <td colspan="6" class="text-center py-4">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Tidak ada pesanan yang ditemukan</p>
                             </td>
                         </tr>
                     `;
                     return;
                 }
-
-                tbody.innerHTML = this.filteredOrders.map(order => `
-                    <tr>
+                
+                tbody.innerHTML = this.orders.map(order => `
+                    <tr class="order-row" data-order-id="${order.id}">
                         <td>
-                            <strong>${order.id}</strong>
+                            <strong>${order.orderNumber}</strong>
+                            <br>
+                            <small class="text-muted">ID: ${order.id}</small>
                         </td>
                         <td>
                             <div>
-                                <strong>${order.customer.name}</strong><br>
-                                <small style="color: var(--gray-elegant);">${order.customer.email}</small>
+                                <strong>${order.customerName || 'N/A'}</strong>
+                                <br>
+                                <small class="text-muted">
+                                    ${order.customerPhone || 'N/A'} | ${order.customerEmail || 'N/A'}
+                                </small>
                             </div>
+                        </td>
+                        <td>
+                            <strong class="text-primary">Rp ${this.formatCurrency(order.totalAmount)}</strong>
+                        </td>
+                        <td>
+                            ${this.getStatusBadge(order.status)}
                         </td>
                         <td>
                             <div>
-                                ${order.items.length} item${order.items.length > 1 ? 's' : ''}<br>
-                                <small style="color: var(--gray-elegant);">${order.items[0].name}${order.items.length > 1 ? ' +' + (order.items.length - 1) + ' lainnya' : ''}</small>
+                                <strong>${this.formatDate(order.createdAt)}</strong>
+                                <br>
+                                <small class="text-muted">${this.formatTime(order.createdAt)}</small>
                             </div>
                         </td>
                         <td>
-                            <strong>${this.formatCurrency(order.total)}</strong>
-                        </td>
-                        <td>
-                            <span class="status-badge status-${order.status}">
-                                ${this.getStatusText(order.status)}
-                            </span>
-                        </td>
-                        <td>
-                            ${this.formatDate(order.orderDate)}
-                        </td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn-small btn-view" onclick="orderManager.viewOrder('${order.id}')">
-                                    <i class="fas fa-eye"></i>
+                            <div class="btn-group-vertical btn-group-sm">
+                                <button class="btn btn-outline-info btn-sm btn-action" onclick="orderManager.viewOrderDetail(${order.id})">
+                                    <i class="fas fa-eye"></i> Detail
                                 </button>
-                                <button class="btn-small btn-edit" onclick="orderManager.updateOrderStatus('${order.id}')">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                ${order.status === 'pending' ? `
-                                    <button class="btn-small btn-delete" onclick="orderManager.cancelOrder('${order.id}')">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                ` : ''}
+                                ${this.getActionButtons(order)}
                             </div>
                         </td>
                     </tr>
                 `).join('');
             }
-
-            viewOrder(orderId) {
-                const order = this.orders.find(o => o.id === orderId);
-                if (!order) return;
-
-                this.currentOrder = order;
-                this.openModal(order);
-            }
-
-            openModal(order) {
-                const modal = document.getElementById('orderModal');
-                const modalTitle = document.getElementById('modalTitle');
-                const orderDetails = document.getElementById('orderDetails');
-
-                modalTitle.textContent = `Detail Pesanan ${order.id}`;
-
-                orderDetails.innerHTML = `
-                    <div class="detail-section">
-                        <h4 class="detail-title">Informasi Pesanan</h4>
-                        <div class="detail-item">
-                            <span class="detail-label">ID Pesanan:</span>
-                            <span class="detail-value">${order.id}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Tanggal:</span>
-                            <span class="detail-value">${this.formatDate(order.orderDate)}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Status:</span>
-                            <span class="detail-value">
-                                <span class="status-badge status-${order.status}">
-                                    ${this.getStatusText(order.status)}
-                                </span>
-                            </span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Total:</span>
-                            <span class="detail-value">${this.formatCurrency(order.total)}</span>
-                        </div>
-                    </div>
-
-                    <div class="detail-section">
-                        <h4 class="detail-title">Informasi Pelanggan</h4>
-                        <div class="detail-item">
-                            <span class="detail-label">Nama:</span>
-                            <span class="detail-value">${order.customer.name}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Email:</span>
-                            <span class="detail-value">${order.customer.email}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Telepon:</span>
-                            <span class="detail-value">${order.customer.phone}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Alamat:</span>
-                            <span class="detail-value">${order.customer.address}</span>
-                        </div>
-                    </div>
-
-                    <div class="order-items">
-                        <h4 class="detail-title">Item Pesanan</h4>
-                        <table class="items-table">
-                            <thead>
-                                <tr>
-                                    <th>Produk</th>
-                                    <th>Qty</th>
-                                    <th>Berat</th>
-                                    <th>Harga</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${order.items.map(item => `
-                                    <tr>
-                                        <td>${item.name}</td>
-                                        <td>${item.quantity}</td>
-                                        <td>${item.weight}g</td>
-                                        <td>${this.formatCurrency(item.price)}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    ${order.status !== 'completed' && order.status !== 'cancelled' ? `
-                        <div class="status-update">
-                            <h4 class="detail-title">Update Status</h4>
-                            <select class="status-select" id="newStatus">
-                                <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Menunggu Konfirmasi</option>
-                                <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Sedang Diproses</option>
-                                <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Selesai</option>
-                                <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Dibatalkan</option>
-                            </select>
-                            <button class="btn btn-primary" onclick="orderManager.saveStatusUpdate()">
-                                <i class="fas fa-save"></i>
-                                Update Status
-                            </button>
-                        </div>
-                    ` : ''}
-
-                    ${order.notes ? `
-                        <div class="detail-section" style="grid-column: 1 / -1;">
-                            <h4 class="detail-title">Catatan</h4>
-                            <p style="color: var(--gray-elegant); font-style: italic;">${order.notes}</p>
-                        </div>
-                    ` : ''}
-                `;
-
-                modal.classList.add('show');
-                document.body.style.overflow = 'hidden';
-            }
-
-            closeModal() {
-                const modal = document.getElementById('orderModal');
-                modal.classList.remove('show');
-                document.body.style.overflow = 'auto';
-                this.currentOrder = null;
-            }
-
-            updateOrderStatus(orderId) {
-                const order = this.orders.find(o => o.id === orderId);
-                if (!order) return;
-
-                this.viewOrder(orderId);
-            }
-
-            saveStatusUpdate() {
-                if (!this.currentOrder) return;
-
-                const newStatus = document.getElementById('newStatus').value;
-                const orderIndex = this.orders.findIndex(o => o.id === this.currentOrder.id);
-                
-                if (orderIndex !== -1) {
-                    this.orders[orderIndex].status = newStatus;
-                    this.applyFilters();
-                    this.renderOrders();
-                    this.updateStats();
-                    this.closeModal();
-                    
-                    this.showNotification(`Status pesanan ${this.currentOrder.id} berhasil diperbarui!`, 'success');
-                }
-            }
-
-            cancelOrder(orderId) {
-                if (confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) {
-                    const orderIndex = this.orders.findIndex(o => o.id === orderId);
-                    if (orderIndex !== -1) {
-                        this.orders[orderIndex].status = 'cancelled';
-                        this.applyFilters();
-                        this.renderOrders();
-                        this.updateStats();
-                        
-                        this.showNotification(`Pesanan ${orderId} berhasil dibatalkan!`, 'success');
-                    }
-                }
-            }
-
-            applyFilters() {
-                const search = document.getElementById('searchInput').value.toLowerCase();
-                const status = document.getElementById('statusFilter').value;
-                const startDate = document.getElementById('startDate').value;
-                const endDate = document.getElementById('endDate').value;
-
-                this.filteredOrders = this.orders.filter(order => {
-                    const matchesSearch = order.id.toLowerCase().includes(search) || 
-                                        order.customer.name.toLowerCase().includes(search) ||
-                                        order.customer.email.toLowerCase().includes(search);
-                    
-                    const matchesStatus = !status || order.status === status;
-                    
-                    let matchesDate = true;
-                    if (startDate) {
-                        matchesDate = matchesDate && order.orderDate >= new Date(startDate);
-                    }
-                    if (endDate) {
-                        matchesDate = matchesDate && order.orderDate <= new Date(endDate + 'T23:59:59');
-                    }
-
-                    return matchesSearch && matchesStatus && matchesDate;
-                });
-
-                this.renderOrders();
-            }
-
-            updateStats() {
-                const stats = {
-                    pending: this.orders.filter(o => o.status === 'pending').length,
-                    processing: this.orders.filter(o => o.status === 'processing').length,
-                    completed: this.orders.filter(o => o.status === 'completed').length,
-                    cancelled: this.orders.filter(o => o.status === 'cancelled').length
-                };
-
-                document.getElementById('pendingCount').textContent = stats.pending;
-                document.getElementById('processingCount').textContent = stats.processing;
-                document.getElementById('completedCount').textContent = stats.completed;
-                document.getElementById('cancelledCount').textContent = stats.cancelled;
-            }
-
-            refreshOrders() {
-                this.showNotification('Memperbarui data pesanan...', 'info');
-                
-                // Simulate API call
-                setTimeout(() => {
-                    this.renderOrders();
-                    this.updateStats();
-                    this.showNotification('Data pesanan berhasil diperbarui!', 'success');
-                }, 1000);
-            }
-
-            exportOrders() {
-                this.showNotification('Mengekspor data pesanan...', 'info');
-                
-                // Simulate export
-                setTimeout(() => {
-                    const csvContent = this.generateCSV();
-                    this.downloadCSV(csvContent, 'pesanan-fajar-gold.csv');
-                    this.showNotification('Data berhasil diekspor!', 'success');
-                }, 1500);
-            }
-
-            generateCSV() {
-                const headers = ['ID Pesanan', 'Pelanggan', 'Email', 'Total', 'Status', 'Tanggal'];
-                const rows = this.filteredOrders.map(order => [
-                    order.id,
-                    order.customer.name,
-                    order.customer.email,
-                    order.total,
-                    this.getStatusText(order.status),
-                    this.formatDate(order.orderDate)
-                ]);
-
-                return [headers, ...rows].map(row => row.join(',')).join('\n');
-            }
-
-            downloadCSV(content, filename) {
-                const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                link.setAttribute('href', url);
-                link.setAttribute('download', filename);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-
-            getStatusText(status) {
+            
+            getStatusBadge(status) {
                 const statusMap = {
-                    'pending': 'Menunggu Konfirmasi',
-                    'processing': 'Sedang Diproses',
-                    'completed': 'Selesai',
-                    'cancelled': 'Dibatalkan'
+                    'PENDING_PAYMENT': { class: 'bg-warning', text: 'Menunggu Pembayaran' },
+                    'PENDING_CONFIRMATION': { class: 'bg-info', text: 'Menunggu Konfirmasi' },
+                    'PAID': { class: 'bg-success', text: 'Sudah Dibayar' },
+                    'PROCESSING': { class: 'bg-primary', text: 'Sedang Diproses' },
+                    'SHIPPED': { class: 'bg-purple', text: 'Dikirim' },
+                    'DELIVERED': { class: 'bg-success', text: 'Terkirim' },
+                    'CANCELLED': { class: 'bg-danger', text: 'Dibatalkan' }
                 };
-                return statusMap[status] || status;
+                
+                const statusInfo = statusMap[status] || { class: 'bg-secondary', text: status };
+                return `<span class="badge ${statusInfo.class} status-badge">${statusInfo.text}</span>`;
             }
-
-            formatCurrency(amount) {
-                return new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0
-                }).format(amount);
+            
+            getActionButtons(order) {
+                let buttons = '';
+                
+                if (order.status === 'PENDING_PAYMENT' || order.status === 'PENDING_CONFIRMATION') {
+                    buttons += `
+                        <button class="btn btn-outline-success btn-sm btn-action" onclick="orderManager.showConfirmModal(${order.id})">
+                            <i class="fas fa-check"></i> Konfirmasi
+                        </button>
+                    `;
+                }
+                
+                if (order.status !== 'CANCELLED' && order.status !== 'DELIVERED') {
+                    buttons += `
+                        <button class="btn btn-outline-primary btn-sm btn-action" onclick="orderManager.showUpdateStatusModal(${order.id})">
+                            <i class="fas fa-edit"></i> Update Status
+                        </button>
+                    `;
+                }
+                
+                if (order.status === 'PENDING_PAYMENT' || order.status === 'PENDING_CONFIRMATION') {
+                    buttons += `
+                        <button class="btn btn-outline-danger btn-sm btn-action" onclick="orderManager.showCancelModal(${order.id})">
+                            <i class="fas fa-times"></i> Batalkan
+                        </button>
+                    `;
+                }
+                
+                return buttons;
             }
-
-            formatDate(date) {
-                return new Intl.DateTimeFormat('id-ID', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                }).format(date);
-            }
-
-            showNotification(message, type = 'info') {
-                const notification = document.createElement('div');
-                notification.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-                    color: white;
-                    padding: 15px 20px;
-                    border-radius: 10px;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                    z-index: 10001;
-                    font-weight: 500;
-                    max-width: 300px;
-                    animation: slideIn 0.3s ease-out;
+            
+            renderPagination() {
+                const pagination = document.getElementById('pagination');
+                
+                if (this.totalPages <= 1) {
+                    pagination.innerHTML = '';
+                    return;
+                }
+                
+                let paginationHTML = '';
+                
+                // Previous button
+                paginationHTML += `
+                    <li class="page-item ${this.currentPage === 0 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="orderManager.goToPage(${this.currentPage - 1})">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
                 `;
                 
-                notification.textContent = message;
-                document.body.appendChild(notification);
-
-                setTimeout(() => {
-                    notification.style.animation = 'slideOut 0.3s ease-in';
-                    setTimeout(() => {
-                        if (notification.parentNode) {
-                            notification.parentNode.removeChild(notification);
-                        }
-                    }, 300);
-                }, 3000);
-            }
-        }
-
-        // Initialize Order Manager
-        let orderManager;
-        document.addEventListener('DOMContentLoaded', () => {
-            orderManager = new OrderManager();
-        });
-
-        // Add CSS animations
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from {
-                    transform: translateX(100%);
-                    opacity: 0;
+                // Page numbers
+                for (let i = 0; i < this.totalPages; i++) {
+                    if (i === 0 || i === this.totalPages - 1 || (i >= this.currentPage - 1 && i <= this.currentPage + 1)) {
+                        paginationHTML += `
+                            <li class="page-item ${i === this.currentPage ? 'active' : ''}">
+                                <a class="page-link" href="#" onclick="orderManager.goToPage(${i})">${i + 1}</a>
+                            </li>
+                        `;
+                    } else if (i === this.currentPage - 2 || i === this.currentPage + 2) {
+                        paginationHTML += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                    }
                 }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
+                
+                // Next button
+                paginationHTML += `
+                    <li class="page-item ${this.currentPage === this.totalPages - 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="orderManager.goToPage(${this.currentPage + 1})">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                `;
+                
+                pagination.innerHTML = paginationHTML;
+            }
+            
+            goToPage(page) {
+                if (page >= 0 && page < this.totalPages) {
+                    this.currentPage = page;
+                    this.loadOrders();
                 }
             }
             
-            @keyframes slideOut {
-                from {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-                to {
-                    transform: translateX(100%);
-                    opacity: 0;
+            async viewOrderDetail(orderId) {
+                try {
+                    const response = await axios.get(`/admin/api/orders/${orderId}`);
+                    
+                    if (response.data.success) {
+                        const order = response.data.data;
+                        this.renderOrderDetail(order);
+                        
+                        const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+                        modal.show();
+                    } else {
+                        this.showError('Gagal memuat detail pesanan');
+                    }
+                } catch (error) {
+                    console.error('Error loading order detail:', error);
+                    this.showError('Terjadi kesalahan saat memuat detail pesanan');
                 }
             }
-        `;
-        document.head.appendChild(style);
-
-        // Sidebar Toggle JavaScript
+            
+            renderOrderDetail(order) {
+                const content = document.getElementById('orderDetailContent');
+                
+                content.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Informasi Pesanan</h6>
+                            <table class="table table-sm">
+                                <tr><td>No. Pesanan:</td><td><strong>${order.orderNumber}</strong></td></tr>
+                                <tr><td>Status:</td><td>${this.getStatusBadge(order.status)}</td></tr>
+                                <tr><td>Total:</td><td><strong>Rp ${this.formatCurrency(order.totalAmount)}</strong></td></tr>
+                                <tr><td>Metode Pembayaran:</td><td>${order.paymentMethod || 'N/A'}</td></tr>
+                                <tr><td>Tanggal Pesanan:</td><td>${this.formatDateTime(order.createdAt)}</td></tr>
+                                ${order.paidAt ? `<tr><td>Tanggal Bayar:</td><td>${this.formatDateTime(order.paidAt)}</td></tr>` : ''}
+                                ${order.cancelledAt ? `<tr><td>Tanggal Dibatalkan:</td><td>${this.formatDateTime(order.cancelledAt)}</td></tr>` : ''}
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Informasi Customer</h6>
+                            <table class="table table-sm">
+                                <tr><td>Nama:</td><td><strong>${order.customerName || 'N/A'}</strong></td></tr>
+                                <tr><td>Telepon:</td><td>${order.customerPhone || 'N/A'}</td></tr>
+                                <tr><td>Email:</td><td>${order.customerEmail || 'N/A'}</td></tr>
+                                <tr><td>Alamat:</td><td>${order.shippingAddress || 'N/A'}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    ${order.notes ? `
+                        <div class="mt-3">
+                            <h6 class="text-primary">Catatan</h6>
+                            <p class="text-muted">${order.notes}</p>
+                        </div>
+                    ` : ''}
+                    
+                    ${order.items && order.items.length > 0 ? `
+                        <div class="mt-3">
+                            <h6 class="text-primary">Item Pesanan</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Produk</th>
+                                            <th>Harga Satuan</th>
+                                            <th>Jumlah</th>
+                                            <th>Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${order.items.map(item => `
+                                            <tr>
+                                                <td>${item.product ? item.product.name : 'N/A'}</td>
+                                                <td>Rp ${this.formatCurrency(item.unitPrice)}</td>
+                                                <td>${item.quantity}</td>
+                                                <td>Rp ${this.formatCurrency(item.subtotal)}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+            }
+            
+            showConfirmModal(orderId) {
+                this.currentOrderId = orderId;
+                document.getElementById('confirmNotes').value = '';
+                
+                const modal = new bootstrap.Modal(document.getElementById('confirmOrderModal'));
+                modal.show();
+            }
+            
+            showUpdateStatusModal(orderId) {
+                this.currentOrderId = orderId;
+                document.getElementById('newStatus').value = 'PENDING_CONFIRMATION';
+                document.getElementById('statusNotes').value = '';
+                
+                const modal = new bootstrap.Modal(document.getElementById('updateStatusModal'));
+                modal.show();
+            }
+            
+            showCancelModal(orderId) {
+                this.currentOrderId = orderId;
+                document.getElementById('cancelReason').value = '';
+                
+                const modal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
+                modal.show();
+            }
+            
+            async confirmOrder() {
+                if (!this.currentOrderId) return;
+                
+                try {
+                    this.setLoading('confirmOrderBtn', true);
+                    
+                    const notes = document.getElementById('confirmNotes').value.trim();
+                    const requestBody = notes ? { notes } : null;
+                    
+                    const response = await axios.post(`/admin/api/orders/${this.currentOrderId}/confirm`, requestBody);
+                    
+                    if (response.data.success) {
+                        this.showSuccess('Pesanan berhasil dikonfirmasi');
+                        
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('confirmOrderModal'));
+                        modal.hide();
+                        
+                        // Refresh data
+                        this.loadOrders();
+                        this.loadStatistics();
+                    } else {
+                        this.showError('Gagal mengkonfirmasi pesanan');
+                    }
+                } catch (error) {
+                    console.error('Error confirming order:', error);
+                    this.showError('Terjadi kesalahan saat mengkonfirmasi pesanan');
+                } finally {
+                    this.setLoading('confirmOrderBtn', false);
+                }
+            }
+            
+            async updateOrderStatus() {
+                if (!this.currentOrderId) return;
+                
+                try {
+                    this.setLoading('updateStatusBtn', true);
+                    
+                    const newStatus = document.getElementById('newStatus').value;
+                    const notes = document.getElementById('statusNotes').value.trim();
+                    
+                    const requestBody = {
+                        status: newStatus,
+                        notes: notes || null
+                    };
+                    
+                    const response = await axios.put(`/admin/api/orders/${this.currentOrderId}/status`, requestBody);
+                    
+                    if (response.data.success) {
+                        this.showSuccess('Status pesanan berhasil diubah');
+                        
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('updateStatusModal'));
+                        modal.hide();
+                        
+                        // Refresh data
+                        this.loadOrders();
+                        this.loadStatistics();
+                    } else {
+                        this.showError('Gagal mengubah status pesanan');
+                    }
+                } catch (error) {
+                    console.error('Error updating order status:', error);
+                    this.showError('Terjadi kesalahan saat mengubah status pesanan');
+                } finally {
+                    this.setLoading('updateStatusBtn', false);
+                }
+            }
+            
+            async cancelOrder() {
+                if (!this.currentOrderId) return;
+                
+                try {
+                    this.setLoading('cancelOrderBtn', true);
+                    
+                    const reason = document.getElementById('cancelReason').value.trim();
+                    const requestBody = reason ? { notes: reason } : null;
+                    
+                    const response = await axios.post(`/admin/api/orders/${this.currentOrderId}/cancel`, requestBody);
+                    
+                    if (response.data.success) {
+                        this.showSuccess('Pesanan berhasil dibatalkan');
+                        
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('cancelOrderModal'));
+                        modal.hide();
+                        
+                        // Refresh data
+                        this.loadOrders();
+                        this.loadStatistics();
+                    } else {
+                        this.showError('Gagal membatalkan pesanan');
+                    }
+                } catch (error) {
+                    console.error('Error cancelling order:', error);
+                    this.showError('Terjadi kesalahan saat membatalkan pesanan');
+                } finally {
+                    this.setLoading('cancelOrderBtn', false);
+                }
+            }
+            
+            setLoading(buttonId, loading) {
+                const button = document.getElementById(buttonId);
+                if (loading) {
+                    button.classList.add('loading');
+                    button.disabled = true;
+                } else {
+                    button.classList.remove('loading');
+                    button.disabled = false;
+                }
+            }
+            
+            showLoading() {
+                document.getElementById('ordersTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Memuat data pesanan...</p>
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            hideLoading() {
+                // Loading is handled in renderOrders
+            }
+            
+            showSuccess(message) {
+                // You can implement a toast notification here
+                alert('✅ ' + message);
+            }
+            
+            showError(message) {
+                // You can implement a toast notification here
+                alert('❌ ' + message);
+            }
+            
+            formatCurrency(amount) {
+                if (!amount) return '0';
+                return new Intl.NumberFormat('id-ID').format(amount);
+            }
+            
+            formatDate(dateString) {
+                if (!dateString) return 'N/A';
+                const date = new Date(dateString);
+                return date.toLocaleDateString('id-ID');
+            }
+            
+            formatTime(dateString) {
+                if (!dateString) return 'N/A';
+                const date = new Date(dateString);
+                return date.toLocaleTimeString('id-ID');
+            }
+            
+            formatDateTime(dateString) {
+                if (!dateString) return 'N/A';
+                const date = new Date(dateString);
+                return `${date.toLocaleDateString('id-ID')} ${date.toLocaleTimeString('id-ID')}`;
+            }
+        }
+        
+        // Initialize Order Manager when page loads
+        let orderManager;
         document.addEventListener('DOMContentLoaded', () => {
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.querySelector('.main-content');
-
-            sidebarToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('collapsed');
-            });
+            orderManager = new OrderManager();
         });
     </script>
 </body>
