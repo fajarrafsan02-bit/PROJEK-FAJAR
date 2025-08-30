@@ -1206,6 +1206,9 @@
                 await this.loadCurrentPrices();
                 await this.loadPriceChanges();
                 await this.loadPriceHistory();
+                
+                // Hitung perubahan harga yang lebih akurat
+                await this.calculatePriceChanges();
 
                 // Setelah semua data ter-load, baru render
                 this.renderCurrentPrices();
@@ -1534,6 +1537,119 @@
                 }
             }
 
+            // Method untuk menghitung perubahan harga yang lebih akurat
+            calculatePriceChanges() {
+                try {
+                    console.log('Calculating price changes...');
+                    
+                    // Ambil data history untuk perbandingan
+                    this.loadPriceHistoryForChanges().then(() => {
+                        console.log('Price changes calculated:', this.priceChanges);
+                        this.renderCurrentPrices(); // Re-render setelah data berubah
+                    });
+                } catch (error) {
+                    console.error('Error calculating price changes:', error);
+                }
+            }
+
+            // Method untuk load history dan hitung perubahan
+            async loadPriceHistoryForChanges() {
+                try {
+                    console.log('Loading price history for changes...');
+
+                    // Ambil data history terbaru
+                    const response = await fetch(`${this.baseUrl}/history?page=0&size=10&sortBy=tanggalAmbil&sortDirection=desc`);
+                    const result = await response.json();
+
+                    if (result.success && result.data && result.data.content && result.data.content.length > 0) {
+                        const historyData = result.data.content;
+                        console.log('History data loaded:', historyData);
+
+                        this.priceChanges = {};
+                        const requiredPurities = ['24k', '22k', '18k'];
+
+                        requiredPurities.forEach(purity => {
+                            const purityKey = purity === '24k' ? 'hargaJual24k' :
+                                purity === '22k' ? 'hargaJual22k' : 'hargaJual18k';
+
+                            // Cari data terbaru dan sebelumnya untuk purity ini
+                            let latestPrice = 0;
+                            let previousPrice = 0;
+                            let latestDate = null;
+                            let previousDate = null;
+
+                            // Cari harga terbaru
+                            for (let i = 0; i < historyData.length; i++) {
+                                const item = historyData[i];
+                                if (item[purityKey] && item[purityKey] > 0) {
+                                    latestPrice = item[purityKey];
+                                    latestDate = new Date(item.tanggalAmbil);
+                                    break;
+                                }
+                            }
+
+                            // Cari harga sebelumnya (yang berbeda dengan terbaru)
+                            for (let i = 0; i < historyData.length; i++) {
+                                const item = historyData[i];
+                                if (item[purityKey] && item[purityKey] > 0 && item[purityKey] !== latestPrice) {
+                                    previousPrice = item[purityKey];
+                                    previousDate = new Date(item.tanggalAmbil);
+                                    break;
+                                }
+                            }
+
+                            // Jika tidak ada harga sebelumnya, gunakan harga saat ini sebagai perbandingan
+                            if (previousPrice === 0 && this.currentPrices[purity] > 0) {
+                                previousPrice = this.currentPrices[purity];
+                                previousDate = new Date();
+                            }
+
+                            // Hitung perubahan
+                            if (latestPrice > 0 && previousPrice > 0 && latestPrice !== previousPrice) {
+                                const change = latestPrice - previousPrice;
+                                const changePercent = previousPrice > 0 ? Math.abs((change / previousPrice) * 100) : 0;
+                                const changeType = change > 0 ? 'INCREASE' : 'DECREASE';
+
+                                this.priceChanges[purity] = {
+                                    purity: purity,
+                                    oldPrice: previousPrice,
+                                    newPrice: latestPrice,
+                                    changeAmount: change,
+                                    changePercent: changePercent,
+                                    changeType: changeType,
+                                    changeDate: latestDate,
+                                    previousDate: previousDate,
+                                    updatedBy: 'System'
+                                };
+
+                                console.log(`Price change for ${purity}:`, this.priceChanges[purity]);
+                            } else {
+                                // Tidak ada perubahan
+                                this.priceChanges[purity] = {
+                                    purity: purity,
+                                    oldPrice: previousPrice,
+                                    newPrice: latestPrice,
+                                    changeAmount: 0,
+                                    changePercent: 0,
+                                    changeType: 'STABLE',
+                                    changeDate: latestDate,
+                                    previousDate: previousDate,
+                                    updatedBy: 'System'
+                                };
+                            }
+                        });
+
+                    } else {
+                        console.log('No history data available');
+                        this.createDefaultPriceChanges();
+                    }
+
+                } catch (error) {
+                    console.error('Error loading price history for changes:', error);
+                    this.createDefaultPriceChanges();
+                }
+            }
+
             // Method untuk buat data perubahan default
             createDefaultPriceChanges() {
                 this.priceChanges = {
@@ -1629,10 +1745,54 @@
                             }
                         }
                     } else {
-                        // Jika tidak ada data perubahan yang valid
+                        // Jika tidak ada data perubahan yang valid, coba cari dari history
                         if (currentPrice > 0) {
-                            changeText = 'Harga saat ini tersedia';
-                            changeTime = 'Belum ada perubahan';
+                            // Cek apakah ada data history untuk purity ini
+                            const hasHistory = this.priceHistory && this.priceHistory.length > 0;
+                            
+                            if (hasHistory) {
+                                // Cari data terbaru dari history
+                                const latestHistory = this.priceHistory[0];
+                                const latestPrice = latestHistory.prices[item.key];
+                                
+                                if (latestPrice && latestPrice !== currentPrice) {
+                                    // Ada perubahan dari history
+                                    const change = latestPrice - currentPrice;
+                                    const changePercent = currentPrice > 0 ? Math.abs((change / currentPrice) * 100) : 0;
+                                    
+                                    if (change > 0) {
+                                        changeType = 'positive';
+                                        changeIcon = 'fa-arrow-up';
+                                        changeText = `+${this.formatCurrency(change)} (+${changePercent.toFixed(2)}%)`;
+                                    } else {
+                                        changeType = 'negative';
+                                        changeIcon = 'fa-arrow-down';
+                                        changeText = `${this.formatCurrency(change)} (-${changePercent.toFixed(2)}%)`;
+                                    }
+                                    
+                                    // Hitung waktu perubahan
+                                    const changeDate = latestHistory.date;
+                                    const now = new Date();
+                                    const diffMs = now - changeDate;
+                                    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                                    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                                    
+                                    if (diffDays > 0) {
+                                        changeTime = `${diffDays} hari yang lalu`;
+                                    } else if (diffHours > 0) {
+                                        changeTime = `${diffHours} jam yang lalu`;
+                                    } else {
+                                        changeTime = 'Baru saja';
+                                    }
+                                } else {
+                                    // Tidak ada perubahan
+                                    changeText = 'Harga stabil';
+                                    changeTime = 'Tidak ada perubahan terbaru';
+                                }
+                            } else {
+                                changeText = 'Harga saat ini tersedia';
+                                changeTime = 'Data history tidak tersedia';
+                            }
                         } else {
                             changeText = 'Harga belum tersedia';
                             changeTime = 'Data tidak tersedia';
@@ -2208,6 +2368,10 @@
                         await this.loadPriceHistory();
                         this.renderCurrentPrices();
                         this.loadCurrentPricesToForm();
+                        
+                        // Refresh perubahan harga
+                        await this.calculatePriceChanges();
+                        this.renderCurrentPrices();
 
                         // Clear form jika update berhasil
                         if (price24kElement) price24kElement.value = '';
