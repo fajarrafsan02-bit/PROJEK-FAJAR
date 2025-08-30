@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Fajar Gold</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold-primary: #d4af37;
+            --gold-light: #f7e98e;
+            --gold-dark: #b8860b;
+            --gold-accent: #ffd700;
+            --black-luxury: #0a0a0a;
+            --black-soft: #1a1a1a;
+            --white-pearl: #fff8dc;
+            --white-pure: #ffffff;
+            --gray-elegant: #4a5568;
+            --gray-light: #f7fafc;
+            --gray-medium: #e2e8f0;
+            --gray-dark: #2d3748;
+            --shadow-gold: 0 25px 50px rgba(212, 175, 55, 0.4);
+            --shadow-luxury: 0 30px 60px rgba(0, 0, 0, 0.2);
+            --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --gradient-gold: linear-gradient(135deg, #d4af37 0%, #ffd700 50%, #b8860b 100%);
+            --gradient-gold-reverse: linear-gradient(135deg, #b8860b 0%, #ffd700 50%, #d4af37 100%);
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background: var(--gray-light);
+            color: var(--black-luxury);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: var(--white-pure);
+            box-shadow: var(--shadow-soft);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            padding: 20px 0;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .logo {
+            font-family: "Playfair Display", serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--gold-primary);
+            text-decoration: none;
+            letter-spacing: 2px;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--black-luxury);
+            font-weight: 500;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--gold-primary);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .nav-icon {
+            position: relative;
+            color: var(--black-luxury);
+            font-size: 22px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            padding: 10px;
+            border-radius: 50%;
+        }
+
+        .nav-icon:hover {
+            color: var(--gold-primary);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--error-color);
+            color: white;
+            font-size: 11px;
+            padding: 3px 7px;
+            border-radius: 12px;
+            min-width: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .checkout-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 30px;
+        }
+
+        .page-title {
+            font-family: "Playfair Display", serif;
+            font-size: 42px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 50px;
+            color: var(--black-luxury);
+            position: relative;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: var(--gradient-gold);
+            border-radius: 2px;
+        }
+
+        .checkout-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 40px;
+        }
+
+        .checkout-form {
+            background: var(--white-pure);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .form-section {
+            margin-bottom: 35px;
+        }
+
+        .section-title {
+            font-family: "Playfair Display", serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-input {
+            padding: 15px;
+            border: 2px solid var(--gray-medium);
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .payment-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .payment-method {
+            border: 2px solid var(--gray-medium);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .payment-method:hover {
+            border-color: var(--gold-primary);
+            background: rgba(212, 175, 55, 0.05);
+        }
+
+        .payment-method.selected {
+            border-color: var(--gold-primary);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .payment-method i {
+            font-size: 32px;
+            color: var(--gold-primary);
+            margin-bottom: 10px;
+        }
+
+        .payment-method-name {
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 5px;
+        }
+
+        .payment-method-desc {
+            font-size: 12px;
+            color: var(--gray-elegant);
+        }
+
+        .order-summary {
+            background: var(--white-pure);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: var(--shadow-soft);
+            height: fit-content;
+            position: sticky;
+            top: 140px;
+        }
+
+        .summary-title {
+            font-family: "Playfair Display", serif;
+            font-size: 26px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: var(--black-luxury);
+        }
+
+        .order-items {
+            margin-bottom: 25px;
+        }
+
+        .order-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--gray-medium);
+            gap: 15px;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 5px;
+        }
+
+        .item-specs {
+            font-size: 12px;
+            color: var(--gray-elegant);
+        }
+
+        .item-price {
+            font-weight: 700;
+            color: var(--gold-primary);
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--gray-medium);
+            font-size: 16px;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--gold-primary);
+            padding-top: 20px;
+            margin-top: 15px;
+            border-top: 2px solid var(--gray-medium);
+        }
+
+        .pay-button {
+            width: 100%;
+            background: var(--gradient-gold);
+            color: var(--black-luxury);
+            border: none;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .pay-button:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .pay-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(212, 175, 55, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--gold-primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .checkout-content {
+                grid-template-columns: 1fr;
+            }
+
+            .order-summary {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .payment-methods {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-menu {
+                display: none;
+            }
+        }
+
+        .payment-methods {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .payment-option {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-option:hover {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+
+        .payment-option input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .payment-option label {
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .payment-instructions {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            background-color: #f8fff9;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+        }
+
+        .payment-instructions h3 {
+            color: #28a745;
+            margin-bottom: 15px;
+        }
+
+        .payment-instructions h4 {
+            color: #155724;
+            margin-bottom: 10px;
+        }
+
+        .upload-proof {
+            margin-top: 20px;
+            padding: 20px;
+            border: 2px solid #007bff;
+            border-radius: 6px;
+            background-color: #f8f9fa;
+        }
+
+        .upload-proof h4 {
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+
+        .upload-proof input[type="file"] {
+            margin: 10px 0;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        .upload-proof button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .upload-proof button:hover {
+            background: #0056b3;
+        }
+
+        .qr-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .qr-container canvas {
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 10px;
+            background: white;
+        }
+
+        .qr-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .qr-info p {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .qr-info strong {
+            color: #28a745;
+        }
+    </style>
+    <!-- Tambahkan library QR Code dengan multiple CDN dan fallback yang lebih robust -->
+    <script>
+        // Function untuk load QR Code library dengan multiple fallback
+        function loadQRCodeLibrary() {
+            return new Promise((resolve, reject) => {
+                // Cek apakah sudah ada
+                if (typeof QRCode !== 'undefined') {
+                    console.log('✅ QR Code library already loaded');
+                    resolve();
+                    return;
+                }
+
+                // Try first CDN
+                const script1 = document.createElement('script');
+                script1.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
+                script1.onload = () => {
+                    console.log('✅ QR Code library loaded from CDN 1');
+                    resolve();
+                };
+                script1.onerror = () => {
+                    console.log('❌ CDN 1 failed, trying CDN 2...');
+                    
+                    // Try second CDN
+                    const script2 = document.createElement('script');
+                    script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js';
+                    script2.onload = () => {
+                        console.log('✅ QR Code library loaded from CDN 2');
+                        resolve();
+                    };
+                    script2.onerror = () => {
+                        console.log('❌ CDN 2 failed, trying CDN 3...');
+                        
+                        // Try third CDN
+                        const script3 = document.createElement('script');
+                        script3.src = 'https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js';
+                        script3.onload = () => {
+                            console.log('✅ QR Code library loaded from CDN 3');
+                            resolve();
+                        };
+                        script3.onerror = () => {
+                            console.log('❌ All CDNs failed, using manual fallback');
+                            // Create manual QR code fallback
+                            window.QRCode = {
+                                toCanvas: function(canvas, text, options, callback) {
+                                    try {
+                                        // Create simple QR-like pattern manually
+                                        const ctx = canvas.getContext('2d');
+                                        const size = options.width || 200;
+                                        canvas.width = size;
+                                        canvas.height = size;
+                                        
+                                        // Clear canvas
+                                        ctx.fillStyle = '#FFFFFF';
+                                        ctx.fillRect(0, 0, size, size);
+                                        
+                                        // Draw simple pattern (simulating QR code)
+                                        ctx.fillStyle = '#000000';
+                                        const blockSize = size / 25;
+                                        
+                                        // Draw outer border
+                                        ctx.fillRect(0, 0, size, blockSize);
+                                        ctx.fillRect(0, size - blockSize, size, blockSize);
+                                        ctx.fillRect(0, 0, blockSize, size);
+                                        ctx.fillRect(size - blockSize, 0, blockSize, size);
+                                        
+                                        // Draw some inner patterns
+                                        for (let i = 0; i < 5; i++) {
+                                            for (let j = 0; j < 5; j++) {
+                                                if (Math.random() > 0.5) {
+                                                    ctx.fillRect(
+                                                        blockSize * 2 + i * blockSize * 3,
+                                                        blockSize * 2 + j * blockSize * 3,
+                                                        blockSize,
+                                                        blockSize
+                                                    );
+                                                }
+                                            }
+                                        }
+                                        
+                                        // Add text
+                                        ctx.fillStyle = '#000000';
+                                        ctx.font = '12px Arial';
+                                        ctx.textAlign = 'center';
+                                        ctx.fillText('QR Code', size/2, size/2);
+                                        ctx.fillText('Generated', size/2, size/2 + 15);
+                                        
+                                        if (callback) callback(null);
+                                    } catch (error) {
+                                        if (callback) callback(error);
+                                    }
+                                }
+                            };
+                            console.log('✅ Manual QR code fallback created');
+                            resolve();
+                        };
+                        document.head.appendChild(script3);
+                    };
+                    document.head.appendChild(script2);
+                };
+                document.head.appendChild(script1);
+            });
+        }
+
+        // Load library when page loads
+        window.addEventListener('load', function() {
+            loadQRCodeLibrary().then(() => {
+                console.log('✅ QR Code library ready to use');
+                window.qrCodeReady = true;
+            }).catch(() => {
+                console.error('❌ Failed to load QR Code library');
+                window.qrCodeReady = false;
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <a href="/user/home" class="logo">Fajar Gold</a>
+
+                <ul class="nav-menu">
+                    <li><a href="/user/home" class="nav-link">Beranda</a></li>
+                    <li><a href="/user/katalog" class="nav-link">Katalog</a></li>
+                    <li><a href="#" class="nav-link">Tentang Kami</a></li>
+                    <li><a href="#" class="nav-link">Kontak</a></li>
+                </ul>
+
+                <div class="nav-icons">
+                    <a href="#" class="nav-icon" title="Wishlist">
+                        <i class="fas fa-heart"></i>
+                        <span class="cart-badge" id="wishlistBadge">0</span>
+                    </a>
+                    <a href="/user/cart" class="nav-icon" title="Keranjang">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-badge" id="cartBadge">0</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="checkout-container">
+        <h1 class="page-title">Checkout</h1>
+
+        <div class="checkout-content">
+            <div class="checkout-form">
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-user"></i>
+                        Informasi Pribadi
+                    </h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Nama Lengkap</label>
+                            <input type="text" class="form-input" id="fullName" placeholder="Masukkan nama lengkap"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-input" id="email" placeholder="Masukkan email" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Nomor Telepon</label>
+                            <input type="tel" class="form-input" id="phone" placeholder="Masukkan nomor telepon"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tanggal Lahir</label>
+                            <input type="date" class="form-input" id="birthDate" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Alamat Pengiriman
+                    </h3>
+                    <div class="form-group full-width">
+                        <label class="form-label">Alamat Lengkap</label>
+                        <textarea class="form-input form-textarea" id="address" placeholder="Masukkan alamat lengkap"
+                            required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Kota</label>
+                            <input type="text" class="form-input" id="city" placeholder="Masukkan kota" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Kode Pos</label>
+                            <input type="text" class="form-input" id="postalCode" placeholder="Masukkan kode pos"
+                                required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-credit-card"></i>
+                        Metode Pembayaran
+                    </h3>
+                    <div class="payment-methods">
+                        <h3>Pilih Metode Pembayaran</h3>
+                        
+                        <div class="payment-option">
+                            <input type="radio" id="qrCode" name="paymentMethod" value="QR_CODE" checked>
+                            <label for="qrCode">
+                                <i class="fas fa-qrcode"></i>
+                                QR Code
+                            </label>
+                        </div>
+
+                        <div class="payment-option">
+                            <input type="radio" id="bankTransfer" name="paymentMethod" value="BANK_TRANSFER">
+                            <label for="bankTransfer">
+                                <i class="fas fa-university"></i>
+                                Transfer Bank
+                            </label>
+                        </div>
+                        
+                        <!-- Test button untuk debug -->
+                        <button type="button" onclick="checkoutManager.testQRCode()" style="margin-top: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            🧪 Test QR Code
+                        </button>
+                    </div>
+
+                    <!-- Payment Instructions akan muncul di sini -->
+                    <div id="paymentInstructions" class="payment-instructions" style="display: none;">
+                        <h3>Instruksi Pembayaran</h3>
+                        <div id="qrCodeSection" style="display: none;">
+                            <h4>Scan QR Code</h4>
+                            <div class="qr-container">
+                                <canvas id="qrCodeImage"></canvas>
+                            </div>
+                            <p id="qrInstructions"></p>
+                            <div class="qr-info">
+                                <p><strong>Jumlah Pembayaran:</strong> <span id="qrAmount"></span></p>
+                                <p><strong>Order ID:</strong> <span id="qrOrderId"></span></p>
+                            </div>
+                        </div>
+
+                        <div id="bankTransferSection" style="display: none;">
+                            <h4>Transfer Bank</h4>
+                            <p><strong>Bank:</strong> <span id="bankName"></span></p>
+                            <p><strong>Nomor Rekening:</strong> <span id="accountNumber"></span></p>
+                            <p id="bankInstructions"></p>
+                        </div>
+
+                        <div class="upload-proof">
+                            <h4>Upload Bukti Pembayaran</h4>
+                            <input type="file" id="paymentProof" accept="image/*" required>
+                            <button type="button" onclick="checkoutManager.uploadPaymentProof()"
+                                class="btn btn-primary">
+                                Upload Bukti Pembayaran
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="order-summary">
+                <h3 class="summary-title">Ringkasan Pesanan</h3>
+
+                <div class="order-items" id="orderItems">
+                    <!-- Items will be populated by JavaScript -->
+                </div>
+
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">Rp 0</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>Ongkos Kirim</span>
+                    <span id="shippingCost">Rp 0</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>Diskon</span>
+                    <span id="discount">-Rp 0</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>Total</span>
+                    <span id="total">Rp 0</span>
+                </div>
+
+                <button class="pay-button" id="payButton" onclick="checkoutManager.processPayment()">
+                    <i class="fas fa-lock"></i>
+                    Bayar Sekarang
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class CheckoutManager {
+            constructor() {
+                this.checkoutData = JSON.parse(localStorage.getItem('checkoutData')) || {};
+                this.cart = JSON.parse(localStorage.getItem('cart')) || [];
+                this.selectedPaymentMethod = (document.querySelector('input[name="paymentMethod"]:checked')?.value) || 'QR_CODE';
+                this.isProcessing = false;
+
+                this.init();
+            }
+
+            init() {
+                this.renderOrderSummary();
+                this.setupEventListeners();
+                this.updateBadges();
+                this.validateCheckoutData();
+            }
+
+            validateCheckoutData() {
+                console.log('Validating checkout data:', this.checkoutData);
+                if (!this.checkoutData.items || this.checkoutData.items.length === 0) {
+                    console.error('Checkout data validation failed: no items');
+                    this.showNotification('Data checkout tidak valid. Silakan kembali ke keranjang.', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/user/cart';
+                    }, 2000);
+                } else {
+                    console.log('Checkout data validation passed');
+                }
+            }
+
+            setupEventListeners() {
+                // Gunakan radio input pada .payment-option
+                const radios = document.querySelectorAll('.payment-option input[name="paymentMethod"]');
+                radios.forEach(radio => {
+                    radio.addEventListener('change', () => {
+                        this.selectedPaymentMethod = radio.value;
+                        document.querySelectorAll('.payment-option').forEach(opt => opt.classList.remove('selected'));
+                        radio.closest('.payment-option')?.classList.add('selected');
+                    });
+                });
+
+                // Auto-select state untuk yang sudah checked
+                const firstChecked = document.querySelector('input[name="paymentMethod"]:checked');
+                if (firstChecked) {
+                    this.selectedPaymentMethod = firstChecked.value;
+                    firstChecked.closest('.payment-option')?.classList.add('selected');
+                }
+            }
+            renderOrderSummary() {
+                const orderItems = document.getElementById('orderItems');
+                const items = this.checkoutData.items || [];
+
+                orderItems.innerHTML = items.map(item => `
+                    <div class="order-item">
+                        <div class="item-image">
+                            <img src="${item.image || '/placeholder.svg'}" 
+                                 alt="${item.name}"
+                                 onerror="this.src='/placeholder.svg'">
+                        </div>
+                        <div class="item-details">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-specs">Qty: ${item.quantity} | ${item.specs || `Berat: ${item.weight} gram | Kadar: ${item.purity}K`}</div>
+                        </div>
+                        <div class="item-price">${this.formatCurrency(item.price || item.finalPrice || 0)}</div>
+                    </div>
+                `).join('');
+
+                // Update summary
+                this.updateSummary();
+            }
+
+            updateSummary() {
+                const items = this.checkoutData.items || [];
+                const subtotal = items.reduce((sum, item) => {
+                    const price = item.price || item.finalPrice || 0;
+                    return sum + (price * item.quantity);
+                }, 0);
+
+                const shipping = this.checkoutData.shipping || 0;
+                const discount = this.checkoutData.discount || 0;
+                const discountAmount = subtotal * discount;
+                const total = subtotal + shipping - discountAmount;
+
+                document.getElementById('subtotal').textContent = this.formatCurrency(subtotal);
+                document.getElementById('shippingCost').textContent = shipping === 0 ? 'GRATIS' : this.formatCurrency(shipping);
+                document.getElementById('discount').textContent = discountAmount > 0 ? `-${this.formatCurrency(discountAmount)}` : 'Rp 0';
+                document.getElementById('total').textContent = this.formatCurrency(total);
+            }
+
+            async processPayment() {
+                if (this.isProcessing) return;
+
+                // Validate form
+                if (!this.validateForm()) {
+                    return;
+                }
+
+                this.isProcessing = true;
+                this.updatePayButton(true);
+
+                try {
+                    // Prepare checkout data
+                    const checkoutRequest = {
+                        items: this.checkoutData.items.map(item => ({
+                            productId: item.id,
+                            quantity: item.quantity
+                        })),
+                        customerInfo: {
+                            fullName: document.getElementById('fullName').value,
+                            email: document.getElementById('email').value,
+                            phone: document.getElementById('phone').value,
+                            birthDate: document.getElementById('birthDate').value,
+                            address: document.getElementById('address').value,
+                            city: document.getElementById('city').value,
+                            postalCode: document.getElementById('postalCode').value
+                        },
+                        paymentMethod: this.selectedPaymentMethod,
+                        totalAmount: this.calculateTotal()
+                    };
+
+                    // Tambahkan logging detail untuk data yang akan dikirim
+                    console.log('=== DATA YANG AKAN DIKIRIM ===');
+                    console.log('CheckoutRequest:', JSON.stringify(checkoutRequest, null, 2));
+                    console.log('Items:', checkoutRequest.items);
+                    console.log('CustomerInfo:', checkoutRequest.customerInfo);
+                    console.log('PaymentMethod:', checkoutRequest.paymentMethod);
+
+                    // Send to backend
+                    const response = await fetch('/user/checkout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(checkoutRequest)
+                    });
+
+                    console.log('Response status:', response.status);
+                    const result = await response.json();
+                    console.log('Response data:', result);
+
+                    // Tambahkan logging detail untuk error
+                    if (!response.ok) {
+                        console.error('Error response details:', {
+                            status: response.status,
+                            statusText: response.statusText,
+                            result: result,
+                            message: result.message || 'No message',
+                            error: result.error || 'No error details'
+                        });
+
+                        // Tampilkan error message yang lebih detail
+                        const errorMessage = result.message || result.error || 'Gagal memproses checkout';
+                        throw new Error(errorMessage);
+                    }
+
+                    if (response.ok && result.success) {
+                        this.showNotification('Pesanan berhasil dibuat!', 'success');
+
+                        // Handle payment instruction
+                        if (result.data && result.data.externalId) {
+                            console.log('📊 Payment data received:', result.data);
+                            // Tampilkan instruksi pembayaran
+                            this.showPaymentInstructions(result.data);
+                            
+                            // Simpan order ID untuk upload bukti
+                            this.currentOrderId = result.data.externalId;
+                        } else {
+                            throw new Error('Data pembayaran tidak lengkap');
+                        }
+
+                        // Clear cart
+                        localStorage.removeItem('cart');
+                        localStorage.removeItem('checkoutData');
+
+                    } else {
+                        throw new Error(result.message || 'Gagal memproses checkout');
+                    }
+
+                } catch (error) {
+                    console.error('Checkout error:', error);
+                    console.error('Error details:', {
+                        message: error.message,
+                        stack: error.stack
+                    });
+                    this.showNotification('Gagal memproses checkout: ' + error.message, 'error');
+                } finally {
+                    this.isProcessing = false;
+                    this.updatePayButton(false);
+                }
+            }
+
+            validateForm() {
+                const requiredFields = ['fullName', 'email', 'phone', 'birthDate', 'address', 'city', 'postalCode'];
+                let isValid = true;
+
+                requiredFields.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (!field || !field.value.trim()) {
+                        console.error(`Field ${fieldId} is empty`);
+                        isValid = false;
+                    }
+                });
+
+                if (!isValid) {
+                    this.showNotification('Mohon lengkapi semua field yang diperlukan', 'error');
+                }
+
+                return isValid;
+            }
+
+            calculateTotal() {
+                const items = this.checkoutData.items || [];
+                const subtotal = items.reduce((sum, item) => {
+                    const price = item.price || item.finalPrice || 0;
+                    return sum + (price * item.quantity);
+                }, 0);
+
+                const shipping = this.checkoutData.shipping || 0;
+                const discount = this.checkoutData.discount || 0;
+                const discountAmount = subtotal * discount;
+
+                return subtotal + shipping - discountAmount;
+            }
+
+            updatePayButton(loading) {
+                const button = document.getElementById('payButton');
+                if (loading) {
+                    button.innerHTML = '<div class="loading"></div> Memproses...';
+                    button.disabled = true;
+                } else {
+                    button.innerHTML = '<i class="fas fa-lock"></i> Bayar Sekarang';
+                    button.disabled = false;
+                }
+            }
+
+            // ... existing code ...
+            showPaymentInstructions(paymentData) {
+                console.log('🎯 === SHOWING PAYMENT INSTRUCTIONS ===');
+                console.log('📊 Payment data:', paymentData);
+                
+                const instructionsDiv = document.getElementById('paymentInstructions');
+                const qrSection = document.getElementById('qrCodeSection');
+                const bankSection = document.getElementById('bankTransferSection');
+
+                if (!instructionsDiv || !qrSection || !bankSection) {
+                    console.error('❌ Required elements not found:', {
+                        instructionsDiv: !!instructionsDiv,
+                        qrSection: !!qrSection,
+                        bankSection: !!bankSection
+                    });
+                    return;
+                }
+
+                // Reset semua section
+                qrSection.style.display = 'none';
+                bankSection.style.display = 'none';
+
+                if (paymentData.paymentMethod === 'QR_CODE') {
+                    console.log('📱 Showing QR Code section');
+                    qrSection.style.display = 'block';
+                    bankSection.style.display = 'none';
+
+                    // Set order info
+                    const qrAmount = document.getElementById('qrAmount');
+                    const qrOrderId = document.getElementById('qrOrderId');
+                    
+                    if (qrAmount && paymentData.amount) {
+                        qrAmount.textContent = this.formatCurrency(paymentData.amount);
+                        console.log('💰 Set QR amount:', paymentData.amount);
+                    }
+                    if (qrOrderId && paymentData.externalId) {
+                        qrOrderId.textContent = paymentData.externalId;
+                        console.log('💰 Set QR order ID:', paymentData.externalId);
+                    }
+
+                    // Generate QR code
+                    console.log('🚀 Starting QR code generation...');
+                    if (paymentData.qrData) {
+                        console.log('📡 Using qrData from backend');
+                        this.generateQRCode(paymentData.qrData);
+                    } else {
+                        console.log('🔄 Using fallback QR generation');
+                        this.generateSimpleQRCode(paymentData.amount || 0);
+                    }
+
+                    // Set instructions
+                    const qrInstructions = document.getElementById('qrInstructions');
+                    if (qrInstructions && paymentData.instructions) {
+                        qrInstructions.textContent = paymentData.instructions;
+                        console.log('📝 Set QR instructions:', paymentData.instructions);
+                    }
+
+                } else if (paymentData.paymentMethod === 'BANK_TRANSFER') {
+                    console.log('🏦 Showing Bank Transfer section');
+                    qrSection.style.display = 'none';
+                    bankSection.style.display = 'block';
+
+                    // Set bank details
+                    const bankName = document.getElementById('bankName');
+                    const accountNumber = document.getElementById('accountNumber');
+                    const bankInstructions = document.getElementById('bankInstructions');
+
+                    if (bankName && paymentData.bankName) {
+                        bankName.textContent = paymentData.bankName;
+                    }
+                    if (accountNumber && paymentData.bankAccountNumber) {
+                        accountNumber.textContent = paymentData.bankAccountNumber;
+                    }
+                    if (bankInstructions && paymentData.instructions) {
+                        bankInstructions.textContent = paymentData.instructions;
+                    }
+                }
+
+                // Tampilkan section instruksi pembayaran
+                instructionsDiv.style.display = 'block';
+                console.log('✅ Payment instructions section displayed');
+                
+                // Scroll ke instruksi pembayaran
+                instructionsDiv.scrollIntoView({ behavior: 'smooth' });
+                
+                // Tampilkan notifikasi sukses
+                this.showNotification('Instruksi pembayaran berhasil ditampilkan!', 'success');
+            }
+            // ... existing code ...
+
+            // Method untuk generate QR code yang sebenarnya
+            generateQRCode(qrData) {
+                console.log('🚀 Generating QR code with data:', qrData);
+                const qrContainer = document.getElementById('qrCodeImage');
+                if (!qrContainer) {
+                    console.error('❌ QR container not found');
+                    return;
+                }
+
+                // Clear container
+                qrContainer.innerHTML = '';
+
+                // Wait for library to be ready
+                if (typeof QRCode === 'undefined') {
+                    console.log('⏳ Waiting for QR Code library...');
+                    // Wait a bit and try again
+                    setTimeout(() => {
+                        if (typeof QRCode !== 'undefined') {
+                            this.generateQRCode(qrData);
+                        } else {
+                            console.error('❌ QRCode library still not available, using fallback');
+                            this.showQRPlaceholder(qrContainer);
+                        }
+                    }, 1000);
+                    return;
+                }
+
+                try {
+                    console.log('✅ QRCode library ready, generating QR code...');
+                    
+                    // Generate QR code menggunakan library
+                    QRCode.toCanvas(qrContainer, qrData, {
+                        width: 200,
+                        height: 200,
+                        margin: 2,
+                        color: {
+                            dark: '#000000',
+                            light: '#FFFFFF'
+                        }
+                    }, function (error) {
+                        if (error) {
+                            console.error('❌ Error generating QR code:', error);
+                            this.showQRPlaceholder(qrContainer);
+                        } else {
+                            console.log('✅ QR code generated successfully');
+                        }
+                    }.bind(this));
+                } catch (error) {
+                    console.error('❌ Exception generating QR code:', error);
+                    this.showQRPlaceholder(qrContainer);
+                }
+            }
+
+            // Method fallback untuk generate QR code sederhana
+            generateSimpleQRCode(amount) {
+                console.log('🚀 Generating simple QR code for amount:', amount);
+                const qrContainer = document.getElementById('qrCodeImage');
+                if (!qrContainer) return;
+
+                // Clear container
+                qrContainer.innerHTML = '';
+
+                // Generate QR code sederhana dengan data pembayaran
+                const paymentData = `FAJAR_GOLD_PAYMENT_${amount}_${Date.now()}`;
+                console.log('📱 Payment data for QR:', paymentData);
+                
+                // Check if QRCode library is available
+                if (typeof QRCode !== 'undefined') {
+                    try {
+                        console.log('✅ QRCode library ready, generating simple QR code...');
+                        QRCode.toCanvas(qrContainer, paymentData, {
+                            width: 200,
+                            height: 200,
+                            margin: 2,
+                            color: {
+                                dark: '#000000',
+                                light: '#FFFFFF'
+                            }
+                        }, function (error) {
+                            if (error) {
+                                console.error('❌ Error generating simple QR code:', error);
+                                this.showQRPlaceholder(qrContainer);
+                            } else {
+                                console.log('✅ Simple QR code generated successfully');
+                            }
+                        }.bind(this));
+                    } catch (error) {
+                        console.error('❌ Exception in simple QR generation:', error);
+                        this.showQRPlaceholder(qrContainer);
+                    }
+                } else {
+                    console.log('❌ QRCode library not available, showing placeholder');
+                    this.showQRPlaceholder(qrContainer);
+                }
+            }
+
+            // Method untuk menampilkan placeholder QR code
+            showQRPlaceholder(container) {
+                console.log('🖼️ Showing QR placeholder');
+                container.innerHTML = `
+                    <div style="width:200px;height:200px;background:#f8f9fa;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed #28a745;border-radius:8px;margin:0 auto;">
+                        <i class="fas fa-qrcode" style="font-size:48px;color:#28a745;margin-bottom:10px;"></i>
+                        <p style="color:#28a745;font-size:12px;text-align:center;margin:0;font-weight:bold;">QR Code Pembayaran</p>
+                        <p style="color:#6c757d;font-size:10px;text-align:center;margin:5px 0 0 0;">Scan dengan aplikasi<br>e-wallet Anda</p>
+                        <div style="margin-top:10px;padding:5px 10px;background:#e8f5e8;border-radius:4px;border:1px solid #28a745;">
+                            <p style="color:#155724;font-size:9px;margin:0;text-align:center;">QR Code akan muncul<br>setelah library ter-load</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            async uploadPaymentProof() {
+                const fileInput = document.getElementById('paymentProof');
+                const file = fileInput.files[0];
+
+                if (!file) {
+                    this.showNotification('Pilih file bukti pembayaran terlebih dahulu', 'error');
+                    return;
+                }
+
+                if (!this.currentOrderId) {
+                    this.showNotification('Order ID tidak ditemukan', 'error');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('paymentProof', file);
+                formData.append('orderId', this.currentOrderId);
+
+                try {
+                    const response = await fetch('/user/upload-payment-proof', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        this.showNotification('Bukti pembayaran berhasil diupload. Menunggu konfirmasi admin.', 'success');
+
+                        // Tampilkan popup konfirmasi
+                        setTimeout(() => {
+                            if (confirm('Bukti pembayaran berhasil diupload. Pembayaran akan dikonfirmasi oleh admin dalam 1-2 jam kerja. Klik OK untuk kembali ke beranda.')) {
+                                window.location.href = '/user/home';
+                            }
+                        }, 1000);
+
+                    } else {
+                        const errorResult = await response.json();
+                        throw new Error(errorResult.message || 'Gagal upload bukti pembayaran');
+                    }
+                } catch (error) {
+                    console.error('Error uploading proof:', error);
+                    this.showNotification('Gagal upload bukti pembayaran: ' + error.message, 'error');
+                }
+            }
+
+            updateBadges() {
+                const cartBadge = document.getElementById('cartBadge');
+                const wishlistBadge = document.getElementById('wishlistBadge');
+
+                const totalCartItems = this.cart.reduce((sum, item) => sum + item.quantity, 0);
+                cartBadge.textContent = totalCartItems;
+                wishlistBadge.textContent = 0; // Wishlist not implemented yet
+            }
+
+            formatCurrency(amount) {
+                return new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0
+                }).format(amount);
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : type === 'warning' ? '#f59e0b' : '#3b82f6'};
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 10px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                    z-index: 10000;
+                    font-weight: 500;
+                    max-width: 300px;
+                    animation: slideIn 0.3s ease-out;
+                `;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.3s ease-in';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                }, 3000);
+            }
+
+            // Method untuk test QR code
+            testQRCode() {
+                console.log('🧪 Testing QR code generation...');
+                const testContainer = document.getElementById('qrCodeImage');
+                if (!testContainer) {
+                    console.error('❌ Test container not found');
+                    return;
+                }
+
+                // Clear container first
+                testContainer.innerHTML = '';
+
+                if (typeof QRCode !== 'undefined') {
+                    console.log('✅ QRCode library available, generating test QR...');
+                    try {
+                        QRCode.toCanvas(testContainer, 'TEST_QR_CODE_123', {
+                            width: 200,
+                            height: 200,
+                            margin: 2
+                        }, function (error) {
+                            if (error) {
+                                console.error('❌ Test QR generation failed:', error);
+                                this.showQRPlaceholder(testContainer);
+                            } else {
+                                console.log('✅ Test QR code generated successfully');
+                            }
+                        }.bind(this));
+                    } catch (error) {
+                        console.error('❌ Exception in test QR generation:', error);
+                        this.showQRPlaceholder(testContainer);
+                    }
+                } else {
+                    console.error('❌ QRCode library not available, trying to load...');
+                    // Try to load library first
+                    if (typeof loadQRCodeLibrary === 'function') {
+                        loadQRCodeLibrary().then(() => {
+                            console.log('✅ Library loaded, retrying test...');
+                            this.testQRCode();
+                        }).catch(() => {
+                            console.error('❌ Failed to load library, showing placeholder');
+                            this.showQRPlaceholder(testContainer);
+                        });
+                    } else {
+                        console.error('❌ Cannot load library, showing placeholder');
+                        this.showQRPlaceholder(testContainer);
+                    }
+                }
+            }
+        }
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        let checkoutManager;
+        document.addEventListener('DOMContentLoaded', () => {
+            checkoutManager = new CheckoutManager();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,106 @@
+
+<form th:action="@{/auth/register}" method="post" th:object="${registerRequest}" th:fragment="registerForm"
+    class="auth-form register-form" id="registerForm">
+    <div class="form-content">
+        <h2 class="form-title">
+            <span>Buat Akun Baru</span>
+            <div class="title-decoration"></div>
+        </h2>
+
+        <!-- Name Inputs -->
+        <div class="form-row">
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <input type="text" th:field="*{namaDepan}" class="form-input" id="firstName" placeholder=" ">
+                    <label for="firstName" class="floating-label">Nama Depan</label>
+                    <i class="fas fa-user input-icon"></i>
+                    <div class="input-border"></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <input type="text" th:field="*{namaBelakang}" class="form-input" id="lastName" placeholder=" ">
+                    <label for="lastName" class="floating-label">Nama Belakang</label>
+                    <i class="fas fa-user input-icon"></i>
+                    <div class="input-border"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Input -->
+        <div class="form-group">
+            <div class="input-wrapper">
+                <input type="text" class="form-input" id="registerEmail" placeholder=" ">
+                <label for="registerEmail" th:field="*{email}" class="floating-label">Email Anda</label>
+                <i class="fas fa-envelope input-icon"></i>
+                <div class="input-border"></div>
+            </div>
+        </div>
+
+        <!-- Phone Input -->
+        <div class="form-group">
+            <div class="input-wrapper phone-wrapper">
+                <div class="country-code">+62</div>
+                <input type="tel" th:field="*{nomorHp}" class="form-input phone-input" id="phoneNumber" placeholder=" ">
+                <label for="phoneNumber" class="floating-label phone-label">Nomor Telepon</label>
+                <!-- <i class="fas fa-phone input-icon phone-icon"></i> -->
+                <div class="input-border"></div>
+            </div>
+        </div>
+
+        <!-- Password Input -->
+        <div class="form-group">
+            <div class="input-wrapper">
+                <input type="password" th:field="*{password}" class="form-input" id="registerPassword" placeholder=" ">
+                <label for="registerPassword" class="floating-label">Password Anda</label>
+                <i class="fas fa-lock input-icon"></i>
+                <i class="fas fa-eye password-toggle" id="registerPasswordToggle"></i>
+                <div class="input-border"></div>
+            </div>
+        </div>
+
+        <!-- Register Button -->
+        <button type="submit" class="submit-btn" id="registerBtn">
+            <div class="btn-bg"></div>
+            <span class="btn-text">Buat Akun Sekarang</span>
+            <div class="btn-shine"></div>
+        </button>
+
+        <!-- Divider -->
+        <div class="divider">
+            <div class="divider-line"></div>
+            <span>Atau daftar dengan</span>
+            <div class="divider-line"></div>
+        </div>
+
+        <!-- Social Login -->
+        <div class="social-login">
+            <button type="button" class="social-btn google" id="registerGoogleBtn" title="Daftar dengan Google">
+                <div class="social-bg"></div>
+                <i class="fab fa-google"></i>
+                <span class="social-tooltip">Google</span>
+            </button>
+            <button type="button" class="social-btn facebook" id="registerFacebookBtn" title="Daftar dengan Facebook">
+                <div class="social-bg"></div>
+                <i class="fab fa-facebook-f"></i>
+                <span class="social-tooltip">Facebook</span>
+            </button>
+            <button type="button" class="social-btn apple" id="registerAppleBtn" title="Daftar dengan Apple">
+                <div class="social-bg"></div>
+                <i class="fab fa-apple"></i>
+                <span class="social-tooltip">Apple</span>
+            </button>
+        </div>
+
+        <!-- Switch to Login -->
+        <div class="switch-link">
+            <span>Sudah punya akun?</span>
+            <a href="#" id="showLoginBtn">
+                <span>Masuk sekarang</span>
+                <div class="link-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+</form>

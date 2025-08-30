@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifikasi Token - Fajar Gold</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/halaman-verifikasi-token.css}">
+</head>
+
+<body>
+    <!-- Alert Container -->
+    <div class="alert-container" id="alertContainer"></div>
+
+    <!-- Animated Background -->
+    <div class="bg-container">
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
+        <div class="glass-bg"></div>
+        <div class="gradient-overlay"></div>
+    </div>
+
+    <div class="verification-container" id="verificationContainer">
+        <!-- Brand Header -->
+        <div class="brand-header">
+            <div class="brand-logo">
+                <div class="logo-inner">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="logo-ring"></div>
+            </div>
+            <h1 class="brand-name">Fajar Gold</h1>
+            <p class="brand-tagline">Verifikasi Keamanan</p>
+            <div class="brand-divider"></div>
+        </div>
+
+        <!-- Verification Form -->
+        <div class="verification-form-container">
+            <form class="verification-form" id="verificationForm">
+                <div class="form-content">
+                    <div class="verification-icon">
+                        <div class="icon-circle">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <div class="icon-pulse"></div>
+                    </div>
+
+                    <h2 class="form-title">
+                        <span>Verifikasi Token</span>
+                        <div class="title-decoration"></div>
+                    </h2>
+
+                    <p class="form-description">
+                        Masukkan token JWT verifikasi yang telah dikirim ke email Anda untuk melanjutkan proses
+                        verifikasi akun.
+                    </p>
+
+                    <!-- JWT Token Input -->
+                    <div class="jwt-input-container">
+                        <div class="jwt-input-wrapper">
+                            <label for="jwtToken" class="jwt-label">
+                                <i class="fas fa-key"></i>
+                                <span>Token JWT Verifikasi</span>
+                            </label>
+                            <textarea id="jwtToken" name="jwtToken" class="jwt-input"
+                                placeholder="Tempel token JWT Anda di sini...&#10;Contoh: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                                rows="4" spellcheck="false" autocomplete="off" autocorrect="off"
+                                autocapitalize="off"></textarea>
+                            <div class="jwt-border"></div>
+                            <div class="jwt-info">
+                                <div class="jwt-parts" id="jwtParts">
+                                    <div class="jwt-part header">
+                                        <span class="part-label">Header</span>
+                                        <span class="part-status" id="headerStatus">
+                                            <i class="fas fa-circle"></i>
+                                        </span>
+                                    </div>
+                                    <div class="jwt-part payload">
+                                        <span class="part-label">Payload</span>
+                                        <span class="part-status" id="payloadStatus">
+                                            <i class="fas fa-circle"></i>
+                                        </span>
+                                    </div>
+                                    <div class="jwt-part signature">
+                                        <span class="part-label">Signature</span>
+                                        <span class="part-status" id="signatureStatus">
+                                            <i class="fas fa-circle"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="jwt-actions">
+                                    <button type="button" class="jwt-action-btn" id="pasteBtn">
+                                        <i class="fas fa-paste"></i>
+                                        <span>Tempel dari Clipboard</span>
+                                    </button>
+                                    <button type="button" class="jwt-action-btn" id="clearBtn">
+                                        <i class="fas fa-trash"></i>
+                                        <span>Hapus Token</span>
+                                    </button>
+                                    <button type="button" class="jwt-action-btn" id="decodeBtn">
+                                        <i class="fas fa-eye"></i>
+                                        <span>Lihat Isi Token</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden input for full token -->
+                    <input type="hidden" id="fullToken" name="token">
+
+                    <!-- Timer Display -->
+                    <div class="timer-container" id="timerContainer">
+                        <div class="timer-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <span class="timer-text">Kode akan kedaluwarsa dalam</span>
+                        <span class="timer-countdown" id="timerCountdown">05:00</span>
+                    </div>
+
+                    <!-- Verify Button -->
+                    <button type="submit" class="verify-btn" id="verifyBtn">
+                        <div class="btn-bg"></div>
+                        <span class="btn-text">Verifikasi Token</span>
+                        <div class="btn-shine"></div>
+                        <i class="fas fa-check btn-icon"></i>
+                    </button>
+
+                    <!-- Resend Section -->
+                    <div class="resend-section">
+                        <p class="resend-text">Tidak menerima kode?</p>
+                        <button type="button" class="resend-btn" id="resendBtn">
+                            <i class="fas fa-paper-plane"></i>
+                            <span>Kirim Ulang Kode</span>
+                            <div class="resend-cooldown" id="resendCooldown">
+                                <span id="resendTimer">60</span>s
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Help Section -->
+                    <div class="help-section">
+                        <div class="help-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>Periksa folder spam/junk email Anda</span>
+                        </div>
+                        <div class="help-item">
+                            <i class="fas fa-refresh"></i>
+                            <span>Pastikan koneksi internet stabil</span>
+                        </div>
+                        <div class="help-item">
+                            <i class="fas fa-headset"></i>
+                            <span>Hubungi customer service jika masalah berlanjut</span>
+                        </div>
+                    </div>
+
+                    <!-- Back to Login -->
+                    <div class="back-link">
+                        <a th:href="@{/auth/login}" id="backToLogin">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Kembali ke Login</span>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- JWT Token Details Modal -->
+        <div class="jwt-modal" id="jwtModal" style="display: none;">
+            <div class="jwt-modal-content">
+                <div class="jwt-modal-header">
+                    <h3>Detail Token JWT</h3>
+                    <button class="jwt-modal-close" id="closeModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="jwt-modal-body">
+                    <div class="jwt-section">
+                        <h4>Header</h4>
+                        <pre id="jwtHeader" class="jwt-code"></pre>
+                    </div>
+                    <div class="jwt-section">
+                        <h4>Payload</h4>
+                        <pre id="jwtPayload" class="jwt-code"></pre>
+                    </div>
+                    <div class="jwt-section">
+                        <h4>Signature</h4>
+                        <div class="jwt-signature" id="jwtSignature"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success State -->
+        <div class="success-state" id="successState" style="display: none;">
+            <div class="success-animation">
+                <div class="success-circle">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="success-particles">
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                </div>
+            </div>
+
+            <h2 class="success-title">Verifikasi Berhasil!</h2>
+            <p class="success-message">
+                Akun Anda telah berhasil diverifikasi. Anda akan diarahkan ke halaman utama dalam beberapa detik.
+            </p>
+
+            <div class="success-actions">
+                <button class="continue-btn" id="continueBtn">
+                    <span>Lanjutkan</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/authentication/adminToken/halaman-verifikasi-token.js}"></script>
+</body>
+
+</html>

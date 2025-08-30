@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Fajar Gold - Luxury Jewelry Collection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/halaman-auth.css}">
+</head>
+
+<body>
+    <!-- Custom Alert Container -->
+    <div class="alert-container" id="alertContainer"></div>
+
+    <!-- Animated Background -->
+    <div class="bg-container">
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
+        <div class="glass-bg"></div>
+        <div class="gradient-overlay"></div>
+    </div>
+
+    <div class="auth-container" id="authContainer">
+        <!-- Brand Header -->
+        <div class="brand-header">
+            <div class="brand-logo">
+                <div class="logo-inner">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <div class="logo-ring"></div>
+            </div>
+            <h1 class="brand-name">Fajar Gold</h1>
+            <p class="brand-tagline">Luxury Jewelry Collection</p>
+            <div class="brand-divider"></div>
+        </div>
+
+        <div class="forms-container">
+            <div th:replace="~{html/authentication/fragments/halaman-login :: loginForm}"></div>
+            <div th:replace="~{html/authentication/fragments/halaman-register :: registerForm}"></div>
+        </div>
+    </div>
+    <!-- JS -->
+    <input type="hidden" id="formType" th:value="${formType}">
+    <script th:src="@{/js/authentication/halaman-auth.js}"></script>
+    <script th:src="@{/js/authentication/halaman-register.js}"></script>
+    <script th:src="@{/js/authentication/halaman-login.js}"></script>
+
+</body>
+
+</html>

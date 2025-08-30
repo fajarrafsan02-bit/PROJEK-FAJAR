@@ -1,0 +1,90 @@
+<form th:fragment="loginForm" class="auth-form login-form" id="loginForm">
+    <div class="form-content">
+        <h2 class="form-title">
+            <span>Selamat Datang</span>
+            <div class="title-decoration"></div>
+        </h2>
+
+        <!-- Email Input -->
+        <div class="form-group">
+            <div class="input-wrapper">
+                <input type="text" class="form-input" id="loginEmail" placeholder=" ">
+                <label for="loginEmail" class="floating-label">Email Anda</label>
+                <i class="fas fa-envelope input-icon"></i>
+                <div class="input-border"></div>
+            </div>
+        </div>
+
+        <!-- Password Input -->
+        <div class="form-group">
+            <div class="input-wrapper">
+                <input type="password" class="form-input" id="loginPassword" placeholder=" ">
+                <label for="loginPassword" class="floating-label">Password Anda</label>
+                <i class="fas fa-lock input-icon"></i>
+                <i class="fas fa-eye password-toggle" id="loginPasswordToggle"></i>
+                <div class="input-border"></div>
+            </div>
+        </div>
+
+        <!-- Form Options -->
+        <div class="form-options">
+            <label class="remember-me">
+                <div class="custom-checkbox">
+                    <input type="checkbox" id="loginRememberMe">
+                    <div class="checkmark">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+                <span>Ingat saya</span>
+            </label>
+            <a th:href="@{/auth/lupa-password}" class="forgot-password" id="forgotPassword">
+                <span>Lupa password?</span>
+                <div class="link-underline"></div>
+            </a>
+        </div>
+
+        <!-- Login Button -->
+        <button type="submit" class="submit-btn" id="loginBtn">
+            <div class="btn-bg"></div>
+            <span class="btn-text">Masuk ke Akun</span>
+            <div class="btn-shine"></div>
+        </button>
+
+        <!-- Divider -->
+        <div class="divider">
+            <div class="divider-line"></div>
+            <span>Atau masuk dengan</span>
+            <div class="divider-line"></div>
+        </div>
+
+        <!-- Social Login -->
+        <div class="social-login">
+            <button type="button" class="social-btn google" id="loginGoogleBtn" title="Login dengan Google">
+                <div class="social-bg"></div>
+                <i class="fab fa-google"></i>
+                <span class="social-tooltip">Google</span>
+            </button>
+            <button type="button" class="social-btn facebook" id="loginFacebookBtn" title="Login dengan Facebook">
+                <div class="social-bg"></div>
+                <i class="fab fa-facebook-f"></i>
+                <span class="social-tooltip">Facebook</span>
+            </button>
+            <button type="button" class="social-btn apple" id="loginAppleBtn" title="Login dengan Apple">
+                <div class="social-bg"></div>
+                <i class="fab fa-apple"></i>
+                <span class="social-tooltip">Apple</span>
+            </button>
+        </div>
+
+        <!-- Switch to Register -->
+        <div class="switch-link">
+            <span>Belum punya akun?</span>
+            <a href="#" id="showRegisterBtn">
+                <span>Daftar sekarang</span>
+                <div class="link-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+</form>

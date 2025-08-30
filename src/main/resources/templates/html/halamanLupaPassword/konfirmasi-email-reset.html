@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konfirmasi Email - Fajar Gold</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/halamanLupaPassword/halaman-konfirmasi-email.css}">
+</head>
+<body>
+    <!-- Background Animasi -->
+    <div class="bg-container">
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
+        <div class="glass-bg"></div>
+        <div class="gradient-overlay"></div>
+    </div>
+
+    <div class="confirmation-container">
+        <!-- Header Brand -->
+        <div class="brand-header">
+            <div class="brand-logo">
+                <div class="logo-inner">
+                    <i class="fas fa-envelope-open"></i>
+                </div>
+                <div class="logo-ring"></div>
+            </div>
+            <h1 class="brand-name">Fajar Gold</h1>
+            <p class="brand-tagline">Email Terkirim</p>
+            <div class="brand-divider"></div>
+        </div>
+
+        <!-- Card Konfirmasi -->
+        <div class="confirmation-card">
+            <div class="card-content">
+                <!-- Icon Sukses dengan Partikel -->
+                <div class="success-icon">
+                    <div class="icon-circle">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="success-particles">
+                        <div class="particle"></div>
+                        <div class="particle"></div>
+                        <div class="particle"></div>
+                        <div class="particle"></div>
+                        <div class="particle"></div>
+                    </div>
+                </div>
+
+                <h2 class="confirmation-title">
+                    <span>Email Reset Terkirim!</span>
+                    <div class="title-decoration"></div>
+                </h2>
+
+                <p class="confirmation-message">
+                    Kami telah mengirimkan link reset password ke alamat email Anda. 
+                    Silakan periksa inbox dan ikuti instruksi untuk mereset password.
+                </p>
+
+                <!-- Info Email -->
+                <div class="email-info">
+                    <div class="email-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="email-details">
+                        <div class="email-label">Email Tujuan</div>
+                        <div class="email-address" id="emailAddress">user@example.com</div>
+                    </div>
+                </div>
+
+                <!-- Timer Countdown -->
+                <div class="timer-section">
+                    <div class="timer-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <span class="timer-text">Link akan kedaluwarsa dalam</span>
+                    <span class="timer-countdown" id="timerCountdown">15:00</span>
+                </div>
+
+                <!-- Tombol Aksi -->
+                <div class="action-buttons">
+                    <button class="action-btn primary-btn" id="openEmailBtn">
+                        <i class="fas fa-external-link-alt btn-icon"></i>
+                        <span class="btn-text">Buka Email</span>
+                    </button>
+                    <button class="action-btn secondary-btn" id="resendBtn">
+                        <i class="fas fa-paper-plane btn-icon"></i>
+                        <span class="btn-text">Kirim Ulang</span>
+                    </button>
+                </div>
+
+                <!-- Instruksi -->
+                <div class="instructions">
+                    <div class="instruction-item">
+                        <i class="fas fa-search"></i>
+                        <span>Periksa folder <strong>Inbox</strong> dan <strong>Spam/Junk</strong> email Anda</span>
+                    </div>
+                    <div class="instruction-item">
+                        <i class="fas fa-mouse-pointer"></i>
+                        <span>Klik link "Reset Password" yang ada di dalam email</span>
+                    </div>
+                    <div class="instruction-item">
+                        <i class="fas fa-clock"></i>
+                        <span>Link reset hanya berlaku selama <strong>15 menit</strong> setelah dikirim</span>
+                    </div>
+                    <div class="instruction-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Jangan bagikan link reset kepada siapa pun untuk keamanan akun</span>
+                    </div>
+                    <div class="instruction-item">
+                        <i class="fas fa-headset"></i>
+                        <span>Hubungi customer service jika tidak menerima email dalam 5 menit</span>
+                    </div>
+                </div>
+
+                <!-- Link Kembali -->
+                <div class="back-link">
+                    <a th:href="@{/auth/lupa-password}" id="backToForgot">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Kembali ke Form Reset</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/halamanLupaPassword/halaman-konfirmasi-email.js}"></script>
+</body>
+</html>
