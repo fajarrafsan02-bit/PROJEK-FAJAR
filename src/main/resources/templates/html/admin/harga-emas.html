@@ -1013,6 +1013,7 @@
                     <div class="header-actions">
                         <button class="btn btn-secondary" id="historyBtn"><i class="fas fa-history"></i> Riwayat
                             Harga</button>
+                        <button class="btn btn-info" id="fetchExternalBtn"><i class="fas fa-sync-alt"></i> Ambil Harga Eksternal</button>
                         <button class="btn btn-primary" id="updateAllBtn"><i class="fas fa-sync-alt"></i> Update
                             Semua</button>
                     </div>
@@ -1021,6 +1022,11 @@
                 <!-- Current Prices -->
                 <div class="current-prices" id="currentPrices">
                     <!-- Prices will be loaded here -->
+                </div>
+
+                <!-- API Status Indicator -->
+                <div id="apiStatus" class="api-status mb-3" style="display: none;">
+                    <!-- Status will be shown here -->
                 </div>
 
                 <!-- Price Calculator -->
@@ -1054,33 +1060,6 @@
                     <div class="calculation-result" id="calculationResult" style="display: none;">
                         <div class="result-value" id="resultValue">Rp 0</div>
                         <div class="result-label">Harga Jual Produk</div>
-                    </div>
-                </div>
-
-                <!-- Update Prices Form -->
-                <div class="update-section">
-                    <h2 class="section-title">Update Harga Emas Eksternal</h2>
-                    
-                    <!-- API Status Indicator -->
-                    <div id="apiStatus" class="api-status mb-3">
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i>
-                            <strong>Status API</strong><br>
-                            Klik "Ambil Harga Eksternal" untuk cek status Metal Price API
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <button type="button" id="fetchExternalBtn" class="btn btn-info me-2">
-                            <i class="fas fa-sync-alt"></i> Ambil Harga Eksternal
-                        </button>
-                        <button type="button" id="updatePriceBtn" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Update Harga Emas
-                        </button>
-                    </div>
-
-                    <div id="updateMessage" class="alert alert-info mt-3" style="display: none;">
-                        <!-- Message will be shown here -->
                     </div>
                 </div>
 
@@ -2447,6 +2426,9 @@
             updateApiStatus() {
                 const statusElement = document.getElementById('apiStatus');
                 if (statusElement && this.externalPrice) {
+                    // Show the status element
+                    statusElement.style.display = 'block';
+                    
                     if (this.externalPrice.source === "Metal Price API") {
                         statusElement.innerHTML = `
                             <div class="alert alert-success">
@@ -2474,14 +2456,9 @@
                             </div>
                         `;
                     }
-                } else {
-                    statusElement.innerHTML = `
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i>
-                            <strong>Status API</strong><br>
-                            Klik "Ambil Harga Eksternal" untuk cek status Metal Price API
-                        </div>
-                    `;
+                } else if (statusElement) {
+                    // Hide the status element if no data
+                    statusElement.style.display = 'none';
                 }
             }
 
