@@ -189,6 +189,20 @@
             gap: 40px;
         }
 
+        /* Pastikan filter sidebar selalu terlihat */
+        .filters-sidebar {
+            background: var(--white-pure);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: var(--shadow-soft);
+            height: fit-content;
+            position: sticky;
+            top: 140px;
+            display: block !important; /* Force display */
+            visibility: visible !important; /* Force visibility */
+            opacity: 1 !important; /* Force opacity */
+        }
+
         .filters-sidebar {
             background: var(--white-pure);
             border-radius: 25px;
@@ -280,6 +294,24 @@
         }
 
         .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .filter-toggle-btn {
+            background: var(--gradient-gold);
+            color: var(--black-luxury);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .filter-toggle-btn:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-soft);
         }
@@ -545,6 +577,13 @@
             .filters-sidebar {
                 position: static;
                 padding: 25px;
+                display: block !important; /* Pastikan filter tetap terlihat */
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+
+            .filter-toggle-btn {
+                display: block !important;
             }
 
             .nav-container {
@@ -576,6 +615,15 @@
             .filters-sidebar {
                 padding: 20px;
                 border-radius: 15px;
+                display: none; /* Sembunyikan filter secara default di mobile */
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+
+            .filter-toggle-btn {
+                display: block !important;
+                width: 100%;
+                margin-bottom: 15px;
             }
 
             .products-section {
@@ -919,6 +967,12 @@
             <div class="catalog-header">
                 <h1 class="catalog-title">Katalog Produk</h1>
                 <div class="catalog-controls">
+                    <!-- Tombol toggle filter untuk mobile -->
+                    <button class="filter-toggle-btn" id="filterToggleBtn" style="display: none;">
+                        <i class="fas fa-filter"></i>
+                        Filter
+                    </button>
+                    
                     <select class="sort-select" id="sortSelect">
                         <option value="newest">Terbaru</option>
                         <option value="price-low">Harga Terendah</option>
@@ -967,6 +1021,7 @@
             async init() {
                 this.setupEventListeners();
                 await this.loadProducts();
+                await this.loadFilterStats(); // Load filter stats
                 await this.loadCartFromDatabase(); // Load cart dari database
                 // updateBadges sudah dipanggil di loadCartFromDatabase
                 this.handleURLParams();
@@ -975,20 +1030,30 @@
 
             async loadFilterStats() {
                 try {
+                    console.log('Loading filter stats...');
                     const response = await fetch(`/admin/products/filter-stats`);
                     const result = await response.json();
 
-                    if (result.success) {
+                    console.log('Filter stats response:', result);
+
+                    if (result.success && result.data) {
                         this.filterStats = result.data;
+                        console.log('Filter stats loaded:', this.filterStats);
                         this.renderFilters();
+                    } else {
+                        console.error('Failed to load filter stats:', result.message);
+                        console.log('Falling back to default filters...');
+                        this.renderDefaultFilters();
                     }
                 } catch (error) {
                     console.error('Error loading filter stats: ', error);
+                    console.log('Falling back to default filters due to error...');
                     this.renderDefaultFilters();
                 }
             }
 
             renderDefaultFilters() {
+                console.log('Rendering default filters...');
                 const defaultCategories = {
                     'cincin': 0,
                     'kalung': 0,
@@ -1016,6 +1081,7 @@
                     weights: defaultWeights
                 };
 
+                console.log('Default filter stats set:', this.filterStats);
                 this.renderFilters();
             }
 
@@ -1098,70 +1164,171 @@
             }
 
             renderFilters() {
+                console.log('Rendering filters...');
+                
+                // Pastikan semua container filter ada
+                const categoryContainer = document.getElementById('categoryFilters');
+                const purityContainer = document.getElementById('purityFilters');
+                const weightContainer = document.getElementById('weightFilters');
+                
+                if (!categoryContainer || !purityContainer || !weightContainer) {
+                    console.error('Filter containers not found:', {
+                        categoryContainer: !!categoryContainer,
+                        purityContainer: !!purityContainer,
+                        weightContainer: !!weightContainer
+                    });
+                    return;
+                }
+                
                 this.renderCategoryFilters();
                 this.renderPurityFilters();
                 this.renderWeightFilters();
                 this.renderPriceRange();
+                console.log('Filters rendered successfully');
             }
 
             renderCategoryFilters() {
                 const container = document.getElementById('categoryFilters');
+                if (!container) {
+                    console.error('Category filters container not found!');
+                    return;
+                }
+                
                 const categories = this.filterStats.categories || {};
+                console.log('Rendering category filters:', categories);
 
-                container.innerHTML = Object.entries(categories).map(([category, count]) => `
-                <label class="filter-checkbox">
-                    <input type="checkbox" name="category" value="${category}">
-                    <span>${this.formatCategoryName(category)} (${count})</span>
-                </label>
-            `).join('');
+                if (Object.keys(categories).length === 0) {
+                    console.log('No categories available, using default categories');
+                    const defaultCategories = {
+                        'cincin': 0,
+                        'kalung': 0,
+                        'gelang': 0,
+                        'anting': 0,
+                        'antam': 0
+                    };
+                    
+                    container.innerHTML = Object.entries(defaultCategories).map(([category, count]) => `
+                    <label class="filter-checkbox">
+                        <input type="checkbox" name="category" value="${category}">
+                        <span>${this.formatCategoryName(category)} (${count})</span>
+                    </label>
+                `).join('');
+                } else {
+                    container.innerHTML = Object.entries(categories).map(([category, count]) => `
+                    <label class="filter-checkbox">
+                        <input type="checkbox" name="category" value="${category}">
+                        <span>${this.formatCategoryName(category)} (${count})</span>
+                    </label>
+                `).join('');
+                }
+                
+                console.log('Category filters rendered:', container.innerHTML);
             }
 
             renderPurityFilters() {
                 const container = document.getElementById('purityFilters');
+                if (!container) {
+                    console.error('Purity filters container not found!');
+                    return;
+                }
+                
                 const purities = this.filterStats.purities || {};
+                console.log('Rendering purity filters:', purities);
 
-                container.innerHTML = Object.entries(purities).map(([purity, count]) => `
-                <label class="filter-checkbox">
-                    <input type="checkbox" name="karat" value="${purity.replace('K', '')}">
-                    <span>${purity} (${this.getPurityPercentage(purity)})</span>
-                </label>
-            `).join('');
+                if (Object.keys(purities).length === 0) {
+                    console.log('No purities available, using default purities');
+                    const defaultPurities = {
+                        '24K': 0,
+                        '22K': 0,
+                        '18K': 0
+                    };
+                    
+                    container.innerHTML = Object.entries(defaultPurities).map(([purity, count]) => `
+                    <label class="filter-checkbox">
+                        <input type="checkbox" name="karat" value="${purity.replace('K', '')}">
+                        <span>${purity} (${this.getPurityPercentage(purity)})</span>
+                    </label>
+                `).join('');
+                } else {
+                    container.innerHTML = Object.entries(purities).map(([purity, count]) => `
+                    <label class="filter-checkbox">
+                        <input type="checkbox" name="karat" value="${purity.replace('K', '')}">
+                        <span>${purity} (${this.getPurityPercentage(purity)})</span>
+                    </label>
+                `).join('');
+                }
+                
+                console.log('Purity filters rendered:', container.innerHTML);
             }
 
             renderWeightFilters() {
                 const container = document.getElementById('weightFilters');
+                if (!container) {
+                    console.error('Weight filters container not found!');
+                    return;
+                }
+                
                 const weights = this.filterStats.weights || {};
+                console.log('Rendering weight filters:', weights);
 
-                container.innerHTML = Object.entries(weights).map(([range, count]) => `
-                <label class="filter-checkbox">
-                    <input type="checkbox" name="weight" value="${range}">
-                    <span>${this.formatWeightRange(range)} (${count})</span>
-                </label>
-            `).join('');
+                if (Object.keys(weights).length === 0) {
+                    console.log('No weights available, using default weights');
+                    const defaultWeights = {
+                        '0-2': 0,
+                        '2-5': 0,
+                        '5-10': 0,
+                        '10+': 0
+                    };
+                    
+                    container.innerHTML = Object.entries(defaultWeights).map(([range, count]) => `
+                    <label class="filter-checkbox">
+                        <input type="checkbox" name="weight" value="${range}">
+                        <span>${this.formatWeightRange(range)} (${count})</span>
+                    </label>
+                `).join('');
+                } else {
+                    container.innerHTML = Object.entries(weights).map(([range, count]) => `
+                    <label class="filter-checkbox">
+                        <input type="checkbox" name="weight" value="${range}">
+                        <span>${this.formatWeightRange(range)} (${count})</span>
+                    </label>
+                `).join('');
+                }
+                
+                console.log('Weight filters rendered:', container.innerHTML);
             }
 
             renderPriceRange() {
                 const priceRange = this.filterStats.priceRange;
+                console.log('Rendering price range:', priceRange);
+                
                 if (priceRange) {
                     const minPrice = document.getElementById('minPrice');
                     const maxPrice = document.getElementById('maxPrice');
                     const priceInfo = document.getElementById('priceInfo');
 
-                    minPrice.placeholder = `Min: ${this.formatCurrency(priceRange.min)}`;
-                    maxPrice.placeholder = `Max: ${this.formatCurrency(priceRange.max)}`;
+                    if (minPrice && maxPrice && priceInfo) {
+                        minPrice.placeholder = `Min: ${this.formatCurrency(priceRange.min)}`;
+                        maxPrice.placeholder = `Max: ${this.formatCurrency(priceRange.max)}`;
 
-                    priceInfo.innerHTML = `Range: ${this.formatCurrency(priceRange.min)} - ${this.formatCurrency(priceRange.max)}`;
+                        priceInfo.innerHTML = `Range: ${this.formatCurrency(priceRange.min)} - ${this.formatCurrency(priceRange.max)}`;
 
-                    // Set default values untuk range yang masuk akal
-                    if (priceRange.min > 0 && priceRange.max > priceRange.min) {
-                        // Set default min ke 80% dari harga minimum
-                        const defaultMin = Math.floor(priceRange.min * 0.8);
-                        minPrice.placeholder = `Min: ${this.formatCurrency(defaultMin)}`;
+                        // Set default values untuk range yang masuk akal
+                        if (priceRange.min > 0 && priceRange.max > priceRange.min) {
+                            // Set default min ke 80% dari harga minimum
+                            const defaultMin = Math.floor(priceRange.min * 0.8);
+                            minPrice.placeholder = `Min: ${this.formatCurrency(defaultMin)}`;
 
-                        // Set default max ke 120% dari harga maksimum
-                        const defaultMax = Math.ceil(priceRange.max * 1.2);
-                        maxPrice.placeholder = `Max: ${this.formatCurrency(defaultMax)}`;
+                            // Set default max ke 120% dari harga maksimum
+                            const defaultMax = Math.ceil(priceRange.max * 1.2);
+                            maxPrice.placeholder = `Max: ${this.formatCurrency(defaultMax)}`;
+                        }
+                        console.log('Price range rendered successfully');
+                    } else {
+                        console.error('Price range elements not found');
                     }
+                } else {
+                    console.log('No price range data available');
                 }
             }
 
@@ -1208,6 +1375,29 @@
                 document.getElementById('applyFilters').addEventListener('click', () => {
                     this.applyFilters();
                 });
+
+                // Tombol toggle filter untuk mobile
+                const filterToggleBtn = document.getElementById('filterToggleBtn');
+                if (filterToggleBtn) {
+                    filterToggleBtn.addEventListener('click', () => {
+                        this.toggleFilters();
+                    });
+                }
+            }
+
+            toggleFilters() {
+                const filtersSidebar = document.querySelector('.filters-sidebar');
+                if (filtersSidebar) {
+                    const isVisible = filtersSidebar.style.display !== 'none';
+                    filtersSidebar.style.display = isVisible ? 'none' : 'block';
+                    
+                    const filterToggleBtn = document.getElementById('filterToggleBtn');
+                    if (filterToggleBtn) {
+                        filterToggleBtn.innerHTML = isVisible ? 
+                            '<i class="fas fa-filter"></i> Tampilkan Filter' : 
+                            '<i class="fas fa-times"></i> Sembunyikan Filter';
+                    }
+                }
             }
 
             handleURLParams() {
@@ -1215,14 +1405,22 @@
                 const categoryParam = urlParams.get('category');
                 const search = urlParams.get('search');
 
+                console.log('Handling URL params:', { categoryParam, search });
+
                 if (search) {
-                    document.getElementById('searchInput').value = search;
-                    this.handleSearch();
+                    const searchInput = document.getElementById('searchInput');
+                    if (searchInput) {
+                        searchInput.value = search;
+                        this.handleSearch();
+                    }
                 }
 
                 if (categoryParam) {
+                    console.log('Category param found:', categoryParam);
                     const tryApply = () => {
                         const inputs = Array.from(document.querySelectorAll('#categoryFilters input[name="category"]'));
+                        console.log('Found category inputs:', inputs.length);
+                        
                         if (!inputs.length) return false;
 
                         // Cari exact match, lalu fallback case-insensitive
@@ -1230,20 +1428,31 @@
                         if (!target) {
                             target = inputs.find(el => String(el.value).toLowerCase() === String(categoryParam).toLowerCase());
                         }
+                        
                         if (target) {
+                            console.log('Category filter found and checked:', categoryParam);
                             target.checked = true;
                             this.applyFilters();
                             return true;
                         }
+                        
+                        console.log('Category filter not found for:', categoryParam);
                         return false;
                     };
 
                     // Coba langsung; jika filter belum ada (masih loading), retry sebentar
                     if (!tryApply()) {
+                        console.log('Category filter not ready, retrying...');
                         const intervalId = setInterval(() => {
-                            if (tryApply()) clearInterval(intervalId);
+                            if (tryApply()) {
+                                console.log('Category filter applied successfully');
+                                clearInterval(intervalId);
+                            }
                         }, 100);
-                        setTimeout(() => clearInterval(intervalId), 3000);
+                        setTimeout(() => {
+                            clearInterval(intervalId);
+                            console.log('Category filter retry timeout');
+                        }, 3000);
                     }
                 }
             }
@@ -1299,27 +1508,38 @@
 
                 // Apply category filter
                 if (selectedCategories.length > 0) {
-                    filtered = filtered.filter(product =>
-                        selectedCategories.includes(product.category)
-                    );
+                    console.log('Applying category filter:', selectedCategories);
+                    filtered = filtered.filter(product => {
+                        const matches = selectedCategories.includes(product.category);
+                        if (matches) {
+                            console.log(`Product ${product.name} matches category filter: ${product.category}`);
+                        }
+                        return matches;
+                    });
                     console.log('After category filter:', filtered.length, 'products');
                 }
 
                 // Apply karat filter
                 if (selectedKarats.length > 0) {
-                    filtered = filtered.filter(product =>
-                        selectedKarats.includes(product.purity.toString())
-                    );
+                    console.log('Applying karat filter:', selectedKarats);
+                    filtered = filtered.filter(product => {
+                        const matches = selectedKarats.includes(product.purity.toString());
+                        if (matches) {
+                            console.log(`Product ${product.name} matches karat filter: ${product.purity}`);
+                        }
+                        return matches;
+                    });
                     console.log('After karat filter:', filtered.length, 'products');
                 }
 
                 // Apply weight filter
                 if (selectedWeights.length > 0) {
+                    console.log('Applying weight filter:', selectedWeights);
                     filtered = filtered.filter(product => {
                         const productWeight = parseFloat(product.weight);
                         console.log(`Checking product ${product.name} with weight ${productWeight}`);
 
-                        return selectedWeights.some(range => {
+                        const matches = selectedWeights.some(range => {
                             if (range === '10+') {
                                 const result = productWeight > 10;
                                 console.log(`Weight ${productWeight} > 10: ${result}`);
@@ -1331,6 +1551,11 @@
                             console.log(`Weight ${productWeight} in range ${min}-${max}: ${result}`);
                             return result;
                         });
+                        
+                        if (matches) {
+                            console.log(`Product ${product.name} matches weight filter: ${productWeight}g`);
+                        }
+                        return matches;
                     });
                     console.log('After weight filter:', filtered.length, 'products');
                 }
@@ -1398,6 +1623,8 @@
                 // Update filtered products
                 this.filteredProducts = filtered;
                 this.currentPage = 0;
+
+                console.log('Filtered products updated:', this.filteredProducts.length);
 
                 // Render hasil
                 this.renderProducts();
