@@ -2260,7 +2260,7 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify(requestData)
+                        body: JSON.stringify(updateData)
                     });
 
                     console.log('Response status:', response.status);
@@ -2293,17 +2293,11 @@
                         await this.loadPriceHistory();
                         await this.loadPriceChanges();
                         this.renderCurrentPrices();
-                    } else {
-                        throw new Error(result.message || 'Gagal mengupdate harga emas');
-                    }
-                        await this.loadPriceChanges();
-                        this.renderCurrentPrices();
 
                         // Tampilkan notifikasi sukses
                         this.showNotification('Update harga emas berhasil!', 'success');
-
                     } else {
-                        throw new Error(result.message || 'Update gagal');
+                        throw new Error(result.message || 'Gagal mengupdate harga emas');
                     }
 
                 } catch (error) {
