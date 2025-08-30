@@ -20,11 +20,23 @@ public class HargaEmailInitializer implements CommandLineRunner{
 
     @Override
     public void run(String... args) throws Exception {
-        if (goldPriceRepository.count() == 0) {
-            goldPriceService.fetchAndSaveLatestPrice(GoldPriceEnum.SISTEM);
-            System.out.println(">> Harga Emas awal berhasil di ambil dari API");
-        } else {
-            System.out.println(">> Data Harga emas sudah tersedia, tidak perlu inisialisasi ulang");
+        try {
+            if (goldPriceRepository.count() == 0) {
+                try {
+                    goldPriceService.fetchAndSaveLatestPrice(GoldPriceEnum.SISTEM);
+                    System.out.println(">> Harga Emas awal berhasil di ambil dari API");
+                } catch (Exception e) {
+                    System.err.println(">> Warning: Gagal mengambil harga emas dari API saat startup: " + e.getMessage());
+                    System.out.println(">> Aplikasi akan tetap berjalan. Harga emas bisa diinput manual nanti.");
+                    // Tidak throw exception agar aplikasi tetap bisa startup
+                }
+            } else {
+                System.out.println(">> Data Harga emas sudah tersedia, tidak perlu inisialisasi ulang");
+            }
+        } catch (Exception e) {
+            System.err.println(">> Warning: Error dalam HargaEmailInitializer: " + e.getMessage());
+            System.out.println(">> Aplikasi akan tetap berjalan.");
+            // Tidak throw exception agar aplikasi tetap bisa startup
         }
     }
 }

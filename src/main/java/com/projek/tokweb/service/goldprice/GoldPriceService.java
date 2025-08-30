@@ -102,8 +102,14 @@ public class GoldPriceService {
                             throw new RuntimeException("Harga yang dihitung tidak masuk akal: " + goldPricePerGram + " IDR/gram");
                         }
                         
-                        GoldPrice oldPrice = getLatestGoldPrice();
-                        log.info(">> Harga emas lama: {}", oldPrice);
+                        // Cek apakah ada data harga emas sebelumnya
+                        GoldPrice oldPrice = null;
+                        try {
+                            oldPrice = getLatestGoldPrice();
+                            log.info(">> Harga emas lama: {}", oldPrice);
+                        } catch (RuntimeException e) {
+                            log.info(">> Tidak ada harga emas sebelumnya, ini adalah data pertama");
+                        }
 
                         // Hitung harga dengan pembulatan
                         Map<String, Double> hargaJual = calculatePricesByPurity(goldPricePerGram, true);
@@ -199,6 +205,22 @@ public class GoldPriceService {
     }
 
     /**
+     * Mendapatkan harga jual terbaru berdasarkan kadar kemurnian (return 0 jika tidak ada data)
+     */
+    public double getLatestHargaJualOrDefault(int purity) {
+        GoldPrice latestPrice = getLatestGoldPriceOrNull();
+        return latestPrice != null ? getHargaJualByPurity(latestPrice, purity) : 0.0;
+    }
+
+    /**
+     * Mendapatkan harga beli terbaru berdasarkan kadar kemurnian (return 0 jika tidak ada data)
+     */
+    public double getLatestHargaBeliOrDefault(int purity) {
+        GoldPrice latestPrice = getLatestGoldPriceOrNull();
+        return latestPrice != null ? getHargaBeliByPurity(latestPrice, purity) : 0.0;
+    }
+
+    /**
      * Mendapatkan harga jual berdasarkan kadar kemurnian dari objek GoldPrice
      */
     private double getHargaJualByPurity(GoldPrice goldPrice, int purity) {
@@ -236,6 +258,13 @@ public class GoldPriceService {
     public GoldPrice getLatestGoldPrice() {
         return goldPriceRepository.findFirstByOrderByTanggalAmbilDescIdDesc()
                 .orElseThrow(() -> new RuntimeException("Harga emas belum tersedia"));
+    }
+
+    /**
+     * Mendapatkan semua harga terbaru tanpa exception (return null jika tidak ada)
+     */
+    public GoldPrice getLatestGoldPriceOrNull() {
+        return goldPriceRepository.findFirstByOrderByTanggalAmbilDescIdDesc().orElse(null);
     }
 
     public double getLatestHargaJual() {
@@ -328,10 +357,15 @@ public class GoldPriceService {
     public GoldPrice updateGoldPriceManual(int purity, double hargaJual, double hargaBeli) {
         try {
             // Ambil harga emas terbaru untuk perbandingan
-            GoldPrice latestPrice = getLatestGoldPrice();
+            GoldPrice latestPrice = null;
+            try {
+                latestPrice = getLatestGoldPrice();
+            } catch (RuntimeException e) {
+                log.info(">> Tidak ada harga emas sebelumnya untuk perbandingan");
+            }
 
             // Simpan harga lama sebelum update
-            double oldHargaJual = getHargaJualByPurity(latestPrice, purity);
+            double oldHargaJual = latestPrice != null ? getHargaJualByPurity(latestPrice, purity) : 0.0;
 
             // BULATKAN harga yang diinput manual
             double roundedHargaJual = NumberFormatter.roundGoldPrice(hargaJual);
@@ -400,7 +434,12 @@ public class GoldPriceService {
             log.info(">> Memulai update manual semua harga emas");
 
             // Ambil harga emas terbaru untuk perbandingan
-            GoldPrice latestPrice = getLatestGoldPrice();
+            GoldPrice latestPrice = null;
+            try {
+                latestPrice = getLatestGoldPrice();
+            } catch (RuntimeException e) {
+                log.info(">> Tidak ada harga emas sebelumnya untuk perbandingan");
+            }
 
             // BULATKAN semua harga yang diinput manual
             double roundedHargaJual24k = NumberFormatter.roundGoldPrice(hargaJual24k);
@@ -426,14 +465,16 @@ public class GoldPriceService {
             }
 
             // Cek apakah semua harga sama dengan data terbaru (bandingkan dengan harga yang sudah dibulatkan)
-            boolean allPricesSame = Math.abs(roundedHargaJual24k - latestPrice.getHargaJual24k()) < 0.01 &&
-                    Math.abs(roundedHargaJual22k - latestPrice.getHargaJual22k()) < 0.01 &&
-                    Math.abs(roundedHargaJual18k - latestPrice.getHargaJual18k()) < 0.01;
+            if (latestPrice != null) {
+                boolean allPricesSame = Math.abs(roundedHargaJual24k - latestPrice.getHargaJual24k()) < 0.01 &&
+                        Math.abs(roundedHargaJual22k - latestPrice.getHargaJual22k()) < 0.01 &&
+                        Math.abs(roundedHargaJual18k - latestPrice.getHargaJual18k()) < 0.01;
 
-            // Jika semua harga sama, throw exception
-            if (allPricesSame) {
-                throw new RuntimeException(
-                        "Semua harga emas (24k, 22k, 18k) saat ini sudah sama dengan data terbaru. Tidak perlu update.");
+                // Jika semua harga sama, throw exception
+                if (allPricesSame) {
+                    throw new RuntimeException(
+                            "Semua harga emas (24k, 22k, 18k) saat ini sudah sama dengan data terbaru. Tidak perlu update.");
+                }
             }
 
             
@@ -573,7 +614,13 @@ public class GoldPriceService {
             }
             
             // Ambil harga emas terbaru
-            GoldPrice latestGoldPrice = getLatestGoldPrice();
+            GoldPrice latestGoldPrice = null;
+            try {
+                latestGoldPrice = getLatestGoldPrice();
+            } catch (RuntimeException e) {
+                throw new RuntimeException("Tidak ada data harga emas yang tersedia");
+            }
+            
             if (latestGoldPrice == null) {
                 throw new RuntimeException("Tidak ada data harga emas yang tersedia");
             }
@@ -743,7 +790,12 @@ public class GoldPriceService {
             // Jika ada masalah dengan Metal Price API, gunakan harga default atau harga terbaru dari database
             try {
                 log.info(">> Service: Mencoba menggunakan harga terbaru dari database sebagai fallback");
-                GoldPrice latestPrice = getLatestGoldPrice();
+                GoldPrice latestPrice = null;
+                try {
+                    latestPrice = getLatestGoldPrice();
+                } catch (RuntimeException ex) {
+                    log.info(">> Service: Tidak ada data fallback dari database");
+                }
                 
                 if (latestPrice != null) {
                     Map<String, Object> fallbackResult = new HashMap<>();
