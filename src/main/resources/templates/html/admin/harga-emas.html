@@ -2748,17 +2748,18 @@
                             this.showUpdateMessage(`Update berhasil! Harga yang diupdate: ${updateMessage}`, 'success');
                             this.showNotification('Update harga emas berhasil!', 'success');
                             
-                            // Tunggu sebentar agar backend selesai menyimpan data
-                            await new Promise(resolve => setTimeout(resolve, 1000));
+                            // Tunggu lebih lama agar backend selesai menyimpan data perubahan harga
+                            await new Promise(resolve => setTimeout(resolve, 2000));
                             
                             // Refresh data secara berurutan dengan delay
-                            console.log('Refreshing data after update all...');
+                            console.log('Refreshing data after update all from external API...');
                             
                             // 1. Load current prices terlebih dahulu
                             await this.loadCurrentPrices();
                             console.log('Current prices refreshed:', this.currentPrices);
                             
-                            // 2. Load price changes dari database (yang baru)
+                            // 2. Load price changes dari database (yang baru) - tunggu lebih lama
+                            await new Promise(resolve => setTimeout(resolve, 1000));
                             await this.loadPriceChanges();
                             console.log('Price changes refreshed:', this.priceChanges);
                             
@@ -2779,7 +2780,7 @@
                             // Refresh kalkulator jika ada input yang sudah diisi
                             this.refreshCalculator();
                             
-                            console.log('Update all completed and data refreshed');
+                            console.log('Update all from external API completed and data refreshed');
                         } else {
                             throw new Error(result.message || 'Gagal mengupdate harga emas');
                         }
@@ -2819,17 +2820,18 @@
                                 this.showUpdateMessage("Force update berhasil! Semua harga telah diperbarui.", 'success');
                                 this.showNotification('Force update berhasil!', 'success');
                                 
-                                // Tunggu sebentar agar backend selesai menyimpan data
-                                await new Promise(resolve => setTimeout(resolve, 1000));
+                                // Tunggu lebih lama agar backend selesai menyimpan data perubahan harga
+                                await new Promise(resolve => setTimeout(resolve, 2000));
                                 
                                 // Refresh data secara berurutan dengan delay
-                                console.log('Refreshing data after force update...');
+                                console.log('Refreshing data after force update from external API...');
                                 
                                 // 1. Load current prices terlebih dahulu
                                 await this.loadCurrentPrices();
                                 console.log('Current prices refreshed:', this.currentPrices);
                                 
-                                // 2. Load price changes dari database (yang baru)
+                                // 2. Load price changes dari database (yang baru) - tunggu lebih lama
+                                await new Promise(resolve => setTimeout(resolve, 1000));
                                 await this.loadPriceChanges();
                                 console.log('Price changes refreshed:', this.priceChanges);
                                 
@@ -2850,7 +2852,7 @@
                                 // Refresh kalkulator jika ada input yang sudah diisi
                                 this.refreshCalculator();
                                 
-                                console.log('Force update completed and data refreshed');
+                                console.log('Force update from external API completed and data refreshed');
                             } else {
                                 throw new Error(result.message || 'Gagal melakukan force update');
                             }
@@ -3166,6 +3168,24 @@
                             hasValidChange: changeData && changeData.oldPrice > 0 && changeData.newPrice > 0
                         });
                     });
+                    
+                    // Debug source tracking
+                    console.log('=== SOURCE TRACKING DEBUG ===');
+                    if (changesRes.ok && changesData.success && changesData.data) {
+                        const sources = {};
+                        changesData.data.forEach(change => {
+                            if (!sources[change.changeSource]) {
+                                sources[change.changeSource] = [];
+                            }
+                            sources[change.changeSource].push({
+                                purity: change.purity,
+                                oldPrice: change.oldPrice,
+                                newPrice: change.newPrice,
+                                date: change.changeDate
+                            });
+                        });
+                        console.log('Changes grouped by source:', sources);
+                    }
                     
                 } catch (error) {
                     console.error('Debug error:', error);
