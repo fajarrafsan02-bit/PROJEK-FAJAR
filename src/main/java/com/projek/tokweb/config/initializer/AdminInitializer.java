@@ -10,7 +10,7 @@ import com.projek.tokweb.repository.UserRespository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 
-@Component
+// @Component
 @RequiredArgsConstructor
 public class AdminInitializer {
     private final UserRespository userRepository;

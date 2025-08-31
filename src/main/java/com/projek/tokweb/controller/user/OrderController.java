@@ -12,7 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.projek.tokweb.dto.ApiResponse;
+// <<<<<<< HEAD
 // import com.projek.tokweb.models.customer.Order;
+// =======
+import com.projek.tokweb.models.customer.Order;
+// >>>>>>> 60deefb2408e43e20270b07dc90cb285629c2af4
 import com.projek.tokweb.repository.customer.OrderRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -48,8 +52,13 @@ public class OrderController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getUserOrders(@PathVariable Long userId) {
         try {
+// <<<<<<< HEAD
             // Gunakan method repository yang baru ditambahkan
-            List<Order> userOrders = orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
+            // List<Order> userOrders = orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
+// =======
+//             // Use findAll for now, implement proper user filtering later
+            List<Order> userOrders = orderRepository.findAll();
+// >>>>>>> 60deefb2408e43e20270b07dc90cb285629c2af4
             
             return ResponseEntity.ok(ApiResponse.success("User orders retrieved", 
                 Map.of("orders", userOrders, "total", userOrders.size())));
