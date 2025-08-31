@@ -548,118 +548,169 @@
             color: #28a745;
         }
     </style>
-    <!-- Tambahkan library QR Code dengan multiple CDN dan fallback yang lebih robust -->
+    <!-- QR Code Library dengan fallback yang lebih robust -->
     <script>
-        // Function untuk load QR Code library dengan multiple fallback
-        function loadQRCodeLibrary() {
-            return new Promise((resolve, reject) => {
-                // Cek apakah sudah ada
+        // QR Code Library Manager
+        class QRCodeManager {
+            constructor() {
+                this.isLoaded = false;
+                this.loadAttempts = 0;
+                this.maxAttempts = 3;
+                this.cdns = [
+                    'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js',
+                    'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js',
+                    'https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js'
+                ];
+            }
+
+            async loadLibrary() {
+                console.log('🚀 Loading QR Code library...');
+                
+                // Check if already loaded
                 if (typeof QRCode !== 'undefined') {
                     console.log('✅ QR Code library already loaded');
-                    resolve();
-                    return;
+                    this.isLoaded = true;
+                    return true;
                 }
 
-                // Try first CDN
-                const script1 = document.createElement('script');
-                script1.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
-                script1.onload = () => {
-                    console.log('✅ QR Code library loaded from CDN 1');
-                    resolve();
+                // Try each CDN
+                for (let i = 0; i < this.cdns.length; i++) {
+                    try {
+                        console.log(`📡 Trying CDN ${i + 1}: ${this.cdns[i]}`);
+                        await this.loadFromCDN(this.cdns[i]);
+                        this.isLoaded = true;
+                        console.log('✅ QR Code library loaded successfully');
+                        return true;
+                    } catch (error) {
+                        console.warn(`❌ CDN ${i + 1} failed:`, error.message);
+                        continue;
+                    }
+                }
+
+                // If all CDNs fail, create fallback
+                console.log('⚠️ All CDNs failed, creating fallback QR code');
+                this.createFallback();
+                return false;
+            }
+
+            loadFromCDN(url) {
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = url;
+                    script.onload = () => resolve();
+                    script.onerror = () => reject(new Error(`Failed to load from ${url}`));
+                    document.head.appendChild(script);
+                });
+            }
+
+            createFallback() {
+                console.log('🔧 Creating QR code fallback...');
+                window.QRCode = {
+                    toCanvas: (canvas, text, options, callback) => {
+                        try {
+                            const ctx = canvas.getContext('2d');
+                            const size = options?.width || 200;
+                            
+                            canvas.width = size;
+                            canvas.height = size;
+                            
+                            // Clear canvas
+                            ctx.fillStyle = '#FFFFFF';
+                            ctx.fillRect(0, 0, size, size);
+                            
+                            // Draw border
+                            ctx.strokeStyle = '#000000';
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(0, 0, size, size);
+                            
+                            // Draw QR-like pattern
+                            ctx.fillStyle = '#000000';
+                            const blockSize = size / 25;
+                            
+                            // Corner patterns
+                            this.drawCornerPattern(ctx, 0, 0, blockSize);
+                            this.drawCornerPattern(ctx, size - blockSize * 7, 0, blockSize);
+                            this.drawCornerPattern(ctx, 0, size - blockSize * 7, blockSize);
+                            
+                            // Center pattern
+                            const centerX = size / 2 - blockSize * 2;
+                            const centerY = size / 2 - blockSize * 2;
+                            ctx.fillRect(centerX, centerY, blockSize * 4, blockSize * 4);
+                            
+                            // Add text
+                            ctx.fillStyle = '#000000';
+                            ctx.font = '12px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.fillText('QR Code', size/2, size/2 + 30);
+                            ctx.fillText('Payment', size/2, size/2 + 45);
+                            
+                            if (callback) callback(null);
+                        } catch (error) {
+                            console.error('❌ Fallback QR generation error:', error);
+                            if (callback) callback(error);
+                        }
+                    }
                 };
-                script1.onerror = () => {
-                    console.log('❌ CDN 1 failed, trying CDN 2...');
-                    
-                    // Try second CDN
-                    const script2 = document.createElement('script');
-                    script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js';
-                    script2.onload = () => {
-                        console.log('✅ QR Code library loaded from CDN 2');
-                        resolve();
-                    };
-                    script2.onerror = () => {
-                        console.log('❌ CDN 2 failed, trying CDN 3...');
-                        
-                        // Try third CDN
-                        const script3 = document.createElement('script');
-                        script3.src = 'https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js';
-                        script3.onload = () => {
-                            console.log('✅ QR Code library loaded from CDN 3');
-                            resolve();
-                        };
-                        script3.onerror = () => {
-                            console.log('❌ All CDNs failed, using manual fallback');
-                            // Create manual QR code fallback
-                            window.QRCode = {
-                                toCanvas: function(canvas, text, options, callback) {
-                                    try {
-                                        // Create simple QR-like pattern manually
-                                        const ctx = canvas.getContext('2d');
-                                        const size = options.width || 200;
-                                        canvas.width = size;
-                                        canvas.height = size;
-                                        
-                                        // Clear canvas
-                                        ctx.fillStyle = '#FFFFFF';
-                                        ctx.fillRect(0, 0, size, size);
-                                        
-                                        // Draw simple pattern (simulating QR code)
-                                        ctx.fillStyle = '#000000';
-                                        const blockSize = size / 25;
-                                        
-                                        // Draw outer border
-                                        ctx.fillRect(0, 0, size, blockSize);
-                                        ctx.fillRect(0, size - blockSize, size, blockSize);
-                                        ctx.fillRect(0, 0, blockSize, size);
-                                        ctx.fillRect(size - blockSize, 0, blockSize, size);
-                                        
-                                        // Draw some inner patterns
-                                        for (let i = 0; i < 5; i++) {
-                                            for (let j = 0; j < 5; j++) {
-                                                if (Math.random() > 0.5) {
-                                                    ctx.fillRect(
-                                                        blockSize * 2 + i * blockSize * 3,
-                                                        blockSize * 2 + j * blockSize * 3,
-                                                        blockSize,
-                                                        blockSize
-                                                    );
-                                                }
-                                            }
-                                        }
-                                        
-                                        // Add text
-                                        ctx.fillStyle = '#000000';
-                                        ctx.font = '12px Arial';
-                                        ctx.textAlign = 'center';
-                                        ctx.fillText('QR Code', size/2, size/2);
-                                        ctx.fillText('Generated', size/2, size/2 + 15);
-                                        
-                                        if (callback) callback(null);
-                                    } catch (error) {
-                                        if (callback) callback(error);
-                                    }
-                                }
-                            };
-                            console.log('✅ Manual QR code fallback created');
-                            resolve();
-                        };
-                        document.head.appendChild(script3);
-                    };
-                    document.head.appendChild(script2);
-                };
-                document.head.appendChild(script1);
-            });
+                
+                console.log('✅ QR code fallback created');
+            }
+
+            drawCornerPattern(ctx, x, y, blockSize) {
+                // Draw 7x7 corner pattern
+                for (let i = 0; i < 7; i++) {
+                    for (let j = 0; j < 7; j++) {
+                        if ((i === 0 || i === 6 || j === 0 || j === 6) || 
+                            (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
+                            ctx.fillRect(x + i * blockSize, y + j * blockSize, blockSize, blockSize);
+                        }
+                    }
+                }
+            }
+
+            generateQR(canvas, data, options = {}) {
+                if (!this.isLoaded && typeof QRCode === 'undefined') {
+                    console.error('❌ QR Code library not loaded');
+                    return false;
+                }
+
+                return new Promise((resolve, reject) => {
+                    try {
+                        QRCode.toCanvas(canvas, data, {
+                            width: options.width || 200,
+                            height: options.height || 200,
+                            margin: options.margin || 2,
+                            color: {
+                                dark: options.darkColor || '#000000',
+                                light: options.lightColor || '#FFFFFF'
+                            }
+                        }, (error) => {
+                            if (error) {
+                                console.error('❌ QR generation error:', error);
+                                reject(error);
+                            } else {
+                                console.log('✅ QR code generated successfully');
+                                resolve(true);
+                            }
+                        });
+                    } catch (error) {
+                        console.error('❌ QR generation exception:', error);
+                        reject(error);
+                    }
+                });
+            }
         }
 
+        // Initialize QR Code Manager
+        window.qrCodeManager = new QRCodeManager();
+        
         // Load library when page loads
-        window.addEventListener('load', function() {
-            loadQRCodeLibrary().then(() => {
-                console.log('✅ QR Code library ready to use');
-                window.qrCodeReady = true;
-            }).catch(() => {
-                console.error('❌ Failed to load QR Code library');
-                window.qrCodeReady = false;
-            });
+        window.addEventListener('load', async function() {
+            try {
+                await window.qrCodeManager.loadLibrary();
+                console.log('✅ QR Code system ready');
+            } catch (error) {
+                console.error('❌ Failed to initialize QR Code system:', error);
+            }
         });
     </script>
 </head>
@@ -772,10 +823,18 @@
                             </label>
                         </div>
                         
-                        <!-- Test button untuk debug -->
-                        <button type="button" onclick="checkoutManager.testQRCode()" style="margin-top: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                            🧪 Test QR Code
-                        </button>
+                        <!-- Test buttons untuk debug -->
+                        <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button type="button" onclick="checkoutManager.testQRCode()" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                🧪 Test QR Code
+                            </button>
+                            <button type="button" onclick="checkoutManager.debugCheckoutData()" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                🔍 Debug Data
+                            </button>
+                            <button type="button" onclick="checkoutManager.loadSampleData()" style="padding: 8px 16px; background: #ffc107; color: #212529; border: none; border-radius: 4px; cursor: pointer;">
+                                📦 Load Sample
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Payment Instructions akan muncul di sini -->
@@ -859,23 +918,68 @@
             }
 
             init() {
+                console.log('🚀 Initializing CheckoutManager...');
+                console.log('📦 Cart data:', this.cart);
+                console.log('🛒 Checkout data:', this.checkoutData);
+                
+                // Validasi data terlebih dahulu
+                if (!this.validateCheckoutData()) {
+                    console.error('❌ Checkout data validation failed, stopping initialization');
+                    return;
+                }
+                
                 this.renderOrderSummary();
                 this.setupEventListeners();
                 this.updateBadges();
-                this.validateCheckoutData();
+                
+                console.log('✅ CheckoutManager initialized successfully');
             }
 
             validateCheckoutData() {
-                console.log('Validating checkout data:', this.checkoutData);
-                if (!this.checkoutData.items || this.checkoutData.items.length === 0) {
-                    console.error('Checkout data validation failed: no items');
-                    this.showNotification('Data checkout tidak valid. Silakan kembali ke keranjang.', 'error');
+                console.log('🔍 Validating checkout data:', this.checkoutData);
+                
+                // Cek apakah ada data checkout
+                if (!this.checkoutData || Object.keys(this.checkoutData).length === 0) {
+                    console.error('❌ Checkout data is empty or undefined');
+                    this.showNotification('Data checkout tidak ditemukan. Silakan kembali ke keranjang.', 'error');
                     setTimeout(() => {
                         window.location.href = '/user/cart';
                     }, 2000);
-                } else {
-                    console.log('Checkout data validation passed');
+                    return false;
                 }
+                
+                // Cek apakah ada items
+                if (!this.checkoutData.items || this.checkoutData.items.length === 0) {
+                    console.error('❌ Checkout data validation failed: no items');
+                    this.showNotification('Keranjang kosong. Silakan tambahkan produk terlebih dahulu.', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/user/cart';
+                    }, 2000);
+                    return false;
+                }
+                
+                // Validasi setiap item
+                const validItems = this.checkoutData.items.filter(item => {
+                    if (!item.id || !item.name || !item.quantity || item.quantity <= 0) {
+                        console.error('❌ Invalid item:', item);
+                        return false;
+                    }
+                    return true;
+                });
+                
+                if (validItems.length === 0) {
+                    console.error('❌ No valid items found');
+                    this.showNotification('Tidak ada item yang valid. Silakan periksa keranjang Anda.', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/user/cart';
+                    }, 2000);
+                    return false;
+                }
+                
+                // Update checkout data dengan items yang valid
+                this.checkoutData.items = validItems;
+                console.log('✅ Checkout data validation passed');
+                return true;
             }
 
             setupEventListeners() {
@@ -897,33 +1001,71 @@
                 }
             }
             renderOrderSummary() {
+                console.log('📋 Rendering order summary...');
                 const orderItems = document.getElementById('orderItems');
                 const items = this.checkoutData.items || [];
 
-                orderItems.innerHTML = items.map(item => `
-                    <div class="order-item">
-                        <div class="item-image">
-                            <img src="${item.image || '/placeholder.svg'}" 
-                                 alt="${item.name}"
-                                 onerror="this.src='/placeholder.svg'">
+                console.log('🛍️ Items to render:', items);
+
+                if (!orderItems) {
+                    console.error('❌ Order items container not found');
+                    return;
+                }
+
+                if (items.length === 0) {
+                    orderItems.innerHTML = `
+                        <div class="order-item">
+                            <div class="item-details">
+                                <div class="item-name">Tidak ada item</div>
+                                <div class="item-specs">Silakan kembali ke keranjang</div>
+                            </div>
                         </div>
-                        <div class="item-details">
-                            <div class="item-name">${item.name}</div>
-                            <div class="item-specs">Qty: ${item.quantity} | ${item.specs || `Berat: ${item.weight} gram | Kadar: ${item.purity}K`}</div>
+                    `;
+                    return;
+                }
+
+                orderItems.innerHTML = items.map((item, index) => {
+                    console.log(`📦 Rendering item ${index + 1}:`, item);
+                    
+                    const itemName = item.name || 'Produk Tidak Diketahui';
+                    const itemQuantity = item.quantity || 1;
+                    const itemPrice = item.price || item.finalPrice || 0;
+                    const itemImage = item.image || '/placeholder.svg';
+                    const itemSpecs = item.specs || `Berat: ${item.weight || 'N/A'} gram | Kadar: ${item.purity || 'N/A'}K`;
+                    
+                    return `
+                        <div class="order-item">
+                            <div class="item-image">
+                                <img src="${itemImage}" 
+                                     alt="${itemName}"
+                                     onerror="this.src='/placeholder.svg'">
+                            </div>
+                            <div class="item-details">
+                                <div class="item-name">${itemName}</div>
+                                <div class="item-specs">Qty: ${itemQuantity} | ${itemSpecs}</div>
+                            </div>
+                            <div class="item-price">${this.formatCurrency(itemPrice)}</div>
                         </div>
-                        <div class="item-price">${this.formatCurrency(item.price || item.finalPrice || 0)}</div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
 
                 // Update summary
                 this.updateSummary();
+                console.log('✅ Order summary rendered successfully');
             }
 
             updateSummary() {
+                console.log('💰 Updating summary...');
                 const items = this.checkoutData.items || [];
+                
+                console.log('🛍️ Items for summary calculation:', items);
+                
                 const subtotal = items.reduce((sum, item) => {
                     const price = item.price || item.finalPrice || 0;
-                    return sum + (price * item.quantity);
+                    const quantity = item.quantity || 1;
+                    const itemTotal = price * quantity;
+                    console.log(`📦 Item: ${item.name}, Price: ${price}, Qty: ${quantity}, Total: ${itemTotal}`);
+                    return sum + itemTotal;
                 }, 0);
 
                 const shipping = this.checkoutData.shipping || 0;
@@ -931,17 +1073,45 @@
                 const discountAmount = subtotal * discount;
                 const total = subtotal + shipping - discountAmount;
 
-                document.getElementById('subtotal').textContent = this.formatCurrency(subtotal);
-                document.getElementById('shippingCost').textContent = shipping === 0 ? 'GRATIS' : this.formatCurrency(shipping);
-                document.getElementById('discount').textContent = discountAmount > 0 ? `-${this.formatCurrency(discountAmount)}` : 'Rp 0';
-                document.getElementById('total').textContent = this.formatCurrency(total);
+                console.log('💰 Summary calculation:', {
+                    subtotal,
+                    shipping,
+                    discount,
+                    discountAmount,
+                    total
+                });
+
+                // Update DOM elements with error handling
+                const subtotalEl = document.getElementById('subtotal');
+                const shippingEl = document.getElementById('shippingCost');
+                const discountEl = document.getElementById('discount');
+                const totalEl = document.getElementById('total');
+
+                if (subtotalEl) subtotalEl.textContent = this.formatCurrency(subtotal);
+                if (shippingEl) shippingEl.textContent = shipping === 0 ? 'GRATIS' : this.formatCurrency(shipping);
+                if (discountEl) discountEl.textContent = discountAmount > 0 ? `-${this.formatCurrency(discountAmount)}` : 'Rp 0';
+                if (totalEl) totalEl.textContent = this.formatCurrency(total);
+
+                console.log('✅ Summary updated successfully');
             }
 
             async processPayment() {
-                if (this.isProcessing) return;
+                console.log('💳 Starting payment process...');
+                
+                if (this.isProcessing) {
+                    console.log('⏳ Payment already processing, ignoring request');
+                    return;
+                }
 
                 // Validate form
                 if (!this.validateForm()) {
+                    console.log('❌ Form validation failed');
+                    return;
+                }
+
+                // Validate checkout data again
+                if (!this.validateCheckoutData()) {
+                    console.log('❌ Checkout data validation failed');
                     return;
                 }
 
@@ -949,31 +1119,44 @@
                 this.updatePayButton(true);
 
                 try {
-                    // Prepare checkout data
+                    // Prepare checkout data with better error handling
+                    const items = this.checkoutData.items || [];
+                    console.log('🛍️ Preparing checkout request with items:', items);
+                    
                     const checkoutRequest = {
-                        items: this.checkoutData.items.map(item => ({
-                            productId: item.id,
-                            quantity: item.quantity
-                        })),
+                        items: items.map(item => {
+                            if (!item.id) {
+                                console.error('❌ Item missing ID:', item);
+                                throw new Error(`Item "${item.name}" tidak memiliki ID yang valid`);
+                            }
+                            return {
+                                productId: item.id,
+                                quantity: item.quantity || 1
+                            };
+                        }),
                         customerInfo: {
-                            fullName: document.getElementById('fullName').value,
-                            email: document.getElementById('email').value,
-                            phone: document.getElementById('phone').value,
-                            birthDate: document.getElementById('birthDate').value,
-                            address: document.getElementById('address').value,
-                            city: document.getElementById('city').value,
-                            postalCode: document.getElementById('postalCode').value
+                            fullName: document.getElementById('fullName')?.value || '',
+                            email: document.getElementById('email')?.value || '',
+                            phone: document.getElementById('phone')?.value || '',
+                            birthDate: document.getElementById('birthDate')?.value || '',
+                            address: document.getElementById('address')?.value || '',
+                            city: document.getElementById('city')?.value || '',
+                            postalCode: document.getElementById('postalCode')?.value || ''
                         },
                         paymentMethod: this.selectedPaymentMethod,
                         totalAmount: this.calculateTotal()
                     };
 
-                    // Tambahkan logging detail untuk data yang akan dikirim
-                    console.log('=== DATA YANG AKAN DIKIRIM ===');
-                    console.log('CheckoutRequest:', JSON.stringify(checkoutRequest, null, 2));
-                    console.log('Items:', checkoutRequest.items);
-                    console.log('CustomerInfo:', checkoutRequest.customerInfo);
-                    console.log('PaymentMethod:', checkoutRequest.paymentMethod);
+                    // Validate customer info
+                    const customerInfo = checkoutRequest.customerInfo;
+                    const requiredFields = ['fullName', 'email', 'phone', 'birthDate', 'address', 'city', 'postalCode'];
+                    const missingFields = requiredFields.filter(field => !customerInfo[field]);
+                    
+                    if (missingFields.length > 0) {
+                        throw new Error(`Field berikut harus diisi: ${missingFields.join(', ')}`);
+                    }
+
+                    console.log('📤 Sending checkout request:', JSON.stringify(checkoutRequest, null, 2));
 
                     // Send to backend
                     const response = await fetch('/user/checkout', {
@@ -984,38 +1167,33 @@
                         body: JSON.stringify(checkoutRequest)
                     });
 
-                    console.log('Response status:', response.status);
+                    console.log('📥 Response status:', response.status);
                     const result = await response.json();
-                    console.log('Response data:', result);
+                    console.log('📥 Response data:', result);
 
-                    // Tambahkan logging detail untuk error
                     if (!response.ok) {
-                        console.error('Error response details:', {
+                        console.error('❌ Error response details:', {
                             status: response.status,
                             statusText: response.statusText,
-                            result: result,
-                            message: result.message || 'No message',
-                            error: result.error || 'No error details'
+                            result: result
                         });
 
-                        // Tampilkan error message yang lebih detail
                         const errorMessage = result.message || result.error || 'Gagal memproses checkout';
                         throw new Error(errorMessage);
                     }
 
-                    if (response.ok && result.success) {
+                    if (result.success) {
+                        console.log('✅ Checkout successful');
                         this.showNotification('Pesanan berhasil dibuat!', 'success');
 
                         // Handle payment instruction
                         if (result.data && result.data.externalId) {
                             console.log('📊 Payment data received:', result.data);
-                            // Tampilkan instruksi pembayaran
                             this.showPaymentInstructions(result.data);
-                            
-                            // Simpan order ID untuk upload bukti
                             this.currentOrderId = result.data.externalId;
                         } else {
-                            throw new Error('Data pembayaran tidak lengkap');
+                            console.warn('⚠️ No payment data received');
+                            this.showNotification('Pesanan berhasil dibuat, tetapi data pembayaran tidak lengkap', 'warning');
                         }
 
                         // Clear cart
@@ -1027,11 +1205,7 @@
                     }
 
                 } catch (error) {
-                    console.error('Checkout error:', error);
-                    console.error('Error details:', {
-                        message: error.message,
-                        stack: error.stack
-                    });
+                    console.error('❌ Checkout error:', error);
                     this.showNotification('Gagal memproses checkout: ' + error.message, 'error');
                 } finally {
                     this.isProcessing = false;
@@ -1084,7 +1258,7 @@
             }
 
             // ... existing code ...
-            showPaymentInstructions(paymentData) {
+            async showPaymentInstructions(paymentData) {
                 console.log('🎯 === SHOWING PAYMENT INSTRUCTIONS ===');
                 console.log('📊 Payment data:', paymentData);
                 
@@ -1125,12 +1299,17 @@
 
                     // Generate QR code
                     console.log('🚀 Starting QR code generation...');
-                    if (paymentData.qrData) {
-                        console.log('📡 Using qrData from backend');
-                        this.generateQRCode(paymentData.qrData);
-                    } else {
-                        console.log('🔄 Using fallback QR generation');
-                        this.generateSimpleQRCode(paymentData.amount || 0);
+                    try {
+                        if (paymentData.qrData) {
+                            console.log('📡 Using qrData from backend');
+                            await this.generateQRCode(paymentData.qrData);
+                        } else {
+                            console.log('🔄 Using fallback QR generation');
+                            await this.generateSimpleQRCode(paymentData.amount || 0);
+                        }
+                    } catch (error) {
+                        console.error('❌ QR code generation failed:', error);
+                        this.showNotification('Gagal generate QR code, menggunakan placeholder', 'warning');
                     }
 
                     // Set instructions
@@ -1174,7 +1353,7 @@
             // ... existing code ...
 
             // Method untuk generate QR code yang sebenarnya
-            generateQRCode(qrData) {
+            async generateQRCode(qrData) {
                 console.log('🚀 Generating QR code with data:', qrData);
                 const qrContainer = document.getElementById('qrCodeImage');
                 if (!qrContainer) {
@@ -1185,49 +1364,58 @@
                 // Clear container
                 qrContainer.innerHTML = '';
 
-                // Wait for library to be ready
-                if (typeof QRCode === 'undefined') {
-                    console.log('⏳ Waiting for QR Code library...');
-                    // Wait a bit and try again
-                    setTimeout(() => {
-                        if (typeof QRCode !== 'undefined') {
-                            this.generateQRCode(qrData);
-                        } else {
-                            console.error('❌ QRCode library still not available, using fallback');
-                            this.showQRPlaceholder(qrContainer);
-                        }
-                    }, 1000);
-                    return;
-                }
-
                 try {
-                    console.log('✅ QRCode library ready, generating QR code...');
-                    
-                    // Generate QR code menggunakan library
-                    QRCode.toCanvas(qrContainer, qrData, {
-                        width: 200,
-                        height: 200,
-                        margin: 2,
-                        color: {
-                            dark: '#000000',
-                            light: '#FFFFFF'
-                        }
-                    }, function (error) {
-                        if (error) {
-                            console.error('❌ Error generating QR code:', error);
-                            this.showQRPlaceholder(qrContainer);
+                    // Use QR Code Manager
+                    if (window.qrCodeManager) {
+                        console.log('📱 Using QR Code Manager...');
+                        const success = await window.qrCodeManager.generateQR(qrContainer, qrData, {
+                            width: 200,
+                            height: 200,
+                            margin: 2,
+                            darkColor: '#000000',
+                            lightColor: '#FFFFFF'
+                        });
+                        
+                        if (success) {
+                            console.log('✅ QR code generated successfully with QR Code Manager');
                         } else {
-                            console.log('✅ QR code generated successfully');
+                            throw new Error('QR Code Manager failed to generate QR code');
                         }
-                    }.bind(this));
+                    } else {
+                        // Fallback to direct QRCode library
+                        console.log('📱 Using direct QRCode library...');
+                        if (typeof QRCode === 'undefined') {
+                            throw new Error('QRCode library not available');
+                        }
+                        
+                        await new Promise((resolve, reject) => {
+                            QRCode.toCanvas(qrContainer, qrData, {
+                                width: 200,
+                                height: 200,
+                                margin: 2,
+                                color: {
+                                    dark: '#000000',
+                                    light: '#FFFFFF'
+                                }
+                            }, (error) => {
+                                if (error) {
+                                    console.error('❌ Error generating QR code:', error);
+                                    reject(error);
+                                } else {
+                                    console.log('✅ QR code generated successfully with direct library');
+                                    resolve();
+                                }
+                            });
+                        });
+                    }
                 } catch (error) {
-                    console.error('❌ Exception generating QR code:', error);
+                    console.error('❌ QR code generation failed:', error);
                     this.showQRPlaceholder(qrContainer);
                 }
             }
 
             // Method fallback untuk generate QR code sederhana
-            generateSimpleQRCode(amount) {
+            async generateSimpleQRCode(amount) {
                 console.log('🚀 Generating simple QR code for amount:', amount);
                 const qrContainer = document.getElementById('qrCodeImage');
                 if (!qrContainer) return;
@@ -1239,32 +1427,52 @@
                 const paymentData = `FAJAR_GOLD_PAYMENT_${amount}_${Date.now()}`;
                 console.log('📱 Payment data for QR:', paymentData);
                 
-                // Check if QRCode library is available
-                if (typeof QRCode !== 'undefined') {
-                    try {
-                        console.log('✅ QRCode library ready, generating simple QR code...');
-                        QRCode.toCanvas(qrContainer, paymentData, {
+                try {
+                    // Use QR Code Manager
+                    if (window.qrCodeManager) {
+                        console.log('📱 Using QR Code Manager for simple QR...');
+                        const success = await window.qrCodeManager.generateQR(qrContainer, paymentData, {
                             width: 200,
                             height: 200,
                             margin: 2,
-                            color: {
-                                dark: '#000000',
-                                light: '#FFFFFF'
-                            }
-                        }, function (error) {
-                            if (error) {
-                                console.error('❌ Error generating simple QR code:', error);
-                                this.showQRPlaceholder(qrContainer);
-                            } else {
-                                console.log('✅ Simple QR code generated successfully');
-                            }
-                        }.bind(this));
-                    } catch (error) {
-                        console.error('❌ Exception in simple QR generation:', error);
-                        this.showQRPlaceholder(qrContainer);
+                            darkColor: '#000000',
+                            lightColor: '#FFFFFF'
+                        });
+                        
+                        if (success) {
+                            console.log('✅ Simple QR code generated successfully with QR Code Manager');
+                        } else {
+                            throw new Error('QR Code Manager failed to generate simple QR code');
+                        }
+                    } else {
+                        // Fallback to direct QRCode library
+                        console.log('📱 Using direct QRCode library for simple QR...');
+                        if (typeof QRCode === 'undefined') {
+                            throw new Error('QRCode library not available');
+                        }
+                        
+                        await new Promise((resolve, reject) => {
+                            QRCode.toCanvas(qrContainer, paymentData, {
+                                width: 200,
+                                height: 200,
+                                margin: 2,
+                                color: {
+                                    dark: '#000000',
+                                    light: '#FFFFFF'
+                                }
+                            }, (error) => {
+                                if (error) {
+                                    console.error('❌ Error generating simple QR code:', error);
+                                    reject(error);
+                                } else {
+                                    console.log('✅ Simple QR code generated successfully with direct library');
+                                    resolve();
+                                }
+                            });
+                        });
                     }
-                } else {
-                    console.log('❌ QRCode library not available, showing placeholder');
+                } catch (error) {
+                    console.error('❌ Simple QR code generation failed:', error);
                     this.showQRPlaceholder(qrContainer);
                 }
             }
@@ -1375,7 +1583,7 @@
             }
 
             // Method untuk test QR code
-            testQRCode() {
+            async testQRCode() {
                 console.log('🧪 Testing QR code generation...');
                 const testContainer = document.getElementById('qrCodeImage');
                 if (!testContainer) {
@@ -1386,41 +1594,131 @@
                 // Clear container first
                 testContainer.innerHTML = '';
 
-                if (typeof QRCode !== 'undefined') {
-                    console.log('✅ QRCode library available, generating test QR...');
-                    try {
-                        QRCode.toCanvas(testContainer, 'TEST_QR_CODE_123', {
+                try {
+                    // Use QR Code Manager
+                    if (window.qrCodeManager) {
+                        console.log('📱 Using QR Code Manager for test...');
+                        const success = await window.qrCodeManager.generateQR(testContainer, 'TEST_QR_CODE_123', {
                             width: 200,
                             height: 200,
-                            margin: 2
-                        }, function (error) {
-                            if (error) {
-                                console.error('❌ Test QR generation failed:', error);
-                                this.showQRPlaceholder(testContainer);
-                            } else {
-                                console.log('✅ Test QR code generated successfully');
-                            }
-                        }.bind(this));
-                    } catch (error) {
-                        console.error('❌ Exception in test QR generation:', error);
-                        this.showQRPlaceholder(testContainer);
-                    }
-                } else {
-                    console.error('❌ QRCode library not available, trying to load...');
-                    // Try to load library first
-                    if (typeof loadQRCodeLibrary === 'function') {
-                        loadQRCodeLibrary().then(() => {
-                            console.log('✅ Library loaded, retrying test...');
-                            this.testQRCode();
-                        }).catch(() => {
-                            console.error('❌ Failed to load library, showing placeholder');
-                            this.showQRPlaceholder(testContainer);
+                            margin: 2,
+                            darkColor: '#000000',
+                            lightColor: '#FFFFFF'
                         });
+                        
+                        if (success) {
+                            console.log('✅ Test QR code generated successfully with QR Code Manager');
+                        } else {
+                            throw new Error('QR Code Manager failed to generate test QR code');
+                        }
                     } else {
-                        console.error('❌ Cannot load library, showing placeholder');
-                        this.showQRPlaceholder(testContainer);
+                        // Fallback to direct QRCode library
+                        console.log('📱 Using direct QRCode library for test...');
+                        if (typeof QRCode === 'undefined') {
+                            throw new Error('QRCode library not available');
+                        }
+                        
+                        await new Promise((resolve, reject) => {
+                            QRCode.toCanvas(testContainer, 'TEST_QR_CODE_123', {
+                                width: 200,
+                                height: 200,
+                                margin: 2
+                            }, (error) => {
+                                if (error) {
+                                    console.error('❌ Test QR generation failed:', error);
+                                    reject(error);
+                                } else {
+                                    console.log('✅ Test QR code generated successfully with direct library');
+                                    resolve();
+                                }
+                            });
+                        });
                     }
+                } catch (error) {
+                    console.error('❌ Test QR code generation failed:', error);
+                    this.showQRPlaceholder(testContainer);
                 }
+            }
+
+            // Method untuk debug checkout data
+            debugCheckoutData() {
+                console.log('🔍 === DEBUG CHECKOUT DATA ===');
+                console.log('📦 Cart data:', this.cart);
+                console.log('🛒 Checkout data:', this.checkoutData);
+                console.log('💳 Selected payment method:', this.selectedPaymentMethod);
+                console.log('⏳ Is processing:', this.isProcessing);
+                
+                // Check localStorage
+                const localStorageCart = localStorage.getItem('cart');
+                const localStorageCheckout = localStorage.getItem('checkoutData');
+                console.log('💾 LocalStorage cart:', localStorageCart);
+                console.log('💾 LocalStorage checkout:', localStorageCheckout);
+                
+                // Parse and show parsed data
+                try {
+                    const parsedCart = JSON.parse(localStorageCart || 'null');
+                    const parsedCheckout = JSON.parse(localStorageCheckout || 'null');
+                    console.log('📋 Parsed cart:', parsedCart);
+                    console.log('📋 Parsed checkout:', parsedCheckout);
+                } catch (error) {
+                    console.error('❌ Error parsing localStorage data:', error);
+                }
+                
+                // Show notification with summary
+                const summary = `
+                    Cart items: ${this.cart.length}
+                    Checkout items: ${this.checkoutData.items?.length || 0}
+                    Payment method: ${this.selectedPaymentMethod}
+                    Processing: ${this.isProcessing}
+                `;
+                this.showNotification('Debug info logged to console', 'info');
+            }
+
+            // Method untuk load sample data
+            loadSampleData() {
+                console.log('📦 Loading sample checkout data...');
+                
+                const sampleData = {
+                    items: [
+                        {
+                            id: 1,
+                            name: 'Cincin Emas 24K',
+                            price: 2500000,
+                            finalPrice: 2500000,
+                            quantity: 1,
+                            weight: 5,
+                            purity: '24K',
+                            image: '/placeholder.svg',
+                            specs: 'Berat: 5 gram | Kadar: 24K'
+                        },
+                        {
+                            id: 2,
+                            name: 'Kalung Emas 22K',
+                            price: 1800000,
+                            finalPrice: 1800000,
+                            quantity: 2,
+                            weight: 8,
+                            purity: '22K',
+                            image: '/placeholder.svg',
+                            specs: 'Berat: 8 gram | Kadar: 22K'
+                        }
+                    ],
+                    shipping: 0,
+                    discount: 0
+                };
+                
+                // Save to localStorage
+                localStorage.setItem('checkoutData', JSON.stringify(sampleData));
+                
+                // Update checkout data
+                this.checkoutData = sampleData;
+                
+                // Re-render
+                this.renderOrderSummary();
+                this.updateSummary();
+                
+                console.log('✅ Sample data loaded:', sampleData);
+                this.showNotification('Sample data loaded successfully!', 'success');
             }
         }
 
