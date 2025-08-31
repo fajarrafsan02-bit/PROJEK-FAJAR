@@ -2,25 +2,25 @@ package com.projek.tokweb.controller.user;
 
 import java.util.Map;
 import java.util.HashMap;
-// import java.util.Optional;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
-// import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-// import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-// import com.projek.tokweb.dto.ApiResponse;
 import com.projek.tokweb.dto.customer.CheckoutRequest;
-// import com.projek.tokweb.dto.customer.PaymentInstruction;
-// import com.projek.tokweb.models.User;
+import com.projek.tokweb.models.User;
 import com.projek.tokweb.repository.UserRespository;
-// import com.projek.tokweb.service.customer.Checkout;
+import com.projek.tokweb.service.customer.CheckoutService;
 
-// import jakarta.validation.Valid;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,11 +31,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Validated
 public class UserCheckoutController {
 
-    // private final Checkout checkout;
-    // private final UserRespository userRespository;
+    private final CheckoutService checkoutService;
+    private final UserRespository userRespository;
 
     @PostMapping("/checkout")
-    public ResponseEntity<?> checkout(@RequestBody CheckoutRequest req) {
+    public ResponseEntity<?> checkout(@Valid @RequestBody CheckoutRequest req) {
         try {
             System.out.println("=== CHECKOUT REQUEST RECEIVED ===");
             System.out.println("Request: " + req);
@@ -68,47 +68,23 @@ public class UserCheckoutController {
                 ));
             }
 
-            String method = req.getPaymentMethod() != null ? req.getPaymentMethod() : "QR_CODE";
-            
-            // Gunakan totalAmount dari request jika ada, jika tidak hitung manual
-            double totalAmount = req.getTotalAmount() != null ? req.getTotalAmount() : 
-                req.getItems().stream()
-                    .mapToDouble(item -> item.getQuantity() * 1000000.0) // Simulasi harga 1 juta per item
-                    .sum();
+            // Get user (for now, create a dummy user - in production, get from authentication)
+            User user = User.builder()
+                    .id(1L)
+                    .namaLengkap(req.getCustomerInfo().getFullName())
+                    .email(req.getCustomerInfo().getEmail())
+                    .build();
 
-            System.out.println("Total amount: " + totalAmount);
-
-            Map<String, Object> data = new HashMap<>();
-            data.put("externalId", "ORDER-" + System.currentTimeMillis());
-            data.put("amount", totalAmount);
-            data.put("paymentMethod", method);
-            data.put("customerName", req.getCustomerInfo().getFullName());
-            data.put("customerEmail", req.getCustomerInfo().getEmail());
-
-            if ("QR_CODE".equals(method)) {
-                // Generate QR code data untuk pembayaran (format EMV QR)
-                String qrData = String.format(
-                    "00020101021226620014ID.CO.QRIS.WWW01189360091408123456789015201123456789010303UEN52045IDR5303360540%.0f5802ID6304%s",
-                    totalAmount,
-                    generateChecksum(totalAmount)
-                );
-                
-                data.put("qrData", qrData); // Data untuk generate QR code di frontend
-                data.put("instructions", "Scan QR code untuk melakukan pembayaran. Setelah bayar, upload bukti pembayaran.");
-                data.put("paymentAmount", totalAmount);
-            } else if ("BANK_TRANSFER".equals(method)) {
-                data.put("bankName", "Bank Central Asia (BCA)");
-                data.put("bankAccountNumber", "123456789");
-                data.put("accountHolderName", "PT. FAJAR GOLD INDONESIA");
-                data.put("instructions", "Transfer ke rekening di atas sesuai jumlah tagihan: Rp " + String.format("%,.0f", totalAmount) + ". Setelah bayar, upload bukti pembayaran.");
-            }
+            // Use the checkout service to create real order
+            Map<String, Object> paymentData = checkoutService.createOrder(req, user);
 
             System.out.println("=== CHECKOUT SUCCESS ===");
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "ORDER_CREATED",
-                "data", data
+                "data", paymentData
             ));
+            
         } catch (Exception e) {
             System.out.println("=== CHECKOUT ERROR ===");
             System.out.println("Error: " + e.getMessage());
@@ -123,31 +99,57 @@ public class UserCheckoutController {
     @PostMapping("/upload-payment-proof")
     public ResponseEntity<?> uploadPaymentProof(
             @RequestParam("paymentProof") MultipartFile file,
-            @RequestParam("orderId") String orderId) {
+            @RequestParam("orderId") String externalId) {
         
         try {
-            // Simpan file bukti pembayaran
-            String fileName = "payment_proof_" + orderId + "_" + System.currentTimeMillis() + ".jpg";
-            // Implementasi penyimpanan file sesuai kebutuhan
-            
-            // Update status order menjadi WAITING_CONFIRMATION
-            // orderService.updateStatus(orderId, "WAITING_CONFIRMATION");
-            
-            return ResponseEntity.ok(Map.of("message", "Bukti pembayaran berhasil diupload"));
-            
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Gagal upload bukti pembayaran"));
-        }
-    }
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "File tidak boleh kosong"
+                ));
+            }
 
-    // Tambahkan method untuk generate checksum sederhana
-    private String generateChecksum(double amount) {
-        // Checksum sederhana untuk demo
-        String amountStr = String.format("%.0f", amount);
-        int checksum = 0;
-        for (char c : amountStr.toCharArray()) {
-            checksum += Character.getNumericValue(c);
+            // Create upload directory if not exists
+            String uploadDir = "uploads/payment-proofs/";
+            Path uploadPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            // Generate unique file name
+            String originalFileName = file.getOriginalFilename();
+            String fileExtension = originalFileName != null && originalFileName.contains(".") 
+                ? originalFileName.substring(originalFileName.lastIndexOf("."))
+                : ".jpg";
+            String fileName = "payment_proof_" + externalId + "_" + System.currentTimeMillis() + fileExtension;
+            
+            // Save file
+            Path filePath = uploadPath.resolve(fileName);
+            Files.copy(file.getInputStream(), filePath);
+
+            // Update payment status using service
+            checkoutService.updatePaymentProof(externalId, fileName);
+            
+            System.out.println("Payment proof uploaded: " + fileName);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Bukti pembayaran berhasil diupload",
+                "fileName", fileName
+            ));
+            
+        } catch (IOException e) {
+            System.out.println("File upload error: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Gagal menyimpan file: " + e.getMessage()
+            ));
+        } catch (Exception e) {
+            System.out.println("Upload payment proof error: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Gagal upload bukti pembayaran: " + e.getMessage()
+            ));
         }
-        return String.format("%04d", checksum % 10000);
     }
 }
