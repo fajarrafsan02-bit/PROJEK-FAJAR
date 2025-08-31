@@ -962,27 +962,53 @@
                     return false;
                 }
                 
-                // Validasi setiap item
+                // Validasi setiap item dengan lebih fleksibel
                 const validItems = this.checkoutData.items.filter(item => {
-                    if (!item.id || !item.name || !item.quantity || item.quantity <= 0) {
-                        console.error('❌ Invalid item:', item);
-                        return false;
+                    // Cek apakah item memiliki minimal data yang diperlukan
+                    const hasId = item.id || item.productId || item.product_id;
+                    const hasName = item.name || item.productName || item.product_name;
+                    const hasQuantity = item.quantity || item.qty || 1;
+                    
+                    if (!hasId) {
+                        console.warn('⚠️ Item missing ID:', item);
+                        // Jangan reject, coba generate ID
+                        item.id = item.id || item.productId || item.product_id || Date.now();
                     }
-                    return true;
+                    
+                    if (!hasName) {
+                        console.warn('⚠️ Item missing name:', item);
+                        // Jangan reject, gunakan default name
+                        item.name = item.name || item.productName || item.product_name || 'Produk Tidak Diketahui';
+                    }
+                    
+                    if (!hasQuantity || hasQuantity <= 0) {
+                        console.warn('⚠️ Item has invalid quantity:', item);
+                        // Jangan reject, set default quantity
+                        item.quantity = item.quantity || item.qty || 1;
+                    }
+                    
+                    // Normalize item properties
+                    item.id = item.id || item.productId || item.product_id;
+                    item.name = item.name || item.productName || item.product_name;
+                    item.quantity = item.quantity || item.qty || 1;
+                    item.price = item.price || item.finalPrice || item.harga || 0;
+                    
+                    console.log('✅ Normalized item:', item);
+                    return true; // Terima semua item, hanya normalize
                 });
                 
                 if (validItems.length === 0) {
-                    console.error('❌ No valid items found');
-                    this.showNotification('Tidak ada item yang valid. Silakan periksa keranjang Anda.', 'error');
+                    console.error('❌ No items found after normalization');
+                    this.showNotification('Tidak ada item yang dapat diproses. Silakan periksa keranjang Anda.', 'error');
                     setTimeout(() => {
                         window.location.href = '/user/cart';
                     }, 2000);
                     return false;
                 }
                 
-                // Update checkout data dengan items yang valid
+                // Update checkout data dengan items yang sudah dinormalisasi
                 this.checkoutData.items = validItems;
-                console.log('✅ Checkout data validation passed');
+                console.log('✅ Checkout data validation passed with', validItems.length, 'items');
                 return true;
             }
 
@@ -1054,11 +1080,23 @@
                 orderItems.innerHTML = items.map((item, index) => {
                     console.log(`📦 Rendering item ${index + 1}:`, item);
                     
-                    const itemName = item.name || 'Produk Tidak Diketahui';
-                    const itemQuantity = item.quantity || 1;
-                    const itemPrice = item.price || item.finalPrice || 0;
-                    const itemImage = item.image || '/placeholder.svg';
-                    const itemSpecs = item.specs || `Berat: ${item.weight || 'N/A'} gram | Kadar: ${item.purity || 'N/A'}K`;
+                    // Normalize item data untuk display
+                    const itemName = item.name || item.productName || item.product_name || 'Produk Tidak Diketahui';
+                    const itemQuantity = item.quantity || item.qty || 1;
+                    const itemPrice = item.price || item.finalPrice || item.harga || item.totalPrice || 0;
+                    const itemImage = item.image || item.imageUrl || item.img || '/placeholder.svg';
+                    
+                    // Build specs string dengan berbagai kemungkinan field
+                    let itemSpecs = '';
+                    if (item.specs) {
+                        itemSpecs = item.specs;
+                    } else if (item.weight || item.purity) {
+                        itemSpecs = `Berat: ${item.weight || 'N/A'} gram | Kadar: ${item.purity || 'N/A'}K`;
+                    } else if (item.description) {
+                        itemSpecs = item.description;
+                    } else {
+                        itemSpecs = `Qty: ${itemQuantity}`;
+                    }
                     
                     return `
                         <div class="order-item">
@@ -1088,10 +1126,11 @@
                 console.log('🛍️ Items for summary calculation:', items);
                 
                 const subtotal = items.reduce((sum, item) => {
-                    const price = item.price || item.finalPrice || 0;
-                    const quantity = item.quantity || 1;
+                    const price = item.price || item.finalPrice || item.harga || item.totalPrice || 0;
+                    const quantity = item.quantity || item.qty || 1;
                     const itemTotal = price * quantity;
-                    console.log(`📦 Item: ${item.name}, Price: ${price}, Qty: ${quantity}, Total: ${itemTotal}`);
+                    const itemName = item.name || item.productName || item.product_name || 'Unknown';
+                    console.log(`📦 Item: ${itemName}, Price: ${price}, Qty: ${quantity}, Total: ${itemTotal}`);
                     return sum + itemTotal;
                 }, 0);
 
@@ -1152,13 +1191,16 @@
                     
                     const checkoutRequest = {
                         items: items.map(item => {
-                            if (!item.id) {
+                            const itemId = item.id || item.productId || item.product_id;
+                            const itemName = item.name || item.productName || item.product_name || 'Unknown';
+                            
+                            if (!itemId) {
                                 console.error('❌ Item missing ID:', item);
-                                throw new Error(`Item "${item.name}" tidak memiliki ID yang valid`);
+                                throw new Error(`Item "${itemName}" tidak memiliki ID yang valid`);
                             }
                             return {
-                                productId: item.id,
-                                quantity: item.quantity || 1
+                                productId: itemId,
+                                quantity: item.quantity || item.qty || 1
                             };
                         }),
                         customerInfo: {
@@ -1262,12 +1304,13 @@
             calculateTotal() {
                 const items = this.checkoutData.items || [];
                 const subtotal = items.reduce((sum, item) => {
-                    const price = item.price || item.finalPrice || 0;
-                    return sum + (price * item.quantity);
+                    const price = item.price || item.finalPrice || item.harga || item.totalPrice || 0;
+                    const quantity = item.quantity || item.qty || 1;
+                    return sum + (price * quantity);
                 }, 0);
 
-                const shipping = this.checkoutData.shipping || 0;
-                const discount = this.checkoutData.discount || 0;
+                const shipping = this.checkoutData.shipping || this.checkoutData.ongkir || 0;
+                const discount = this.checkoutData.discount || this.checkoutData.diskon || 0;
                 const discountAmount = subtotal * discount;
 
                 return subtotal + shipping - discountAmount;
@@ -1904,6 +1947,34 @@
                     const parsedCheckout = JSON.parse(localStorageCheckout || 'null');
                     console.log('📋 Parsed cart:', parsedCart);
                     console.log('📋 Parsed checkout:', parsedCheckout);
+                    
+                    // Analyze item structure
+                    if (parsedCheckout && parsedCheckout.items) {
+                        console.log('🔍 === ITEM STRUCTURE ANALYSIS ===');
+                        parsedCheckout.items.forEach((item, index) => {
+                            console.log(`📦 Item ${index + 1} structure:`, {
+                                id: item.id,
+                                productId: item.productId,
+                                product_id: item.product_id,
+                                name: item.name,
+                                productName: item.productName,
+                                product_name: item.product_name,
+                                quantity: item.quantity,
+                                qty: item.qty,
+                                price: item.price,
+                                finalPrice: item.finalPrice,
+                                harga: item.harga,
+                                totalPrice: item.totalPrice,
+                                image: item.image,
+                                imageUrl: item.imageUrl,
+                                img: item.img,
+                                specs: item.specs,
+                                weight: item.weight,
+                                purity: item.purity,
+                                description: item.description
+                            });
+                        });
+                    }
                 } catch (error) {
                     console.error('❌ Error parsing localStorage data:', error);
                 }
