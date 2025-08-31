@@ -1,6 +1,25 @@
 {
+  "name": "gold-price-manager",
+  "version": "1.0.0",
+  "description": "Sistem manajemen harga emas dengan tracking perubahan",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "node test-external-api-update.js",
+    "debug": "node debug-price-changes.js"
+  },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.11",
-    "tailwindcss": "^4.1.11"
-  }
+    "tailwindcss": "^4.1.11",
+    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["gold", "price", "management", "tracking"],
+  "author": "Your Name",
+  "license": "MIT"
 }
