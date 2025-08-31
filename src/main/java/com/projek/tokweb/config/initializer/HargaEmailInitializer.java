@@ -10,7 +10,7 @@ import com.projek.tokweb.service.goldprice.GoldPriceService;
 
 import lombok.RequiredArgsConstructor;
 
-// @Component
+@Component
 @RequiredArgsConstructor
 public class HargaEmailInitializer implements CommandLineRunner{
     @Autowired
