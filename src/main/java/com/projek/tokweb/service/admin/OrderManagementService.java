@@ -12,10 +12,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.projek.tokweb.models.customer.Order;
+import com.projek.tokweb.models.customer.OrderItem;
 import com.projek.tokweb.models.customer.OrderStatus;
 import com.projek.tokweb.models.customer.PaymentTransaction;
 import com.projek.tokweb.models.customer.PaymentStatus;
 import com.projek.tokweb.repository.customer.OrderRepository;
+import com.projek.tokweb.repository.customer.OrderItemRepository;
 import com.projek.tokweb.repository.customer.PaymentTransactionRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class OrderManagementService {
     
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
     
     /**
@@ -217,6 +220,95 @@ public class OrderManagementService {
             OrderStatus.PENDING_CONFIRMATION
         );
         return orderRepository.findByStatusInOrderByCreatedAtDesc(attentionStatuses);
+    }
+
+    /**
+     * Confirm payment (change status from PENDING_CONFIRMATION to PAID)
+     */
+    @Transactional
+    public Order confirmPayment(Long orderId, String adminNotes) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new IllegalArgumentException("Order tidak ditemukan: " + orderId));
+        
+        if (order.getStatus() != OrderStatus.PENDING_CONFIRMATION) {
+            throw new IllegalStateException("Order tidak dapat dikonfirmasi dengan status: " + order.getStatus());
+        }
+        
+        // Update order status
+        order.setStatus(OrderStatus.PAID);
+        order.setPaidAt(LocalDateTime.now());
+        order.setNotes(adminNotes != null ? adminNotes : "Pembayaran dikonfirmasi oleh admin");
+        
+        return orderRepository.save(order);
+    }
+
+    /**
+     * Ship order (change status to SHIPPED)
+     */
+    @Transactional
+    public Order shipOrder(Long orderId, String notes, String trackingNumber) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new IllegalArgumentException("Order tidak ditemukan: " + orderId));
+        
+        if (order.getStatus() != OrderStatus.PAID && order.getStatus() != OrderStatus.PROCESSING) {
+            throw new IllegalStateException("Order tidak dapat dikirim dengan status: " + order.getStatus());
+        }
+        
+        // Update order status
+        order.setStatus(OrderStatus.SHIPPED);
+        order.setNotes(notes != null ? notes : "Pesanan dikirim");
+        
+        // Add tracking number to notes if provided
+        if (trackingNumber != null && !trackingNumber.trim().isEmpty()) {
+            String currentNotes = order.getNotes() != null ? order.getNotes() : "";
+            order.setNotes(currentNotes + "\nTracking Number: " + trackingNumber);
+        }
+        
+        return orderRepository.save(order);
+    }
+
+    /**
+     * Get order items
+     */
+    public List<OrderItem> getOrderItems(Long orderId) {
+        return orderItemRepository.findByOrderId(orderId);
+    }
+
+    /**
+     * Export orders to Excel
+     */
+    public byte[] exportOrders(String status, String search) {
+        // This is a placeholder implementation
+        // In a real application, you would use Apache POI or similar library
+        // For now, we'll return a simple CSV-like format
+        
+        List<Order> orders;
+        if (status != null && !status.isEmpty()) {
+            OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
+            orders = orderRepository.findByStatus(orderStatus);
+        } else if (search != null && !search.isEmpty()) {
+            orders = orderRepository.findByCustomerNameOrPhoneContainingOrderByCreatedAtDesc(search, search);
+        } else {
+            orders = orderRepository.findAllOrderByCreatedAtDesc();
+        }
+        
+        // Create CSV content
+        StringBuilder csv = new StringBuilder();
+        csv.append("Order Number,Customer Name,Customer Phone,Customer Email,Total Amount,Status,Created At\n");
+        
+        for (Order order : orders) {
+            csv.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",%.2f,\"%s\",\"%s\"\n",
+                order.getOrderNumber(),
+                order.getCustomerName() != null ? order.getCustomerName() : "",
+                order.getCustomerPhone() != null ? order.getCustomerPhone() : "",
+                order.getCustomerEmail() != null ? order.getCustomerEmail() : "",
+                order.getTotalAmount(),
+                order.getStatus().getDisplayName(),
+                order.getCreatedAt()
+            ));
+        }
+        
+        return csv.toString().getBytes();
     }
     
     // Inner class for statistics

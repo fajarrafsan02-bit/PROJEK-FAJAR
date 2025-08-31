@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesanan Saya</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .status-badge {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+        }
+        .order-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid #dee2e6;
+            margin-bottom: 1rem;
+        }
+        .order-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .order-card.pending-payment { border-left-color: #ffc107; }
+        .order-card.pending-confirmation { border-left-color: #17a2b8; }
+        .order-card.paid { border-left-color: #28a745; }
+        .order-card.processing { border-left-color: #007bff; }
+        .order-card.shipped { border-left-color: #6f42c1; }
+        .order-card.delivered { border-left-color: #20c997; }
+        .order-card.cancelled { border-left-color: #dc3545; }
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+        }
+        .order-item {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .order-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e9ecef;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 0.5rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #007bff;
+            border: 2px solid white;
+        }
+        .timeline-item.completed::before {
+            background: #28a745;
+        }
+        .timeline-item.current::before {
+            background: #ffc107;
+        }
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+        .toast {
+            min-width: 300px;
+        }
+        .loading-spinner {
+            display: none;
+        }
+        .loading .loading-spinner {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row bg-white shadow-sm py-3 mb-4">
+            <div class="col">
+                <h2 class="mb-0 text-primary">
+                    <i class="fas fa-shopping-bag me-2"></i>
+                    Pesanan Saya
+                </h2>
+                <p class="text-muted mb-0">Riwayat dan status pesanan Anda</p>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="stats-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-1" id="totalOrders">0</h3>
+                            <p class="mb-0">Total Pesanan</p>
+                        </div>
+                        <i class="fas fa-shopping-bag fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff8c00 100%);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-1" id="pendingPayment">0</h3>
+                            <p class="mb-0">Menunggu Pembayaran</p>
+                        </div>
+                        <i class="fas fa-clock fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-1" id="pendingConfirmation">0</h3>
+                            <p class="mb-0">Menunggu Konfirmasi</p>
+                        </div>
+                        <i class="fas fa-user-check fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-1" id="completed">0</h3>
+                            <p class="mb-0">Selesai</p>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="searchInput" placeholder="Cari berdasarkan nomor pesanan...">
+                    <button class="btn btn-primary" type="button" id="searchBtn">
+                        <i class="fas fa-search"></i> Cari
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" id="statusFilter">
+                    <option value="">Semua Status</option>
+                    <option value="PENDING_PAYMENT">Menunggu Pembayaran</option>
+                    <option value="PENDING_CONFIRMATION">Menunggu Konfirmasi</option>
+                    <option value="PAID">Sudah Dibayar</option>
+                    <option value="PROCESSING">Sedang Diproses</option>
+                    <option value="SHIPPED">Dikirim</option>
+                    <option value="DELIVERED">Terkirim</option>
+                    <option value="CANCELLED">Dibatalkan</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Orders List -->
+        <div class="row" id="ordersContainer">
+            <div class="col-12">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Memuat data pesanan...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="row">
+            <div class="col-12">
+                <nav aria-label="Orders pagination">
+                    <ul class="pagination justify-content-center" id="pagination">
+                        <!-- Pagination will be generated here -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Detail Pesanan
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="orderDetailContent">
+                    <!-- Order detail content will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Proof Upload Modal -->
+    <div class="modal fade" id="paymentProofModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-upload me-2"></i>
+                        Upload Bukti Pembayaran
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <h6>Instruksi:</h6>
+                        <ul class="mb-0">
+                            <li>Upload foto bukti pembayaran yang jelas</li>
+                            <li>Format yang didukung: JPG, PNG, PDF</li>
+                            <li>Ukuran maksimal: 5MB</li>
+                        </ul>
+                    </div>
+                    <div class="mb-3">
+                        <label for="paymentProofFile" class="form-label">Pilih File</label>
+                        <input type="file" class="form-control" id="paymentProofFile" accept="image/*,.pdf">
+                    </div>
+                    <div class="mb-3">
+                        <label for="paymentNotes" class="form-label">Catatan (Opsional)</label>
+                        <textarea class="form-control" id="paymentNotes" rows="3" placeholder="Tambahkan catatan jika diperlukan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="uploadPaymentProofBtn">
+                        <span class="loading-spinner spinner-border spinner-border-sm me-2"></span>
+                        Upload Bukti
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Axios for HTTP requests -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+        class UserOrderManager {
+            constructor() {
+                this.orders = [];
+                this.currentPage = 0;
+                this.totalPages = 0;
+                this.totalElements = 0;
+                this.currentOrderId = null;
+                this.pageSize = 10;
+                
+                this.initializeEventListeners();
+                this.loadOrders();
+                this.loadStatistics();
+            }
+            
+            initializeEventListeners() {
+                // Search functionality
+                document.getElementById('searchBtn').addEventListener('click', () => this.searchOrders());
+                document.getElementById('searchInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.searchOrders();
+                });
+                
+                // Filter functionality
+                document.getElementById('statusFilter').addEventListener('change', () => this.loadOrders());
+                
+                // Modal functionality
+                document.getElementById('uploadPaymentProofBtn').addEventListener('click', () => this.uploadPaymentProof());
+            }
+            
+            async loadOrders() {
+                try {
+                    this.showLoading();
+                    
+                    const statusFilter = document.getElementById('statusFilter').value;
+                    let url = `/user/api/orders?page=${this.currentPage}&size=${this.pageSize}`;
+                    
+                    if (statusFilter) {
+                        url = `/user/api/orders/status/${statusFilter}?page=${this.currentPage}&size=${this.pageSize}`;
+                    }
+                    
+                    const response = await axios.get(url);
+                    
+                    if (response.data.success) {
+                        this.orders = response.data.data.content || response.data.data;
+                        this.totalPages = response.data.data.totalPages || 1;
+                        this.totalElements = response.data.data.totalElements || this.orders.length;
+                        this.renderOrders();
+                        this.renderPagination();
+                    } else {
+                        this.showError('Gagal memuat daftar pesanan');
+                    }
+                } catch (error) {
+                    console.error('Error loading orders:', error);
+                    this.showError('Terjadi kesalahan saat memuat pesanan');
+                } finally {
+                    this.hideLoading();
+                }
+            }
+            
+            async searchOrders() {
+                const searchTerm = document.getElementById('searchInput').value.trim();
+                if (!searchTerm) {
+                    this.loadOrders();
+                    return;
+                }
+                
+                try {
+                    this.showLoading();
+                    
+                    const response = await axios.get(`/user/api/orders/search?searchTerm=${searchTerm}`);
+                    
+                    if (response.data.success) {
+                        this.orders = response.data.data;
+                        this.totalPages = 1;
+                        this.totalElements = this.orders.length;
+                        this.renderOrders();
+                        this.renderPagination();
+                    } else {
+                        this.showError('Tidak ada pesanan yang ditemukan');
+                    }
+                } catch (error) {
+                    console.error('Error searching orders:', error);
+                    this.showError('Terjadi kesalahan saat mencari pesanan');
+                } finally {
+                    this.hideLoading();
+                }
+            }
+            
+            async loadStatistics() {
+                try {
+                    const response = await axios.get('/user/api/orders/statistics');
+                    
+                    if (response.data.success) {
+                        const stats = response.data.data;
+                        document.getElementById('totalOrders').textContent = stats.totalOrders;
+                        document.getElementById('pendingPayment').textContent = stats.pendingPayment;
+                        document.getElementById('pendingConfirmation').textContent = stats.pendingConfirmation;
+                        document.getElementById('completed').textContent = stats.completed;
+                    }
+                } catch (error) {
+                    console.error('Error loading statistics:', error);
+                }
+            }
+            
+            renderOrders() {
+                const container = document.getElementById('ordersContainer');
+                
+                if (this.orders.length === 0) {
+                    container.innerHTML = `
+                        <div class="col-12">
+                            <div class="text-center py-4">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Tidak ada pesanan yang ditemukan</p>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = this.orders.map(order => `
+                    <div class="col-12">
+                        <div class="card order-card ${this.getOrderCardClass(order.status)}">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <h6 class="mb-1">${order.orderNumber}</h6>
+                                        <small class="text-muted">${this.formatDate(order.createdAt)}</small>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <strong class="text-primary">Rp ${this.formatCurrency(order.totalAmount)}</strong>
+                                    </div>
+                                    <div class="col-md-2">
+                                        ${this.getStatusBadge(order.status)}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="timeline">
+                                            ${this.getOrderTimeline(order.status)}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="btn-group-vertical btn-group-sm">
+                                            <button class="btn btn-outline-info btn-sm" onclick="orderManager.viewOrderDetail(${order.id})">
+                                                <i class="fas fa-eye"></i> Detail
+                                            </button>
+                                            ${this.getActionButtons(order)}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            getOrderCardClass(status) {
+                const statusMap = {
+                    'PENDING_PAYMENT': 'pending-payment',
+                    'PENDING_CONFIRMATION': 'pending-confirmation',
+                    'PAID': 'paid',
+                    'PROCESSING': 'processing',
+                    'SHIPPED': 'shipped',
+                    'DELIVERED': 'delivered',
+                    'CANCELLED': 'cancelled'
+                };
+                return statusMap[status] || '';
+            }
+            
+            getStatusBadge(status) {
+                const statusMap = {
+                    'PENDING_PAYMENT': { class: 'bg-warning', text: 'Menunggu Pembayaran' },
+                    'PENDING_CONFIRMATION': { class: 'bg-info', text: 'Menunggu Konfirmasi' },
+                    'PAID': { class: 'bg-success', text: 'Sudah Dibayar' },
+                    'PROCESSING': { class: 'bg-primary', text: 'Sedang Diproses' },
+                    'SHIPPED': { class: 'bg-purple', text: 'Dikirim' },
+                    'DELIVERED': { class: 'bg-success', text: 'Terkirim' },
+                    'CANCELLED': { class: 'bg-danger', text: 'Dibatalkan' }
+                };
+                
+                const statusInfo = statusMap[status] || { class: 'bg-secondary', text: status };
+                return `<span class="badge ${statusInfo.class} status-badge">${statusInfo.text}</span>`;
+            }
+            
+            getOrderTimeline(status) {
+                const steps = [
+                    { id: 'PENDING_PAYMENT', text: 'Menunggu Pembayaran', icon: 'clock' },
+                    { id: 'PENDING_CONFIRMATION', text: 'Menunggu Konfirmasi', icon: 'user-check' },
+                    { id: 'PAID', text: 'Sudah Dibayar', icon: 'check-circle' },
+                    { id: 'PROCESSING', text: 'Sedang Diproses', icon: 'cog' },
+                    { id: 'SHIPPED', text: 'Dikirim', icon: 'shipping-fast' },
+                    { id: 'DELIVERED', text: 'Terkirim', icon: 'home' }
+                ];
+                
+                const statusOrder = ['PENDING_PAYMENT', 'PENDING_CONFIRMATION', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
+                const currentIndex = statusOrder.indexOf(status);
+                
+                return steps.map((step, index) => {
+                    const stepIndex = statusOrder.indexOf(step.id);
+                    let className = 'timeline-item';
+                    
+                    if (stepIndex < currentIndex) {
+                        className += ' completed';
+                    } else if (stepIndex === currentIndex) {
+                        className += ' current';
+                    }
+                    
+                    return `
+                        <div class="${className}">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-${step.icon} me-2"></i>
+                                <span>${step.text}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            getActionButtons(order) {
+                let buttons = '';
+                
+                if (order.status === 'PENDING_PAYMENT') {
+                    buttons += `
+                        <button class="btn btn-outline-warning btn-sm" onclick="orderManager.showPaymentInstructions(${order.id})">
+                            <i class="fas fa-credit-card"></i> Bayar
+                        </button>
+                    `;
+                }
+                
+                if (order.status === 'PENDING_CONFIRMATION') {
+                    buttons += `
+                        <button class="btn btn-outline-primary btn-sm" onclick="orderManager.showPaymentProofModal(${order.id})">
+                            <i class="fas fa-upload"></i> Upload Bukti
+                        </button>
+                    `;
+                }
+                
+                if (order.status === 'SHIPPED') {
+                    buttons += `
+                        <button class="btn btn-outline-success btn-sm" onclick="orderManager.confirmDelivery(${order.id})">
+                            <i class="fas fa-check"></i> Terima
+                        </button>
+                    `;
+                }
+                
+                return buttons;
+            }
+            
+            renderPagination() {
+                const pagination = document.getElementById('pagination');
+                
+                if (this.totalPages <= 1) {
+                    pagination.innerHTML = '';
+                    return;
+                }
+                
+                let paginationHTML = '';
+                
+                // Previous button
+                paginationHTML += `
+                    <li class="page-item ${this.currentPage === 0 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="orderManager.goToPage(${this.currentPage - 1})">Previous</a>
+                    </li>
+                `;
+                
+                // Page numbers
+                for (let i = 0; i < this.totalPages; i++) {
+                    paginationHTML += `
+                        <li class="page-item ${i === this.currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" onclick="orderManager.goToPage(${i})">${i + 1}</a>
+                        </li>
+                    `;
+                }
+                
+                // Next button
+                paginationHTML += `
+                    <li class="page-item ${this.currentPage === this.totalPages - 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="orderManager.goToPage(${this.currentPage + 1})">Next</a>
+                    </li>
+                `;
+                
+                pagination.innerHTML = paginationHTML;
+            }
+            
+            goToPage(page) {
+                if (page >= 0 && page < this.totalPages) {
+                    this.currentPage = page;
+                    this.loadOrders();
+                }
+            }
+            
+            async viewOrderDetail(orderId) {
+                try {
+                    const response = await axios.get(`/user/api/orders/${orderId}`);
+                    
+                    if (response.data.success) {
+                        const order = response.data.data;
+                        
+                        const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+                        const content = document.getElementById('orderDetailContent');
+                        
+                        content.innerHTML = `
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Informasi Pesanan</h6>
+                                    <table class="table table-sm">
+                                        <tr><td>No. Pesanan</td><td>: ${order.orderNumber}</td></tr>
+                                        <tr><td>Tanggal</td><td>: ${this.formatDate(order.createdAt)}</td></tr>
+                                        <tr><td>Status</td><td>: ${this.getStatusBadge(order.status)}</td></tr>
+                                        <tr><td>Total</td><td>: Rp ${this.formatCurrency(order.totalAmount)}</td></tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Informasi Customer</h6>
+                                    <table class="table table-sm">
+                                        <tr><td>Nama</td><td>: ${order.customerName || 'N/A'}</td></tr>
+                                        <tr><td>Email</td><td>: ${order.customerEmail || 'N/A'}</td></tr>
+                                        <tr><td>Phone</td><td>: ${order.customerPhone || 'N/A'}</td></tr>
+                                        <tr><td>Alamat</td><td>: ${order.shippingAddress || 'N/A'}</td></tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <hr>
+                            <h6>Items Pesanan</h6>
+                            <div id="orderItems">
+                                <div class="text-center">
+                                    <div class="spinner-border spinner-border-sm" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2 text-muted">Memuat items...</p>
+                                </div>
+                            </div>
+                        `;
+                        
+                        modal.show();
+                        
+                        // Load order items
+                        this.loadOrderItems(orderId);
+                    } else {
+                        this.showError('Gagal memuat detail pesanan');
+                    }
+                } catch (error) {
+                    console.error('Error loading order detail:', error);
+                    this.showError('Terjadi kesalahan saat memuat detail pesanan');
+                }
+            }
+            
+            async loadOrderItems(orderId) {
+                try {
+                    const response = await axios.get(`/user/api/orders/${orderId}/items`);
+                    
+                    if (response.data.success) {
+                        const items = response.data.data;
+                        const itemsContainer = document.getElementById('orderItems');
+                        
+                        itemsContainer.innerHTML = items.map(item => `
+                            <div class="order-item">
+                                <div class="row align-items-center">
+                                    <div class="col-md-2">
+                                        <img src="${item.image || '/placeholder.svg'}" alt="${item.productName}" class="img-fluid">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="mb-1">${item.productName}</h6>
+                                        <small class="text-muted">${item.specs || 'N/A'}</small>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <span class="badge bg-secondary">Qty: ${item.quantity}</span>
+                                    </div>
+                                    <div class="col-md-2 text-end">
+                                        <strong>Rp ${this.formatCurrency(item.price)}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        document.getElementById('orderItems').innerHTML = '<p class="text-muted">Tidak ada items</p>';
+                    }
+                } catch (error) {
+                    console.error('Error loading order items:', error);
+                    document.getElementById('orderItems').innerHTML = '<p class="text-danger">Gagal memuat items</p>';
+                }
+            }
+            
+            showPaymentProofModal(orderId) {
+                this.currentOrderId = orderId;
+                const modal = new bootstrap.Modal(document.getElementById('paymentProofModal'));
+                modal.show();
+            }
+            
+            async uploadPaymentProof() {
+                if (!this.currentOrderId) return;
+                
+                const fileInput = document.getElementById('paymentProofFile');
+                const file = fileInput.files[0];
+                const notes = document.getElementById('paymentNotes').value.trim();
+                
+                if (!file) {
+                    this.showError('Pilih file bukti pembayaran terlebih dahulu');
+                    return;
+                }
+                
+                try {
+                    this.setLoading('uploadPaymentProofBtn', true);
+                    
+                    const formData = new FormData();
+                    formData.append('paymentProof', file);
+                    formData.append('orderId', this.currentOrderId);
+                    if (notes) formData.append('notes', notes);
+                    
+                    const response = await axios.post('/user/api/orders/upload-payment-proof', formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    });
+                    
+                    if (response.data.success) {
+                        this.showSuccess('Bukti pembayaran berhasil diupload');
+                        
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('paymentProofModal'));
+                        modal.hide();
+                        
+                        // Refresh data
+                        this.loadOrders();
+                        this.loadStatistics();
+                    } else {
+                        this.showError('Gagal upload bukti pembayaran');
+                    }
+                } catch (error) {
+                    console.error('Error uploading payment proof:', error);
+                    this.showError('Terjadi kesalahan saat upload bukti pembayaran');
+                } finally {
+                    this.setLoading('uploadPaymentProofBtn', false);
+                }
+            }
+            
+            async confirmDelivery(orderId) {
+                if (confirm('Apakah Anda yakin telah menerima pesanan ini?')) {
+                    try {
+                        const response = await axios.post(`/user/api/orders/${orderId}/confirm-delivery`);
+                        
+                        if (response.data.success) {
+                            this.showSuccess('Pesanan berhasil dikonfirmasi diterima');
+                            this.loadOrders();
+                            this.loadStatistics();
+                        } else {
+                            this.showError('Gagal mengkonfirmasi penerimaan');
+                        }
+                    } catch (error) {
+                        console.error('Error confirming delivery:', error);
+                        this.showError('Terjadi kesalahan saat mengkonfirmasi penerimaan');
+                    }
+                }
+            }
+            
+            showPaymentInstructions(orderId) {
+                // Redirect to checkout page with order ID
+                window.location.href = `/user/checkout?orderId=${orderId}`;
+            }
+            
+            setLoading(buttonId, loading) {
+                const button = document.getElementById(buttonId);
+                if (loading) {
+                    button.classList.add('loading');
+                    button.disabled = true;
+                } else {
+                    button.classList.remove('loading');
+                    button.disabled = false;
+                }
+            }
+            
+            showLoading() {
+                document.getElementById('ordersContainer').innerHTML = `
+                    <div class="col-12">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Memuat data pesanan...</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            hideLoading() {
+                // Loading is handled in renderOrders
+            }
+            
+            showSuccess(message) {
+                this.showToast(message, 'success');
+            }
+            
+            showError(message) {
+                this.showToast(message, 'error');
+            }
+            
+            showToast(message, type = 'info') {
+                const toastContainer = document.querySelector('.toast-container');
+                const toastId = 'toast-' + Date.now();
+                
+                const toastHTML = `
+                    <div class="toast show" id="${toastId}" role="alert">
+                        <div class="toast-header ${type === 'success' ? 'bg-success text-white' : type === 'error' ? 'bg-danger text-white' : 'bg-info text-white'}">
+                            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+                            <strong class="me-auto">${type === 'success' ? 'Sukses' : type === 'error' ? 'Error' : 'Info'}</strong>
+                            <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('${toastId}').remove()"></button>
+                        </div>
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                    </div>
+                `;
+                
+                toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+                
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    const toast = document.getElementById(toastId);
+                    if (toast) {
+                        toast.remove();
+                    }
+                }, 5000);
+            }
+            
+            formatCurrency(amount) {
+                return new Intl.NumberFormat('id-ID').format(amount);
+            }
+            
+            formatDate(dateString) {
+                return new Date(dateString).toLocaleDateString('id-ID', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+        }
+
+        // Initialize the order manager
+        const orderManager = new UserOrderManager();
+    </script>
+</body>
+</html>

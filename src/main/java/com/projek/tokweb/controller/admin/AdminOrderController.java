@@ -227,6 +227,82 @@ public class AdminOrderController {
             return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengambil pesanan terbaru: " + e.getMessage()));
         }
     }
+
+    /**
+     * Confirm payment (change status from PENDING_CONFIRMATION to PAID)
+     */
+    @PostMapping("/{orderId}/confirm-payment")
+    public ResponseEntity<?> confirmPayment(
+            @PathVariable Long orderId,
+            @RequestBody(required = false) OrderStatusUpdateRequest request) {
+        try {
+            String notes = request != null ? request.getNotes() : null;
+            Order confirmedOrder = orderManagementService.confirmPayment(orderId, notes);
+            return ResponseEntity.ok(ApiResponse.success("Pembayaran berhasil dikonfirmasi", confirmedOrder));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error confirming payment: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengkonfirmasi pembayaran: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Ship order (change status to SHIPPED)
+     */
+    @PostMapping("/{orderId}/ship")
+    public ResponseEntity<?> shipOrder(
+            @PathVariable Long orderId,
+            @RequestBody OrderStatusUpdateRequest request) {
+        try {
+            Order shippedOrder = orderManagementService.shipOrder(orderId, request.getNotes(), request.getTrackingNumber());
+            return ResponseEntity.ok(ApiResponse.success("Pesanan berhasil dikirim", shippedOrder));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error shipping order: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengirim pesanan: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get order items
+     */
+    @GetMapping("/{orderId}/items")
+    public ResponseEntity<?> getOrderItems(@PathVariable Long orderId) {
+        try {
+            var items = orderManagementService.getOrderItems(orderId);
+            return ResponseEntity.ok(ApiResponse.success("Order items retrieved successfully", items));
+        } catch (Exception e) {
+            log.error("Error getting order items: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengambil data items pesanan: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Export orders to Excel
+     */
+    @GetMapping("/export")
+    public ResponseEntity<?> exportOrders(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String search) {
+        try {
+            byte[] excelData = orderManagementService.exportOrders(status, search);
+            return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=orders.xlsx")
+                .header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                .body(excelData);
+        } catch (Exception e) {
+            log.error("Error exporting orders: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengexport data pesanan: " + e.getMessage()));
+        }
+    }
     
     /**
      * Get orders that need attention

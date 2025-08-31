@@ -13,4 +13,5 @@ public class OrderStatusUpdateRequest {
     
     private String status;
     private String notes;
+    private String trackingNumber;
 }
