@@ -35,6 +35,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT o FROM Order o ORDER BY o.createdAt DESC")
     Page<Order> findAllOrderByCreatedAtDesc(Pageable pageable);
     
+    @Query("SELECT o FROM Order o ORDER BY o.createdAt DESC")
+    List<Order> findAllOrderByCreatedAtDesc();
+    
     @Query("SELECT o FROM Order o WHERE o.orderNumber LIKE %:orderNumber% ORDER BY o.createdAt DESC")
     List<Order> findByOrderNumberContainingOrderByCreatedAtDesc(@Param("orderNumber") String orderNumber);
     
