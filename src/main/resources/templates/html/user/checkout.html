@@ -1265,9 +1265,8 @@
                             this.showNotification('Pesanan berhasil dibuat, tetapi data pembayaran tidak lengkap', 'warning');
                         }
 
-                        // Clear cart
-                        localStorage.removeItem('cart');
-                        localStorage.removeItem('checkoutData');
+                        // Clear cart from localStorage and database
+                        await this.clearCartAfterPayment();
 
                     } else {
                         throw new Error(result.message || 'Gagal memproses checkout');
@@ -1560,6 +1559,80 @@
                 `;
             }
 
+            async clearCartAfterPayment() {
+                try {
+                    console.log('🗑️ Clearing cart after successful payment...');
+                    
+                    // Clear from localStorage
+                    localStorage.removeItem('cart');
+                    localStorage.removeItem('checkoutData');
+                    console.log('✅ Cart cleared from localStorage');
+                    
+                    // Try to clear from database (if cart items have IDs)
+                    const cartItems = this.cart.filter(item => item.id || item.cartItemId);
+                    if (cartItems.length > 0) {
+                        console.log('🗑️ Attempting to clear cart items from database:', cartItems.length, 'items');
+                        
+                        try {
+                            // Try multiple endpoints for clearing cart
+                            const endpoints = [
+                                '/user/cart/clear',
+                                '/user/cart/clear-all',
+                                '/api/cart/clear',
+                                '/api/cart/clear-all'
+                            ];
+                            
+                            let clearedFromDB = false;
+                            
+                            for (const endpoint of endpoints) {
+                                try {
+                                    const response = await fetch(endpoint, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify({
+                                            itemIds: cartItems.map(item => item.id || item.cartItemId)
+                                        })
+                                    });
+                                    
+                                    if (response.ok) {
+                                        console.log(`✅ Cart cleared from database using ${endpoint}`);
+                                        clearedFromDB = true;
+                                        break;
+                                    }
+                                } catch (endpointError) {
+                                    console.log(`⚠️ Endpoint ${endpoint} not available`);
+                                    continue;
+                                }
+                            }
+                            
+                            if (!clearedFromDB) {
+                                console.warn('⚠️ No database clear endpoint available, but localStorage cleared');
+                            }
+                            
+                        } catch (dbError) {
+                            console.warn('⚠️ Database clearing failed, but localStorage cleared:', dbError);
+                        }
+                    }
+                    
+                    // Update cart data
+                    this.cart = [];
+                    this.checkoutData = {};
+                    
+                    // Update badges
+                    this.updateBadges();
+                    
+                    console.log('✅ Cart clearing completed');
+                    this.showNotification('Keranjang berhasil dikosongkan setelah pembayaran!', 'success');
+                    
+                } catch (error) {
+                    console.error('❌ Error clearing cart:', error);
+                    // Even if database clearing fails, localStorage is already cleared
+                    this.showNotification('Keranjang dikosongkan dari browser, tetapi ada masalah dengan database', 'warning');
+                }
+            }
+
             async uploadPaymentProof() {
                 const fileInput = document.getElementById('paymentProof');
                 const file = fileInput.files[0];
@@ -1586,6 +1659,9 @@
 
                     if (response.ok) {
                         this.showNotification('Bukti pembayaran berhasil diupload. Menunggu konfirmasi admin.', 'success');
+
+                        // Clear cart after successful payment proof upload
+                        await this.clearCartAfterPayment();
 
                         // Tampilkan popup konfirmasi
                         setTimeout(() => {
@@ -2034,6 +2110,42 @@
                 
                 console.log('✅ Sample data loaded:', sampleData);
                 this.showNotification('Sample data loaded successfully!', 'success');
+            }
+
+            // Method untuk clear cart individual items
+            async clearCartItem(itemId) {
+                try {
+                    console.log('🗑️ Clearing cart item:', itemId);
+                    
+                    // Remove from localStorage cart
+                    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                    const updatedCart = cart.filter(item => item.id !== itemId);
+                    localStorage.setItem('cart', JSON.stringify(updatedCart));
+                    
+                    // Try to remove from database
+                    try {
+                        const response = await fetch(`/user/cart/remove/${itemId}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        if (response.ok) {
+                            console.log('✅ Cart item removed from database');
+                        } else {
+                            console.warn('⚠️ Failed to remove cart item from database');
+                        }
+                    } catch (dbError) {
+                        console.warn('⚠️ Database removal failed, but localStorage updated');
+                    }
+                    
+                    // Update local cart data
+                    this.cart = updatedCart;
+                    this.updateBadges();
+                    
+                    console.log('✅ Cart item cleared successfully');
+                    
+                } catch (error) {
+                    console.error('❌ Error clearing cart item:', error);
+                }
             }
         }
 
