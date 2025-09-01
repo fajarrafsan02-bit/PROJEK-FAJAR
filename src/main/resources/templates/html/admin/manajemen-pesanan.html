@@ -1307,9 +1307,10 @@
                 this.filteredOrders = this.allOrders.filter(order => {
                     // Search filter
                     const matchesSearch = !searchTerm || 
-                        order.id.toLowerCase().includes(searchTerm) ||
-                        order.customer.name.toLowerCase().includes(searchTerm) ||
-                        order.customer.email.toLowerCase().includes(searchTerm);
+                        order.id.toString().toLowerCase().includes(searchTerm) ||
+                        (order.customerName && order.customerName.toLowerCase().includes(searchTerm)) ||
+                        (order.customerEmail && order.customerEmail.toLowerCase().includes(searchTerm)) ||
+                        (order.orderNumber && order.orderNumber.toLowerCase().includes(searchTerm));
 
                     // Status filter
                     const matchesStatus = !statusFilter || order.status === statusFilter;
@@ -1317,7 +1318,7 @@
                     // Date filter
                     let matchesDate = true;
                     if (dateFilter) {
-                        const orderDate = new Date(order.orderDate);
+                        const orderDate = new Date(order.createdAt);
                         const today = new Date();
                         
                         switch (dateFilter) {
@@ -1356,27 +1357,27 @@
                         <td>
                             <div class="customer-info">
                                 <div class="customer-avatar">
-                                    ${order.customer.name.charAt(0).toUpperCase()}
+                                    ${order.customerName ? order.customerName.charAt(0).toUpperCase() : 'U'}
                                 </div>
                                 <div class="customer-details">
-                                    <h4>${order.customer.name}</h4>
-                                    <p>${order.customer.email}</p>
+                                    <h4>${order.customerName || 'Unknown Customer'}</h4>
+                                    <p>${order.customerEmail || 'No email'}</p>
                                 </div>
                             </div>
                         </td>
                         <td>
                             <div class="order-items">
-                                <div class="item-summary">${order.items.length} item(s)</div>
+                                <div class="item-summary">
+                                    <i class="fas fa-shopping-bag me-1"></i>
+                                    Items
+                                </div>
                                 <div class="items-list">
-                                    ${order.items.slice(0, 2).map(item => 
-                                        `${item.name} (${item.quantity}x)`
-                                    ).join('<br>')}
-                                    ${order.items.length > 2 ? '<br>...' : ''}
+                                    <small class="text-muted">Klik detail untuk melihat items</small>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <span class="order-total">${this.formatCurrency(order.total)}</span>
+                            <span class="order-total">${this.formatCurrency(order.totalAmount)}</span>
                         </td>
                         <td>
                             <span class="status-badge status-${order.status}">
@@ -1384,7 +1385,7 @@
                             </span>
                         </td>
                         <td>
-                            ${this.formatDate(order.orderDate)}
+                            ${this.formatDate(order.createdAt)}
                         </td>
                         <td>
                             <div class="order-actions">
@@ -1461,7 +1462,7 @@
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Tanggal:</span>
-                            <span class="detail-value">${this.formatDate(order.orderDate)}</span>
+                            <span class="detail-value">${this.formatDate(order.createdAt)}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Status:</span>
@@ -1473,7 +1474,7 @@
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Total:</span>
-                            <span class="detail-value">${this.formatCurrency(order.total)}</span>
+                            <span class="detail-value">${this.formatCurrency(order.totalAmount)}</span>
                         </div>
                     </div>
 
@@ -1484,15 +1485,15 @@
                         </h4>
                         <div class="detail-item">
                             <span class="detail-label">Nama:</span>
-                            <span class="detail-value">${order.customer.name}</span>
+                            <span class="detail-value">${order.customerName}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Email:</span>
-                            <span class="detail-value">${order.customer.email}</span>
+                            <span class="detail-value">${order.customerEmail}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Telepon:</span>
-                            <span class="detail-value">${order.customer.phone}</span>
+                            <span class="detail-value">${order.customerPhone}</span>
                         </div>
                     </div>
 
@@ -1545,16 +1546,13 @@
                                     <th>Subtotal</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                ${order.items.map(item => `
-                                    <tr>
-                                        <td>${item.name}</td>
-                                        <td>${item.weight}</td>
-                                        <td>${this.formatCurrency(item.price)}</td>
-                                        <td>${item.quantity}</td>
-                                        <td>${this.formatCurrency(item.price * item.quantity)}</td>
-                                    </tr>
-                                `).join('')}
+                            <tbody id="orderItemsTable">
+                                <tr>
+                                    <td colspan="5" class="text-center">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>
+                                        Memuat items...
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -1579,6 +1577,48 @@
                 `;
 
                 this.openModal();
+                // Load order items
+                this.loadOrderItems(orderId);
+            }
+
+            async loadOrderItems(orderId) {
+                try {
+                    const response = await fetch(`/admin/api/orders/${orderId}/items`);
+                    const result = await response.json();
+                    
+                    const tbody = document.getElementById('orderItemsTable');
+                    
+                    if (result.success && result.data && result.data.length > 0) {
+                        tbody.innerHTML = result.data.map(item => `
+                            <tr>
+                                <td>${item.productName || 'Product'}</td>
+                                <td>${item.weight || '-'}</td>
+                                <td>${this.formatCurrency(item.price)}</td>
+                                <td>${item.quantity}</td>
+                                <td>${this.formatCurrency(item.price * item.quantity)}</td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">
+                                    <i class="fas fa-inbox me-2"></i>
+                                    Tidak ada items ditemukan
+                                </td>
+                            </tr>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Error loading order items:', error);
+                    document.getElementById('orderItemsTable').innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center text-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Gagal memuat items
+                            </td>
+                        </tr>
+                    `;
+                }
             }
 
             editOrder(orderId) {
@@ -1662,11 +1702,11 @@
                 const headers = ['ID Pesanan', 'Nama Pelanggan', 'Email', 'Total', 'Status', 'Tanggal'];
                 const rows = this.filteredOrders.map(order => [
                     order.id,
-                    order.customer.name,
-                    order.customer.email,
-                    order.total,
+                    order.customerName,
+                    order.customerEmail,
+                    order.totalAmount,
                     this.getStatusText(order.status),
-                    this.formatDate(order.orderDate)
+                    this.formatDate(order.createdAt)
                 ]);
 
                 return [headers, ...rows].map(row => row.join(',')).join('\n');
