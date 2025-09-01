@@ -31,4 +31,9 @@ public class AdminController {
     public String hargaEmas() {
         return "html/admin/harga-emas";
     }
+    
+    @GetMapping("/pesanan-detail")
+    public String pesananDetail() {
+        return "html/admin/pesanan";
+    }
 }
