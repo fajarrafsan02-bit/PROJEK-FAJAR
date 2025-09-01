@@ -1153,8 +1153,7 @@
             init() {
                 this.setupEventListeners();
                 this.loadOrders();
-                this.renderOrders();
-                this.updateStats();
+                this.loadStatisticsFromAPI();
             }
 
             setupEventListeners() {
@@ -1427,22 +1426,68 @@
                 nextBtn.disabled = this.currentPage >= Math.ceil(totalItems / this.itemsPerPage);
             }
 
+            async loadStatisticsFromAPI() {
+                try {
+                    const response = await fetch('/admin/api/orders/statistics');
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const stats = result.data;
+                        
+                        // Update statistik dari API
+                        const totalElement = document.getElementById('totalOrders');
+                        const pendingElement = document.getElementById('pendingOrders');
+                        const processingElement = document.getElementById('processingOrders');
+                        const shippedElement = document.getElementById('shippedOrders');
+                        const completedElement = document.getElementById('completedOrders');
+                        const cancelledElement = document.getElementById('cancelledOrders');
+
+                        if (totalElement) totalElement.textContent = stats.totalOrders || 0;
+                        if (pendingElement) pendingElement.textContent = (stats.pendingPayment || 0) + (stats.pendingConfirmation || 0);
+                        if (processingElement) processingElement.textContent = (stats.paid || 0) + (stats.processing || 0);
+                        if (shippedElement) shippedElement.textContent = stats.shipped || 0;
+                        if (completedElement) completedElement.textContent = stats.delivered || 0;
+                        if (cancelledElement) cancelledElement.textContent = stats.cancelled || 0;
+
+                        console.log('API Stats loaded:', stats);
+                    } else {
+                        console.error('Failed to load statistics:', result.message);
+                        // Fallback to local calculation
+                        this.updateStats();
+                    }
+                } catch (error) {
+                    console.error('Error loading statistics:', error);
+                    // Fallback to local calculation
+                    this.updateStats();
+                }
+            }
+
             updateStats() {
                 const stats = {
                     total: this.allOrders.length,
-                    pending: this.allOrders.filter(o => o.status === 'pending').length,
-                    processing: this.allOrders.filter(o => o.status === 'processing').length,
-                    shipped: this.allOrders.filter(o => o.status === 'shipped').length,
-                    completed: this.allOrders.filter(o => o.status === 'delivered').length,
-                    cancelled: this.allOrders.filter(o => o.status === 'cancelled').length
+                    pending: this.allOrders.filter(o => o.status === 'PENDING_PAYMENT' || o.status === 'PENDING_CONFIRMATION').length,
+                    processing: this.allOrders.filter(o => o.status === 'PROCESSING' || o.status === 'PAID').length,
+                    shipped: this.allOrders.filter(o => o.status === 'SHIPPED').length,
+                    completed: this.allOrders.filter(o => o.status === 'DELIVERED').length,
+                    cancelled: this.allOrders.filter(o => o.status === 'CANCELLED').length
                 };
 
-                document.getElementById('totalOrders').textContent = stats.total;
-                document.getElementById('pendingOrders').textContent = stats.pending;
-                document.getElementById('processingOrders').textContent = stats.processing;
-                document.getElementById('shippedOrders').textContent = stats.shipped;
-                document.getElementById('completedOrders').textContent = stats.completed;
-                document.getElementById('cancelledOrders').textContent = stats.cancelled;
+                // Update statistik di dashboard
+                const totalElement = document.getElementById('totalOrders');
+                const pendingElement = document.getElementById('pendingOrders');
+                const processingElement = document.getElementById('processingOrders');
+                const shippedElement = document.getElementById('shippedOrders');
+                const completedElement = document.getElementById('completedOrders');
+                const cancelledElement = document.getElementById('cancelledOrders');
+
+                if (totalElement) totalElement.textContent = stats.total;
+                if (pendingElement) pendingElement.textContent = stats.pending;
+                if (processingElement) processingElement.textContent = stats.processing;
+                if (shippedElement) shippedElement.textContent = stats.shipped;
+                if (completedElement) completedElement.textContent = stats.completed;
+                if (cancelledElement) cancelledElement.textContent = stats.cancelled;
+
+                console.log('Stats updated:', stats);
             }
 
             viewOrder(orderId) {
@@ -1651,6 +1696,7 @@
                     
                     if (result.success) {
                         this.loadOrders();
+                        this.loadStatisticsFromAPI();
                         this.closeModal();
                         this.showNotification('Status pesanan berhasil diupdate', 'success');
                     } else {
@@ -1676,6 +1722,7 @@
                     
                     if (result.success) {
                         this.loadOrders();
+                        this.loadStatisticsFromAPI();
                         this.showNotification('Pesanan berhasil dikonfirmasi', 'success');
                     } else {
                         this.showNotification('Gagal mengkonfirmasi pesanan: ' + result.message, 'error');
