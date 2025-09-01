@@ -19,7 +19,7 @@ public class AdminController {
 
     @GetMapping("/pesanan")
     public String manajemenPesanan() {
-        return "html/admin/manajemen-pesanan";
+        return "html/admin/pesanan";
     }
 
     @GetMapping("/laporan")
