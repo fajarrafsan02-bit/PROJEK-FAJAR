@@ -1,5 +1,4 @@
-package com.projek.tokweb.controller.user;
-
+package com.projek.tokweb.controller;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,47 +15,19 @@ import org.springframework.web.bind.annotation.RestController;
 import com.projek.tokweb.service.admin.ProductService;
 import com.projek.tokweb.dto.ApiResponse;
 import com.projek.tokweb.dto.admin.ProductResponseDto;
-import com.projek.tokweb.models.User;
-import com.projek.tokweb.repository.UserRespository;
-// import com.projek.tokweb.model.User;
-// import com.projek.tokweb.util.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import jakarta.servlet.http.HttpServletRequest;
-
 
 @RestController
-@RequestMapping("/user")
-public class UserControllerApi {
+@RequestMapping("/public/products")
+public class PublicProductController {
 
     @Autowired 
     private ProductService productService;
     
-    @Autowired
-    private UserRespository userRepository;
-    
-    @Operation(summary = "Get Current User", description = "Mendapatkan informasi user yang sedang login")
-    @GetMapping("/current")
-    public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
-        try {
-            // Untuk sementara, ambil user pertama (untuk testing)
-            // Nanti bisa diganti dengan sistem auth yang proper
-            User user = userRepository.findAll().stream().findFirst().orElse(null);
-            if (user == null) {
-                return ResponseEntity.badRequest()
-                        .body(ApiResponse.error("Tidak ada user tersedia"));
-            }
-            
-            return ResponseEntity.ok(ApiResponse.success("User berhasil diambil", user));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Gagal mengambil user: " + e.getMessage()));
-        }
-    }
-    
-    @Operation(summary = "Get Active Products for User", description = "Mendapatkan produk aktif untuk user (tanpa perlu auth admin)")
-    @GetMapping("/products/active")
-    public ResponseEntity<?> getActiveProductsForUser(
+    @Operation(summary = "Get Active Products for Public Access", description = "Mendapatkan produk aktif untuk akses publik (tanpa perlu auth)")
+    @GetMapping("/active")
+    public ResponseEntity<?> getActiveProductsForPublic(
             @Parameter(description = "Nomor halaman", example = "0") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Jumlah item per halaman", example = "10") @RequestParam(defaultValue = "10") int size,
             @Parameter(description = "Field untuk sorting", example = "name") @RequestParam(defaultValue = "id") String sortBy,
@@ -102,9 +73,9 @@ public class UserControllerApi {
         }
     }
     
-    @Operation(summary = "Search Active Products for User", description = "Mencari produk aktif berdasarkan keyword untuk user")
-    @GetMapping("/products/search")
-    public ResponseEntity<?> searchActiveProductsForUser(
+    @Operation(summary = "Search Active Products for Public Access", description = "Mencari produk aktif berdasarkan keyword untuk akses publik")
+    @GetMapping("/search")
+    public ResponseEntity<?> searchActiveProductsForPublic(
             @Parameter(description = "Keyword pencarian", example = "cincin") @RequestParam(required = false) String keyword,
             @Parameter(description = "Nomor Halaman (dimulai dari 0)", example = "0") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Jumlah Item Per Halaman", example = "10") @RequestParam(defaultValue = "10") int size,

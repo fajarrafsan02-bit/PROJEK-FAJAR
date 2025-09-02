@@ -28,12 +28,7 @@ import jakarta.servlet.http.HttpSession;
 @Controller
 @RequestMapping("/auth")
 public class AuthController {
-    // @Autowired
-    // private AuthService authService;
-    // @Autowired
-    // private JwtUtil jwtUtil;
-    // @Autowired
-    // private ValidasiService validasiService;
+    // Note: AuthService dan validasi service dihandle oleh AuthControllerApi
     @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
 

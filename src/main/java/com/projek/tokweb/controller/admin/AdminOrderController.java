@@ -1,8 +1,8 @@
 package com.projek.tokweb.controller.admin;
 
 import java.util.List;
+import java.util.Map;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,321 +14,287 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.projek.tokweb.dto.ApiResponse;
-import com.projek.tokweb.dto.admin.OrderStatusUpdateRequest;
 import com.projek.tokweb.models.customer.Order;
 import com.projek.tokweb.models.customer.OrderStatus;
 import com.projek.tokweb.service.admin.OrderManagementService;
-import com.projek.tokweb.service.admin.OrderManagementService.OrderStatistics;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/admin/api/orders")
 @RequiredArgsConstructor
-@Slf4j
 public class AdminOrderController {
-    
+
     private final OrderManagementService orderManagementService;
-    
-    /**
-     * Get all orders with pagination
-     */
+
     @GetMapping
     public ResponseEntity<?> getAllOrders(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDirection) {
+
         try {
             var orders = orderManagementService.getAllOrders(page, size, sortBy, sortDirection);
-            return ResponseEntity.ok(ApiResponse.success("Orders retrieved successfully", orders));
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", orders.getContent(),
+                "total", orders.getTotalElements(),
+                "page", orders.getNumber(),
+                "size", orders.getSize(),
+                "totalPages", orders.getTotalPages()
+            ));
         } catch (Exception e) {
-            log.error("Error getting all orders: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengambil data pesanan: " + e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
         }
     }
-    
-    /**
-     * Get orders by status
-     */
-    @GetMapping("/status/{status}")
-    public ResponseEntity<?> getOrdersByStatus(
-            @PathVariable String status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        try {
-            OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
-            var orders = orderManagementService.getOrdersByStatus(orderStatus, page, size);
-            return ResponseEntity.ok(ApiResponse.success("Orders by status retrieved successfully", orders));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error("Status tidak valid: " + status));
-        } catch (Exception e) {
-            log.error("Error getting orders by status: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengambil data pesanan: " + e.getMessage()));
-        }
-    }
-    
-    /**
-     * Get order by ID
-     */
+
     @GetMapping("/{orderId}")
-    public ResponseEntity<?> getOrderById(@PathVariable Long orderId) {
+    public ResponseEntity<?> getOrderDetail(@PathVariable Long orderId) {
         try {
             var orderOpt = orderManagementService.getOrderById(orderId);
             if (orderOpt.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.error("Order tidak ditemukan dengan ID: " + orderId));
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Order tidak ditemukan"
+                ));
             }
-            return ResponseEntity.ok(ApiResponse.success("Order retrieved successfully", orderOpt.get()));
+
+            var order = orderOpt.get();
+            var orderItems = orderManagementService.getOrderItems(orderId);
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", Map.of(
+                    "order", order,
+                    "items", orderItems
+                )
+            ));
         } catch (Exception e) {
-            log.error("Error getting order by ID: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengambil data pesanan: " + e.getMessage()));
-        }
-    }
-    
-    /**
-     * Get order by order number
-     */
-    @GetMapping("/number/{orderNumber}")
-    public ResponseEntity<?> getOrderByOrderNumber(@PathVariable String orderNumber) {
-        try {
-            var orderOpt = orderManagementService.getOrderByOrderNumber(orderNumber);
-            if (orderOpt.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.error("Order tidak ditemukan dengan nomor: " + orderNumber));
-            }
-            return ResponseEntity.ok(ApiResponse.success("Order retrieved successfully", orderOpt.get()));
-        } catch (Exception e) {
-            log.error("Error getting order by order number: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengambil data pesanan: " + e.getMessage()));
-        }
-    }
-    
-    /**
-     * Search orders by customer name or phone
-     */
-    @GetMapping("/search/customer")
-    public ResponseEntity<?> searchOrdersByCustomer(@RequestParam String searchTerm) {
-        try {
-            var orders = orderManagementService.searchOrdersByCustomer(searchTerm);
-            return ResponseEntity.ok(ApiResponse.success("Orders search completed", orders));
-        } catch (Exception e) {
-            log.error("Error searching orders by customer: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mencari pesanan: " + e.getMessage()));
-        }
-    }
-    
-    /**
-     * Search orders by order number
-     */
-    @GetMapping("/search/order-number")
-    public ResponseEntity<?> searchOrdersByOrderNumber(@RequestParam String orderNumber) {
-        try {
-            var orders = orderManagementService.searchOrdersByOrderNumber(orderNumber);
-            return ResponseEntity.ok(ApiResponse.success("Orders search completed", orders));
-        } catch (Exception e) {
-            log.error("Error searching orders by order number: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mencari pesanan: " + e.getMessage()));
-        }
-    }
-    
-    /**
-     * Confirm order (mark as PAID)
-     */
-    @PostMapping("/{orderId}/confirm")
-    public ResponseEntity<?> confirmOrder(
-            @PathVariable Long orderId,
-            @RequestBody(required = false) OrderStatusUpdateRequest request) {
-        try {
-            String adminNotes = request != null ? request.getNotes() : null;
-            Order confirmedOrder = orderManagementService.confirmOrder(orderId, adminNotes);
-            return ResponseEntity.ok(ApiResponse.success("Order berhasil dikonfirmasi", confirmedOrder));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(e.getMessage()));
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-        } catch (Exception e) {
-            log.error("Error confirming order: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengkonfirmasi pesanan: " + e.getMessage()));
-        }
-    }
-    
-    /**
-     * Update order status
-     */
-    @PutMapping("/{orderId}/status")
-    public ResponseEntity<?> updateOrderStatus(
-            @PathVariable Long orderId,
-            @RequestBody OrderStatusUpdateRequest request) {
-        try {
-            OrderStatus newStatus = OrderStatus.valueOf(request.getStatus().toUpperCase());
-            Order updatedOrder = orderManagementService.updateOrderStatus(orderId, newStatus, request.getNotes());
-            return ResponseEntity.ok(ApiResponse.success("Status pesanan berhasil diubah", updatedOrder));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(e.getMessage()));
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-        } catch (Exception e) {
-            log.error("Error updating order status: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengubah status pesanan: " + e.getMessage()));
-        }
-    }
-    
-    /**
-     * Cancel order
-     */
-    @PostMapping("/{orderId}/cancel")
-    public ResponseEntity<?> cancelOrder(
-            @PathVariable Long orderId,
-            @RequestBody(required = false) OrderStatusUpdateRequest request) {
-        try {
-            String reason = request != null ? request.getNotes() : null;
-            Order cancelledOrder = orderManagementService.cancelOrder(orderId, reason);
-            return ResponseEntity.ok(ApiResponse.success("Order berhasil dibatalkan", cancelledOrder));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(e.getMessage()));
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-        } catch (Exception e) {
-            log.error("Error cancelling order: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal membatalkan pesanan: " + e.getMessage()));
-        }
-    }
-    
-    /**
-     * Get order statistics
-     */
-    @GetMapping("/statistics")
-    public ResponseEntity<?> getOrderStatistics() {
-        try {
-            OrderStatistics stats = orderManagementService.getOrderStatistics();
-            return ResponseEntity.ok(ApiResponse.success("Order statistics retrieved successfully", stats));
-        } catch (Exception e) {
-            log.error("Error getting order statistics: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengambil statistik pesanan: " + e.getMessage()));
-        }
-    }
-    
-    /**
-     * Get recent orders (last 7 days)
-     */
-    @GetMapping("/recent")
-    public ResponseEntity<?> getRecentOrders() {
-        try {
-            List<Order> recentOrders = orderManagementService.getRecentOrders();
-            return ResponseEntity.ok(ApiResponse.success("Recent orders retrieved successfully", recentOrders));
-        } catch (Exception e) {
-            log.error("Error getting recent orders: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengambil pesanan terbaru: " + e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
         }
     }
 
-    /**
-     * Confirm payment (change status from PENDING_CONFIRMATION to PAID)
-     */
+
     @PostMapping("/{orderId}/confirm-payment")
-    public ResponseEntity<?> confirmPayment(
-            @PathVariable Long orderId,
-            @RequestBody(required = false) OrderStatusUpdateRequest request) {
+    public ResponseEntity<?> confirmPayment(@PathVariable Long orderId, @RequestBody Map<String, String> request) {
         try {
-            String notes = request != null ? request.getNotes() : null;
-            Order confirmedOrder = orderManagementService.confirmPayment(orderId, notes);
-            return ResponseEntity.ok(ApiResponse.success("Pembayaran berhasil dikonfirmasi", confirmedOrder));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(e.getMessage()));
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+            String adminNotes = request.get("notes");
+            var order = orderManagementService.confirmOrder(orderId, adminNotes);
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Pembayaran berhasil dikonfirmasi",
+                "data", order
+            ));
         } catch (Exception e) {
-            log.error("Error confirming payment: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengkonfirmasi pembayaran: " + e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
         }
     }
 
-    /**
-     * Ship order (change status to SHIPPED)
-     */
+    @PostMapping("/{orderId}/start-processing")
+    public ResponseEntity<?> startProcessing(@PathVariable Long orderId, @RequestBody Map<String, String> request) {
+        try {
+            String adminNotes = request.get("notes");
+            var order = orderManagementService.updateOrderStatus(orderId, OrderStatus.PROCESSING, adminNotes);
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Pesanan mulai diproses",
+                "data", order
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
+        }
+    }
+
     @PostMapping("/{orderId}/ship")
-    public ResponseEntity<?> shipOrder(
-            @PathVariable Long orderId,
-            @RequestBody OrderStatusUpdateRequest request) {
+    public ResponseEntity<?> shipOrder(@PathVariable Long orderId, @RequestBody Map<String, String> request) {
         try {
-            Order shippedOrder = orderManagementService.shipOrder(orderId, request.getNotes(), request.getTrackingNumber());
-            return ResponseEntity.ok(ApiResponse.success("Pesanan berhasil dikirim", shippedOrder));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(e.getMessage()));
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+            String notes = request.get("notes");
+            String trackingNumber = request.get("trackingNumber");
+            var order = orderManagementService.shipOrder(orderId, notes, trackingNumber);
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Pesanan berhasil dikirim",
+                "data", order
+            ));
         } catch (Exception e) {
-            log.error("Error shipping order: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengirim pesanan: " + e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
         }
     }
 
-    /**
-     * Get order items
-     */
+    @PostMapping("/{orderId}/deliver")
+    public ResponseEntity<?> markAsDelivered(@PathVariable Long orderId, @RequestBody Map<String, String> request) {
+        try {
+            String adminNotes = request.get("notes");
+            var order = orderManagementService.updateOrderStatus(orderId, OrderStatus.DELIVERED, adminNotes);
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Pesanan berhasil ditandai sebagai terkirim",
+                "data", order
+            ));
+        } catch (Exception e) {
+            System.err.println("❌ Error in getAllOrders: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Gagal memuat data pesanan: " + e.getMessage()
+            ));
+        }
+    }
+
+    @PostMapping("/{orderId}/cancel")
+    public ResponseEntity<?> cancelOrder(@PathVariable Long orderId, @RequestBody Map<String, String> request) {
+        try {
+            String reason = request.get("reason");
+            var order = orderManagementService.cancelOrder(orderId, reason);
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Pesanan berhasil dibatalkan",
+                "data", order
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
+        }
+    }
+
     @GetMapping("/{orderId}/items")
     public ResponseEntity<?> getOrderItems(@PathVariable Long orderId) {
         try {
-            var items = orderManagementService.getOrderItems(orderId);
-            return ResponseEntity.ok(ApiResponse.success("Order items retrieved successfully", items));
+            System.out.println("📦 Getting order items for order ID: " + orderId);
+            var orderItems = orderManagementService.getOrderItems(orderId);
+            System.out.println("✅ Found " + orderItems.size() + " items for order " + orderId);
+
+            // Log each item for debugging
+            for (int i = 0; i < orderItems.size(); i++) {
+                var item = orderItems.get(i);
+                System.out.println("📦 Item " + (i+1) + ": Product=" +
+                    (item.getProduct() != null ? item.getProduct().getName() : "null") +
+                    ", Quantity=" + item.getQuantity() +
+                    ", Price=" + item.getUnitPrice());
+            }
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", orderItems
+            ));
         } catch (Exception e) {
-            log.error("Error getting order items: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengambil data items pesanan: " + e.getMessage()));
+            System.out.println("❌ Error getting order items for order " + orderId + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
         }
     }
 
-    /**
-     * Export orders to Excel
-     */
-    @GetMapping("/export")
-    public ResponseEntity<?> exportOrders(
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String search) {
+    @PostMapping("/{orderId}/confirm")
+    public ResponseEntity<?> confirmOrder(@PathVariable Long orderId, @RequestBody Map<String, String> request) {
         try {
-            byte[] excelData = orderManagementService.exportOrders(status, search);
-            return ResponseEntity.ok()
-                .header("Content-Disposition", "attachment; filename=orders.xlsx")
-                .header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                .body(excelData);
+            String adminNotes = request.get("notes");
+            System.out.println("✅ Confirming order - OrderId: " + orderId + ", Notes: " + adminNotes);
+
+            var order = orderManagementService.confirmOrder(orderId, adminNotes);
+            System.out.println("✅ Order confirmed successfully - OrderId: " + orderId + ", New Status: " + order.getStatus());
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Pesanan berhasil dikonfirmasi",
+                "data", order
+            ));
         } catch (Exception e) {
-            log.error("Error exporting orders: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengexport data pesanan: " + e.getMessage()));
+            System.out.println("❌ Error confirming order " + orderId + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
         }
     }
-    
-    /**
-     * Get orders that need attention
-     */
-    @GetMapping("/attention")
-    public ResponseEntity<?> getOrdersNeedingAttention() {
+
+    @PutMapping("/{orderId}/status")
+    public ResponseEntity<?> updateOrderStatus(@PathVariable Long orderId, @RequestBody Map<String, Object> request) {
         try {
-            List<Order> attentionOrders = orderManagementService.getOrdersNeedingAttention();
-            return ResponseEntity.ok(ApiResponse.success("Orders needing attention retrieved successfully", attentionOrders));
+            String newStatus = (String) request.get("status");
+            String notes = (String) request.get("notes");
+
+            System.out.println("🔄 Updating order status - OrderId: " + orderId + ", NewStatus: " + newStatus + ", Notes: " + notes);
+
+            OrderStatus status = OrderStatus.valueOf(newStatus);
+            var order = orderManagementService.updateOrderStatus(orderId, status, notes);
+
+            System.out.println("✅ Order status updated successfully for order: " + orderId);
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Status pesanan berhasil diupdate",
+                "data", order
+            ));
         } catch (Exception e) {
-            log.error("Error getting orders needing attention: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengambil pesanan yang memerlukan perhatian: " + e.getMessage()));
+            System.out.println("❌ Error updating order status for order " + orderId + ": " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
         }
     }
-    
-    /**
-     * Get all available order statuses
-     */
-    @GetMapping("/statuses")
-    public ResponseEntity<?> getAllOrderStatuses() {
+
+    @GetMapping("/statistics")
+    public ResponseEntity<?> getOrderStatistics() {
         try {
-            OrderStatus[] statuses = OrderStatus.values();
-            return ResponseEntity.ok(ApiResponse.success("Order statuses retrieved successfully", statuses));
+            var stats = orderManagementService.getOrderStatistics();
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", stats
+            ));
         } catch (Exception e) {
-            log.error("Error getting order statuses: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(ApiResponse.error("Gagal mengambil status pesanan: " + e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    @DeleteMapping("/{orderId}")
+    public ResponseEntity<?> deleteOrder(@PathVariable Long orderId) {
+        try {
+            System.out.println("🗑️ Deleting order - OrderId: " + orderId);
+            orderManagementService.deleteOrder(orderId);
+            System.out.println("✅ Order deleted successfully - OrderId: " + orderId);
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Pesanan berhasil dihapus"
+            ));
+        } catch (Exception e) {
+            System.out.println("❌ Error deleting order " + orderId + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
         }
     }
 }

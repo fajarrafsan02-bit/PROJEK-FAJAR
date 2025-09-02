@@ -794,6 +794,24 @@
             margin-bottom: 15px;
         }
 
+        .status-notes {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--gray-medium);
+            border-radius: 10px;
+            background: var(--white-pure);
+            font-size: 14px;
+            margin-bottom: 15px;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .status-notes:focus {
+            outline: none;
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+
         .update-btn {
             background: var(--gradient-gold);
             color: var(--black-luxury);
@@ -985,16 +1003,24 @@
             </nav>
         </aside>
 
-         Main Content 
         <main class="main-content">
-             Header 
             <header class="header">
                 <h1 class="header-title">Manajemen Pesanan</h1>
                 <div class="header-actions">
-                    <button class="notification-btn">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge">5</span>
-                    </button>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button class="refresh-btn" onclick="ordersManager.refreshOrders()" id="refreshBtn">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
+                        </button>
+                        <button class="refresh-btn" onclick="ordersManager.testAPIConnection()" style="background: #17a2b8;">
+                            <i class="fas fa-plug"></i>
+                            Test API
+                        </button>
+                        <button class="notification-btn">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge">5</span>
+                        </button>
+                    </div>
                     <div class="user-profile">
                         <div class="user-avatar">
                             <i class="fas fa-user"></i>
@@ -1007,13 +1033,10 @@
                 </div>
             </header>
 
-             Content 
             <div class="content">
-                 Orders Header 
                 <div class="orders-header">
                     <h2 class="orders-title">
                         <i class="fas fa-shopping-cart"></i>
-                        Daftar Pesanan
                     </h2>
                     
                     <div class="orders-stats">
@@ -1054,11 +1077,13 @@
                         <div class="filter-controls">
                             <select class="filter-select" id="statusFilter">
                                 <option value="">Semua Status</option>
-                                <option value="pending">Menunggu Konfirmasi</option>
-                                <option value="processing">Sedang Diproses</option>
-                                <option value="shipped">Dalam Pengiriman</option>
-                                <option value="delivered">Selesai</option>
-                                <option value="cancelled">Dibatalkan</option>
+                                <option value="PENDING_PAYMENT">Menunggu Pembayaran</option>
+                                <option value="PENDING_CONFIRMATION">Menunggu Konfirmasi</option>
+                                <option value="PAID">Sudah Dibayar</option>
+                                <option value="PROCESSING">Sedang Diproses</option>
+                                <option value="SHIPPED">Dalam Pengiriman</option>
+                                <option value="DELIVERED">Selesai</option>
+                                <option value="CANCELLED">Dibatalkan</option>
                             </select>
                             
                             <select class="filter-select" id="dateFilter">
@@ -1077,7 +1102,7 @@
                     </div>
                 </div>
 
-                 Orders Table 
+            
                 <div class="orders-table-container">
                     <table class="orders-table" id="ordersTable">
                         <thead>
@@ -1092,11 +1117,9 @@
                             </tr>
                         </thead>
                         <tbody id="ordersTableBody">
-                             Orders will be populated by JavaScript 
                         </tbody>
                     </table>
 
-                     Pagination 
                     <div class="pagination" id="pagination">
                         <button class="pagination-btn" id="prevBtn">
                             <i class="fas fa-chevron-left"></i>
@@ -1218,26 +1241,193 @@
 
             async loadOrders() {
                 try {
+                    console.log('📦 Loading orders from API...');
+                    console.log('🔗 API URL: /admin/api/orders?page=0&size=100&sortBy=createdAt&sortDirection=desc');
+
                     const response = await fetch('/admin/api/orders?page=0&size=100&sortBy=createdAt&sortDirection=desc');
+                    console.log('📡 Response status:', response.status);
+                    console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+
+                    if (!response.ok) {
+                        console.error('❌ HTTP Error:', response.status, response.statusText);
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
                     const result = await response.json();
-                    
-                    if (result.success) {
-                        const data = result.data;
-                        this.allOrders = data.content || data || [];
+                    console.log('📥 API Response:', result);
+
+                    // Check if this is a successful response (either explicit success=true or has data)
+                    if (result.success === true || (result.success !== false && (result.data || result.content))) {
+                        // Handle different response structures
+                        let ordersData = [];
+                        
+                        console.log('🔍 Analyzing response structure:', {
+                            hasSuccess: result.success !== undefined,
+                            successValue: result.success,
+                            hasData: result.data !== undefined,
+                            hasContent: result.content !== undefined,
+                            dataType: result.data ? (Array.isArray(result.data) ? 'array' : typeof result.data) : 'undefined',
+                            contentType: result.content ? (Array.isArray(result.content) ? 'array' : typeof result.content) : 'undefined'
+                        });
+                        
+                        // Case 1: Direct Page response (Spring Boot Page object) - most likely case
+                        if (result.content && Array.isArray(result.content)) {
+                            ordersData = result.content;
+                            console.log('✅ Direct Page response, found', ordersData.length, 'orders');
+                        }
+                        // Case 2: Wrapped response with success=true and data array
+                        else if (result.success === true && Array.isArray(result.data)) {
+                            ordersData = result.data;
+                            console.log('✅ Wrapped array response, found', ordersData.length, 'orders');
+                        }
+                        // Case 3: Wrapped paginated response
+                        else if (result.data && result.data.content && Array.isArray(result.data.content)) {
+                            ordersData = result.data.content;
+                            console.log('✅ Wrapped paginated response, found', ordersData.length, 'orders');
+                        }
+                        // Case 4: Direct array in data field
+                        else if (Array.isArray(result.data)) {
+                            ordersData = result.data;
+                            console.log('✅ Direct array in data field, found', ordersData.length, 'orders');
+                        }
+                        // Case 5: Single object response
+                        else if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
+                            ordersData = [result.data];
+                            console.log('✅ Single object response');
+                        }
+                        // Case 6: Direct array response (result itself is array)
+                        else if (Array.isArray(result)) {
+                            ordersData = result;
+                            console.log('✅ Direct array response, found', ordersData.length, 'orders');
+                        }
+                        else {
+                            console.warn('⚠️ Unexpected data structure:', result);
+                            ordersData = [];
+                        }
+
+                        // Ensure ordersData is an array
+                        if (!Array.isArray(ordersData)) {
+                            console.warn('⚠️ ordersData is not an array, converting:', ordersData);
+                            ordersData = [];
+                        }
+
+                        this.allOrders = ordersData;
                         this.filteredOrders = [...this.allOrders];
+                        console.log('📊 Total orders loaded:', this.allOrders.length);
+
+                        // Update pagination info - handle both wrapped and direct Page responses
+                        if (result.totalElements !== undefined) {
+                            // Direct Spring Page response
+                            this.totalItems = result.totalElements;
+                            this.totalPages = result.totalPages || 1;
+                            this.currentPageSize = result.size || ordersData.length;
+                            console.log('📄 Direct Page pagination info:', {
+                                total: this.totalItems,
+                                pages: this.totalPages,
+                                size: this.currentPageSize
+                            });
+                        } else if (result.total !== undefined) {
+                            // Wrapped response with total at root level
+                            this.totalItems = result.total;
+                            this.totalPages = result.totalPages || 1;
+                            this.currentPageSize = result.size || ordersData.length;
+                            console.log('📄 Root level pagination info:', {
+                                total: this.totalItems,
+                                pages: this.totalPages,
+                                size: this.currentPageSize
+                            });
+                        } else if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
+                            // Wrapped response with pagination in data object
+                            this.totalItems = result.data.total || ordersData.length;
+                            this.totalPages = result.data.totalPages || 1;
+                            this.currentPageSize = result.data.size || ordersData.length;
+                            console.log('📄 Data object pagination info:', {
+                                total: this.totalItems,
+                                pages: this.totalPages,
+                                size: this.currentPageSize
+                            });
+                        } else {
+                            // Fallback
+                            this.totalItems = ordersData.length;
+                            this.totalPages = 1;
+                            this.currentPageSize = ordersData.length;
+                            console.log('📄 Fallback pagination info:', {
+                                total: this.totalItems,
+                                pages: this.totalPages,
+                                size: this.currentPageSize
+                            });
+                        }
+
                         this.renderOrders();
                         this.updateStats();
                     } else {
-                        console.error('Failed to load orders:', result.message);
-                        this.allOrders = [];
-                        this.filteredOrders = [];
-                        this.renderOrders();
+                        console.error('❌ API returned success=false:', result.message || 'No message provided');
+                        console.error('❌ Full API response:', result);
+                        this.showNotification('Gagal memuat pesanan dari server: ' + (result.message || 'Unknown error'), 'error');
+                        this.fallbackToSampleData();
                     }
                 } catch (error) {
-                    console.error('Error loading orders:', error);
-                    this.allOrders = [];
-                    this.filteredOrders = [];
-                    this.renderOrders();
+                    console.error('❌ Error loading orders:', error);
+                    console.error('❌ Error details:', {
+                        message: error.message,
+                        stack: error.stack
+                    });
+                    this.showNotification('Error memuat pesanan: ' + error.message, 'error');
+                    this.fallbackToSampleData();
+                }
+            }
+
+            fallbackToSampleData() {
+                console.log('🔄 Falling back to sample data...');
+                this.allOrders = this.generateSampleOrders();
+                this.filteredOrders = [...this.allOrders];
+                this.totalItems = this.allOrders.length;
+                this.totalPages = 1;
+                this.renderOrders();
+                this.updateStats();
+                this.showNotification('Menampilkan data sample karena gagal memuat dari server', 'warning');
+            }
+
+            async refreshOrders() {
+                console.log('🔄 Refreshing orders...');
+                const refreshBtn = document.getElementById('refreshBtn');
+                if (refreshBtn) {
+                    refreshBtn.disabled = true;
+                    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+                }
+
+                try {
+                    this.currentPage = 1;
+                    await this.loadOrders();
+                    this.showNotification('Data pesanan berhasil di-refresh', 'success');
+                } catch (error) {
+                    console.error('❌ Error refreshing orders:', error);
+                    this.showNotification('Gagal refresh data pesanan', 'error');
+                } finally {
+                    if (refreshBtn) {
+                        refreshBtn.disabled = false;
+                        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+                    }
+                }
+            }
+
+            async testAPIConnection() {
+                try {
+                    console.log('🔍 Testing API connection...');
+                    const response = await fetch('/admin/api/orders/statistics');
+                    console.log('📡 Statistics API response:', response.status);
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log('📊 Statistics result:', result);
+                        this.showNotification('API connection successful!', 'success');
+                    } else {
+                        console.error('❌ Statistics API failed:', response.status);
+                        this.showNotification('API connection failed: ' + response.status, 'error');
+                    }
+                } catch (error) {
+                    console.error('❌ API test error:', error);
+                    this.showNotification('API test failed: ' + error.message, 'error');
                 }
             }
 
@@ -1312,7 +1502,7 @@
                         (order.orderNumber && order.orderNumber.toLowerCase().includes(searchTerm));
 
                     // Status filter
-                    const matchesStatus = !statusFilter || order.status === statusFilter;
+                    const matchesStatus = !statusFilter || order.status === statusFilter || order.status.toLowerCase().includes(statusFilter.toLowerCase());
 
                     // Date filter
                     let matchesDate = true;
@@ -1348,10 +1538,12 @@
                 const endIndex = startIndex + this.itemsPerPage;
                 const ordersToShow = this.filteredOrders.slice(startIndex, endIndex);
 
+                console.log('🎨 Rendering orders:', ordersToShow.length, 'orders');
+
                 this.ordersTableBody.innerHTML = ordersToShow.map(order => `
                     <tr>
                         <td>
-                            <span class="order-id">${order.id}</span>
+                            <span class="order-id">${order.id || order.orderNumber || 'N/A'}</span>
                         </td>
                         <td>
                             <div class="customer-info">
@@ -1376,10 +1568,10 @@
                             </div>
                         </td>
                         <td>
-                            <span class="order-total">${this.formatCurrency(order.totalAmount)}</span>
+                            <span class="order-total">${this.formatCurrency(order.totalAmount || 0)}</span>
                         </td>
                         <td>
-                            <span class="status-badge status-${order.status}">
+                            <span class="status-badge ${this.getStatusClass(order.status)}">
                                 ${this.getStatusText(order.status)}
                             </span>
                         </td>
@@ -1388,18 +1580,18 @@
                         </td>
                         <td>
                             <div class="order-actions">
-                                <button class="action-btn view" onclick="ordersManager.viewOrder('${order.id}')" title="Lihat Detail">
+                                <button class="action-btn view" onclick="window.handleViewOrder('${order.id || order.orderNumber}')" title="Lihat Detail">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                ${(order.status === 'PENDING_PAYMENT' || order.status === 'PENDING_CONFIRMATION') ? 
-                                    `<button class="action-btn edit" onclick="ordersManager.confirmOrder('${order.id}')" title="Konfirmasi Pesanan" style="background: var(--success-color);">
+                                ${(order.status === 'PENDING_PAYMENT' || order.status === 'PENDING_CONFIRMATION') ?
+                                    `<button class="action-btn edit" onclick="window.handleConfirmOrder('${order.id || order.orderNumber}')" title="Konfirmasi Pesanan" style="background: var(--success-color);">
                                         <i class="fas fa-check"></i>
                                     </button>` : ''
                                 }
-                                <button class="action-btn edit" onclick="ordersManager.editOrder('${order.id}')" title="Edit Status">
+                                <button class="action-btn edit" onclick="window.handleEditOrder('${order.id || order.orderNumber}')" title="Edit Status">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="action-btn delete" onclick="ordersManager.deleteOrder('${order.id}')" title="Hapus">
+                                <button class="action-btn delete" onclick="window.handleDeleteOrder('${order.id || order.orderNumber}')" title="Hapus">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -1408,12 +1600,23 @@
                 `).join('');
 
                 this.updatePagination();
+                console.log('✅ Orders rendered successfully');
             }
 
             updatePagination() {
-                const totalItems = this.filteredOrders.length;
+                // Use totalItems from API if available, otherwise use filtered orders length
+                const totalItems = this.totalItems || this.filteredOrders.length;
                 const startItem = (this.currentPage - 1) * this.itemsPerPage + 1;
                 const endItem = Math.min(this.currentPage * this.itemsPerPage, totalItems);
+
+                console.log('📄 Updating pagination:', {
+                    currentPage: this.currentPage,
+                    itemsPerPage: this.itemsPerPage,
+                    totalItems: totalItems,
+                    filteredOrders: this.filteredOrders.length,
+                    startItem: startItem,
+                    endItem: endItem
+                });
 
                 document.getElementById('startItem').textContent = startItem;
                 document.getElementById('endItem').textContent = endItem;
@@ -1422,8 +1625,8 @@
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
 
-                prevBtn.disabled = this.currentPage === 1;
-                nextBtn.disabled = this.currentPage >= Math.ceil(totalItems / this.itemsPerPage);
+                if (prevBtn) prevBtn.disabled = this.currentPage === 1;
+                if (nextBtn) nextBtn.disabled = this.currentPage >= Math.ceil(totalItems / this.itemsPerPage);
             }
 
             async loadStatisticsFromAPI() {
@@ -1451,7 +1654,8 @@
 
                         console.log('API Stats loaded:', stats);
                     } else {
-                        console.error('Failed to load statistics:', result.message);
+                        console.error('Failed to load statistics:', result.message || 'No message provided');
+                        console.error('❌ Full statistics API response:', result);
                         // Fallback to local calculation
                         this.updateStats();
                     }
@@ -1491,8 +1695,31 @@
             }
 
             viewOrder(orderId) {
-                const order = this.allOrders.find(o => o.id === orderId);
-                if (!order) return;
+                console.log('🔍 Viewing order:', orderId);
+                console.log('📊 Available orders:', this.allOrders.map(o => ({ id: o.id, orderNumber: o.orderNumber })));
+
+                // Try multiple ways to find the order
+                let order = this.allOrders.find(o => (o.id || o.orderNumber) === orderId);
+                if (!order) {
+                    // Try converting orderId to number if it's a string
+                    const numericId = parseInt(orderId);
+                    if (!isNaN(numericId)) {
+                        order = this.allOrders.find(o => (o.id || o.orderNumber) == numericId);
+                    }
+                }
+                if (!order) {
+                    // Try string comparison
+                    order = this.allOrders.find(o => String(o.id || o.orderNumber) === String(orderId));
+                }
+
+                if (!order) {
+                    console.error('❌ Order not found:', orderId);
+                    console.error('Available order IDs:', this.allOrders.map(o => o.id || o.orderNumber));
+                    this.showNotification('Order tidak ditemukan: ' + orderId, 'error');
+                    return;
+                }
+
+                console.log('📋 Order data:', order);
 
                 const modalContent = document.getElementById('orderDetailContent');
                 modalContent.innerHTML = `
@@ -1503,7 +1730,7 @@
                         </h4>
                         <div class="detail-item">
                             <span class="detail-label">ID Pesanan:</span>
-                            <span class="detail-value">${order.id}</span>
+                            <span class="detail-value">${order.id || order.orderNumber || 'N/A'}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Tanggal:</span>
@@ -1512,14 +1739,14 @@
                         <div class="detail-item">
                             <span class="detail-label">Status:</span>
                             <span class="detail-value">
-                                <span class="status-badge status-${order.status}">
+                                <span class="status-badge ${this.getStatusClass(order.status)}">
                                     ${this.getStatusText(order.status)}
                                 </span>
                             </span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Total:</span>
-                            <span class="detail-value">${this.formatCurrency(order.totalAmount)}</span>
+                            <span class="detail-value">${this.formatCurrency(order.totalAmount || 0)}</span>
                         </div>
                     </div>
 
@@ -1530,15 +1757,15 @@
                         </h4>
                         <div class="detail-item">
                             <span class="detail-label">Nama:</span>
-                            <span class="detail-value">${order.customerName}</span>
+                            <span class="detail-value">${order.customerName || 'N/A'}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Email:</span>
-                            <span class="detail-value">${order.customerEmail}</span>
+                            <span class="detail-value">${order.customerEmail || 'N/A'}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Telepon:</span>
-                            <span class="detail-value">${order.customerPhone}</span>
+                            <span class="detail-value">${order.customerPhone || 'N/A'}</span>
                         </div>
                     </div>
 
@@ -1548,20 +1775,8 @@
                             Alamat Pengiriman
                         </h4>
                         <div class="detail-item">
-                            <span class="detail-label">Alamat:</span>
-                            <span class="detail-value">${order.shippingAddress.address}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Kota:</span>
-                            <span class="detail-value">${order.shippingAddress.city}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Provinsi:</span>
-                            <span class="detail-value">${order.shippingAddress.province}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Kode Pos:</span>
-                            <span class="detail-value">${order.shippingAddress.postalCode}</span>
+                            <span class="detail-label">Alamat Lengkap:</span>
+                            <span class="detail-value">${order.shippingAddress || 'Alamat tidak tersedia'}</span>
                         </div>
                     </div>
 
@@ -1608,13 +1823,16 @@
                             Update Status Pesanan
                         </h4>
                         <select class="status-select" id="newStatus">
-                            <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Menunggu Konfirmasi</option>
-                            <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Sedang Diproses</option>
-                            <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Dalam Pengiriman</option>
-                            <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Selesai</option>
-                            <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Dibatalkan</option>
+                            <option value="PENDING_PAYMENT" ${order.status === 'PENDING_PAYMENT' ? 'selected' : ''}>Menunggu Pembayaran</option>
+                            <option value="PENDING_CONFIRMATION" ${order.status === 'PENDING_CONFIRMATION' ? 'selected' : ''}>Menunggu Konfirmasi</option>
+                            <option value="PAID" ${order.status === 'PAID' ? 'selected' : ''}>Sudah Dibayar</option>
+                            <option value="PROCESSING" ${order.status === 'PROCESSING' ? 'selected' : ''}>Sedang Diproses</option>
+                            <option value="SHIPPED" ${order.status === 'SHIPPED' ? 'selected' : ''}>Dalam Pengiriman</option>
+                            <option value="DELIVERED" ${order.status === 'DELIVERED' ? 'selected' : ''}>Selesai</option>
+                            <option value="CANCELLED" ${order.status === 'CANCELLED' ? 'selected' : ''}>Dibatalkan</option>
                         </select>
-                        <button class="update-btn" onclick="ordersManager.updateOrderStatus('${order.id}')">
+                        <textarea class="status-notes" id="statusNotes" placeholder="Catatan status (opsional)" rows="3"></textarea>
+                        <button class="update-btn" onclick="window.ordersManager.updateOrderStatus('${order.id || order.orderNumber}')">
                             <i class="fas fa-save"></i>
                             Update Status
                         </button>
@@ -1628,22 +1846,57 @@
 
             async loadOrderItems(orderId) {
                 try {
+                    console.log('📦 Loading order items for order:', orderId);
                     const response = await fetch(`/admin/api/orders/${orderId}/items`);
-                    const result = await response.json();
-                    
+                    console.log('📡 Order items response status:', response.status);
+                    console.log('📡 Order items response headers:', Object.fromEntries(response.headers.entries()));
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    // Get response text first to check for malformed JSON
+                    const responseText = await response.text();
+                    console.log('📥 Raw response text:', responseText.substring(0, 500) + (responseText.length > 500 ? '...' : ''));
+
+                    let result;
+                    try {
+                        result = JSON.parse(responseText);
+                    } catch (jsonError) {
+                        console.error('❌ JSON parsing error:', jsonError);
+                        console.error('❌ Response text that failed to parse:', responseText);
+                        throw new Error(`Invalid JSON response: ${jsonError.message}`);
+                    }
+
+                    console.log('📥 Parsed order items result:', result);
+
                     const tbody = document.getElementById('orderItemsTable');
-                    
-                    if (result.success && result.data && result.data.length > 0) {
-                        tbody.innerHTML = result.data.map(item => `
+
+                    // Handle different response structures
+                    let itemsData = [];
+                    if (result.success === true && Array.isArray(result.data)) {
+                        itemsData = result.data;
+                    } else if (Array.isArray(result)) {
+                        itemsData = result;
+                    } else if (result.data && Array.isArray(result.data)) {
+                        itemsData = result.data;
+                    } else if (result.success !== false && result.content && Array.isArray(result.content)) {
+                        itemsData = result.content;
+                    }
+
+                    if (itemsData.length > 0) {
+                        console.log('✅ Found', itemsData.length, 'order items');
+                        tbody.innerHTML = itemsData.map(item => `
                             <tr>
-                                <td>${item.productName || 'Product'}</td>
-                                <td>${item.weight || '-'}</td>
-                                <td>${this.formatCurrency(item.price)}</td>
-                                <td>${item.quantity}</td>
-                                <td>${this.formatCurrency(item.price * item.quantity)}</td>
+                                <td>${item.product ? item.product.name : 'Product'}</td>
+                                <td>${item.product ? item.product.weight + ' gram' : '-'}</td>
+                                <td>${this.formatCurrency(item.unitPrice || 0)}</td>
+                                <td>${item.quantity || 0}</td>
+                                <td>${this.formatCurrency(item.subtotal || 0)}</td>
                             </tr>
                         `).join('');
                     } else {
+                        console.log('⚠️ No order items found');
                         tbody.innerHTML = `
                             <tr>
                                 <td colspan="5" class="text-center text-muted">
@@ -1654,15 +1907,22 @@
                         `;
                     }
                 } catch (error) {
-                    console.error('Error loading order items:', error);
-                    document.getElementById('orderItemsTable').innerHTML = `
-                        <tr>
-                            <td colspan="5" class="text-center text-danger">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                Gagal memuat items
-                            </td>
-                        </tr>
-                    `;
+                    console.error('❌ Error loading order items:', error);
+                    console.error('❌ Error details:', {
+                        message: error.message,
+                        stack: error.stack
+                    });
+                    const tbody = document.getElementById('orderItemsTable');
+                    if (tbody) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="text-center text-danger">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Gagal memuat items: ${error.message}
+                                </td>
+                            </tr>
+                        `;
+                    }
                 }
             }
 
@@ -1670,12 +1930,33 @@
                 this.viewOrder(orderId);
             }
 
-            deleteOrder(orderId) {
+            async deleteOrder(orderId) {
                 if (confirm('Apakah Anda yakin ingin menghapus pesanan ini?')) {
-                    this.allOrders = this.allOrders.filter(o => o.id !== orderId);
-                    localStorage.setItem('orders', JSON.stringify(this.allOrders));
-                    this.filterOrders();
-                    this.showNotification('Pesanan berhasil dihapus', 'success');
+                    try {
+                        console.log('🗑️ Deleting order:', orderId);
+                        const response = await fetch(`/admin/api/orders/${orderId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        });
+
+                        const result = await response.json();
+                        console.log('📥 Delete order response:', result);
+
+                        if (result.success) {
+                            // Remove from local orders array
+                            this.allOrders = this.allOrders.filter(o => o.id !== orderId);
+                            this.filterOrders();
+                            this.loadStatisticsFromAPI();
+                            this.showNotification('Pesanan berhasil dihapus', 'success');
+                        } else {
+                            this.showNotification('Gagal menghapus pesanan: ' + (result.message || 'Unknown error'), 'error');
+                        }
+                    } catch (error) {
+                        console.error('❌ Error deleting order:', error);
+                        this.showNotification('Gagal menghapus pesanan', 'error');
+                    }
                 }
             }
 
@@ -1683,7 +1964,9 @@
                 try {
                     const newStatus = document.getElementById('newStatus').value;
                     const notes = document.getElementById('statusNotes')?.value || '';
-                    
+
+                    console.log('🔄 Updating order status:', orderId, 'to', newStatus);
+
                     const response = await fetch(`/admin/api/orders/${orderId}/status`, {
                         method: 'PUT',
                         headers: {
@@ -1691,44 +1974,55 @@
                         },
                         body: JSON.stringify({ status: newStatus, notes: notes })
                     });
-                    
+
                     const result = await response.json();
-                    
+                    console.log('📥 Update status response:', result);
+
                     if (result.success) {
+                        // Update the order in local data
+                        const orderIndex = this.allOrders.findIndex(o => (o.id || o.orderNumber) === orderId);
+                        if (orderIndex !== -1) {
+                            this.allOrders[orderIndex].status = newStatus;
+                        }
+
                         this.loadOrders();
                         this.loadStatisticsFromAPI();
                         this.closeModal();
                         this.showNotification('Status pesanan berhasil diupdate', 'success');
                     } else {
-                        this.showNotification('Gagal mengupdate status: ' + result.message, 'error');
+                        this.showNotification('Gagal mengupdate status: ' + (result.message || 'Unknown error'), 'error');
                     }
                 } catch (error) {
-                    console.error('Error updating order status:', error);
-                    this.showNotification('Gagal mengupdate status pesanan', 'error');
+                    console.error('❌ Error updating order status:', error);
+                    this.showNotification('Gagal mengupdate status pesanan: ' + error.message, 'error');
                 }
             }
 
             async confirmOrder(orderId) {
                 try {
-                    const response = await fetch(`/admin/api/orders/${orderId}/confirm`, {
+                    console.log('🔄 Confirming order:', orderId);
+                    const response = await fetch(`/admin/api/orders/${orderId}/confirm-payment`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({})
+                        body: JSON.stringify({
+                            notes: 'Dikonfirmasi oleh admin melalui panel'
+                        })
                     });
-                    
+
                     const result = await response.json();
-                    
+                    console.log('📥 Confirm order response:', result);
+
                     if (result.success) {
                         this.loadOrders();
                         this.loadStatisticsFromAPI();
                         this.showNotification('Pesanan berhasil dikonfirmasi', 'success');
                     } else {
-                        this.showNotification('Gagal mengkonfirmasi pesanan: ' + result.message, 'error');
+                        this.showNotification('Gagal mengkonfirmasi pesanan: ' + (result.message || 'Unknown error'), 'error');
                     }
                 } catch (error) {
-                    console.error('Error confirming order:', error);
+                    console.error('❌ Error confirming order:', error);
                     this.showNotification('Gagal mengkonfirmasi pesanan', 'error');
                 }
             }
@@ -1771,13 +2065,30 @@
 
             getStatusText(status) {
                 const statusMap = {
-                    'pending': 'Menunggu Konfirmasi',
-                    'processing': 'Sedang Diproses',
-                    'shipped': 'Dalam Pengiriman',
-                    'delivered': 'Selesai',
-                    'cancelled': 'Dibatalkan'
+                    'PENDING_PAYMENT': 'Menunggu Pembayaran',
+                    'PENDING_CONFIRMATION': 'Menunggu Konfirmasi',
+                    'PAID': 'Sudah Dibayar',
+                    'PROCESSING': 'Sedang Diproses',
+                    'SHIPPED': 'Dalam Pengiriman',
+                    'DELIVERED': 'Selesai',
+                    'CANCELLED': 'Dibatalkan',
+                    'REFUNDED': 'Dikembalikan'
                 };
                 return statusMap[status] || status;
+            }
+
+            getStatusClass(status) {
+                const classMap = {
+                    'PENDING_PAYMENT': 'status-pending',
+                    'PENDING_CONFIRMATION': 'status-pending',
+                    'PAID': 'status-processing',
+                    'PROCESSING': 'status-processing',
+                    'SHIPPED': 'status-shipped',
+                    'DELIVERED': 'status-delivered',
+                    'CANCELLED': 'status-cancelled',
+                    'REFUNDED': 'status-cancelled'
+                };
+                return classMap[status] || 'status-pending';
             }
 
             getPaymentMethodText(method) {
@@ -1871,12 +2182,91 @@
         let ordersManager;
         document.addEventListener('DOMContentLoaded', () => {
             ordersManager = new OrdersManager();
+            // Make it globally available
+            window.ordersManager = ordersManager;
 
             // Show welcome message
             setTimeout(() => {
                 ordersManager.showNotification('Halaman manajemen pesanan berhasil dimuat!', 'success');
             }, 1000);
+
+            // Add global error handler for action buttons
+            window.addEventListener('error', (e) => {
+                console.error('Global error:', e.error);
+                if (e.error.message.includes('ordersManager')) {
+                    console.error('Action button error - ordersManager not available');
+                }
+            });
         });
+
+        // Global action handlers for better error handling
+        window.handleViewOrder = function(orderId) {
+            try {
+                console.log('🔍 View order clicked:', orderId);
+                if (window.ordersManager) {
+                    window.ordersManager.viewOrder(orderId);
+                } else if (typeof ordersManager !== 'undefined') {
+                    ordersManager.viewOrder(orderId);
+                } else {
+                    console.error('ordersManager not found in any scope');
+                    alert('Error: Orders manager not initialized. Please refresh the page.');
+                }
+            } catch (error) {
+                console.error('Error in handleViewOrder:', error);
+                alert('Error viewing order: ' + error.message);
+            }
+        };
+
+        window.handleConfirmOrder = function(orderId) {
+            try {
+                console.log('✅ Confirm order clicked:', orderId);
+                if (window.ordersManager) {
+                    window.ordersManager.confirmOrder(orderId);
+                } else if (typeof ordersManager !== 'undefined') {
+                    ordersManager.confirmOrder(orderId);
+                } else {
+                    console.error('ordersManager not found in any scope');
+                    alert('Error: Orders manager not initialized. Please refresh the page.');
+                }
+            } catch (error) {
+                console.error('Error in handleConfirmOrder:', error);
+                alert('Error confirming order: ' + error.message);
+            }
+        };
+
+        window.handleEditOrder = function(orderId) {
+            try {
+                console.log('✏️ Edit order clicked:', orderId);
+                if (window.ordersManager) {
+                    window.ordersManager.editOrder(orderId);
+                } else if (typeof ordersManager !== 'undefined') {
+                    ordersManager.editOrder(orderId);
+                } else {
+                    console.error('ordersManager not found in any scope');
+                    alert('Error: Orders manager not initialized. Please refresh the page.');
+                }
+            } catch (error) {
+                console.error('Error in handleEditOrder:', error);
+                alert('Error editing order: ' + error.message);
+            }
+        };
+
+        window.handleDeleteOrder = function(orderId) {
+            try {
+                console.log('🗑️ Delete order clicked:', orderId);
+                if (window.ordersManager) {
+                    window.ordersManager.deleteOrder(orderId);
+                } else if (typeof ordersManager !== 'undefined') {
+                    ordersManager.deleteOrder(orderId);
+                } else {
+                    console.error('ordersManager not found in any scope');
+                    alert('Error: Orders manager not initialized. Please refresh the page.');
+                }
+            } catch (error) {
+                console.error('Error in handleDeleteOrder:', error);
+                alert('Error deleting order: ' + error.message);
+            }
+        };
 
         // Handle mobile menu
         document.addEventListener('click', (e) => {

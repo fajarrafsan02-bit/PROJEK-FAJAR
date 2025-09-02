@@ -40,8 +40,8 @@ public class JwtFilter extends OncePerRequestFilter {
         if (path.startsWith("/auth") ||
                 path.startsWith("/css") ||
                 path.startsWith("/js") ||
-                path.startsWith("/user") ||
                 path.startsWith("/assets") ||
+                path.startsWith("/validasi") ||
                 path.startsWith("/gold-price")) {
 
             filterChain.doFilter(request, response);

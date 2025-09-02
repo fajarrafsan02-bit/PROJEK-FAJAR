@@ -20,6 +20,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCaseOrCategoryContainingIgnoringCase(
             String name, String description, String category, Pageable pageable);
 
+    Page<Product> findByIsActiveTrueAndNameContainingIgnoreCaseOrIsActiveTrueAndDescriptionContainingIgnoreCaseOrIsActiveTrueAndCategoryContainingIgnoreCase(
+            String name, String description, String category, Pageable pageable);
+
     List<Product> findByStockLessThanEqualAndIsActiveTrue(int minStock);
 
     Page<Product> findByIsActiveTrue(Pageable pageable);

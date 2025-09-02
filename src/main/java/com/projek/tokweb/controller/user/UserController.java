@@ -27,4 +27,9 @@ public class UserController {
     public String checkout() {
         return "html/user/checkout";
     }
+
+    @GetMapping("/my-orders")
+    public String myOrders() {
+        return "html/user/my-orders";
+    }
 }

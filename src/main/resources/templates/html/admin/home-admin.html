@@ -743,8 +743,8 @@
                             <i class="fas fa-user"></i>
                         </div>
                         <div class="user-info">
-                            <h4>Admin Fajar Gold</h4>
-                            <p>Super Administrator</p>
+                            <h4 th:text="${userName != null ? userName : 'Admin Fajar Gold'}">Admin Fajar Gold</h4>
+                            <p th:text="${userRole != null ? userRole : 'Super Administrator'}">Super Administrator</p>
                         </div>
                     </div>
                 </div>
@@ -760,39 +760,11 @@
                                 <i class="fas fa-chart-line"></i>
                             </div>
                         </div>
-                        <div class="stat-value" id="todaySales">Rp 45.250.000</div>
+                        <div class="stat-value" id="todaySales">Rp 0</div>
                         <div class="stat-label">Penjualan Hari Ini</div>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>+12.5% dari kemarin</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon orders">
-                                <i class="fas fa-shopping-bag"></i>
-                            </div>
-                        </div>
-                        <div class="stat-value" id="pendingOrders">23</div>
-                        <div class="stat-label">Pesanan Pending</div>
-                        <div class="stat-change negative">
-                            <i class="fas fa-arrow-down"></i>
-                            <span>-3 dari kemarin</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon stock">
-                                <i class="fas fa-exclamation-triangle"></i>
-                            </div>
-                        </div>
-                        <div class="stat-value" id="lowStock">8</div>
-                        <div class="stat-label">Stok Hampir Habis</div>
-                        <div class="stat-change negative">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>+2 produk</span>
+                        <div class="stat-change" id="todaySalesChange">
+                            <i class="fas fa-minus"></i>
+                            <span>Memuat...</span>
                         </div>
                     </div>
 
@@ -802,11 +774,39 @@
                                 <i class="fas fa-coins"></i>
                             </div>
                         </div>
-                        <div class="stat-value" id="monthlyRevenue">Rp 1.2M</div>
+                        <div class="stat-value" id="todayRevenue">Rp 0</div>
+                        <div class="stat-label">Pendapatan Hari Ini</div>
+                        <div class="stat-change" id="todayRevenueChange">
+                            <i class="fas fa-minus"></i>
+                            <span>Memuat...</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon orders">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="pendingOrders">0</div>
+                        <div class="stat-label">Pesanan Pending</div>
+                        <div class="stat-change" id="pendingOrdersChange">
+                            <i class="fas fa-minus"></i>
+                            <span>Memuat...</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon stock">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="monthlyRevenue">Rp 0</div>
                         <div class="stat-label">Pendapatan Bulan Ini</div>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>+8.3% dari bulan lalu</span>
+                        <div class="stat-change" id="monthlyRevenueChange">
+                            <i class="fas fa-minus"></i>
+                            <span>Memuat...</span>
                         </div>
                     </div>
                 </div>
@@ -921,6 +921,7 @@
 
                 this.salesChart = null;
                 this.currentPeriod = '7days';
+                this.revenueData = null;
 
                 this.init();
             }
@@ -1148,26 +1149,186 @@
                 this.salesChart.update('active');
             }
 
-            loadDashboardData() {
-                // Simulate loading dashboard data
-                this.updateStats();
-                this.loadRecentActivity();
+            async loadDashboardData() {
+                try {
+                    console.log('Loading dashboard data...');
+                    
+                    // Load revenue statistics
+                    await this.loadRevenueData();
+                    
+                    // Load order statistics
+                    await this.loadOrderStatistics();
+                    
+                    // Update all stats
+                    this.updateStats();
+                    this.loadRecentActivity();
+                    
+                    console.log('Dashboard data loaded successfully');
+                } catch (error) {
+                    console.error('Error loading dashboard data:', error);
+                    this.showNotification('Gagal memuat data dashboard', 'error');
+                }
+            }
+
+            async loadRevenueData() {
+                try {
+                    const response = await fetch('/admin/api/dashboard/revenue');
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            this.revenueData = result.data;
+                            console.log('Revenue data loaded:', this.revenueData);
+                        } else {
+                            console.error('Failed to load revenue data:', result.message);
+                        }
+                    } else {
+                        console.error('HTTP error loading revenue data:', response.status);
+                    }
+                } catch (error) {
+                    console.error('Error loading revenue data:', error);
+                    // Use fallback data
+                    this.revenueData = {
+                        todayRevenue: 0,
+                        formattedTodayRevenue: 'Rp 0',
+                        monthlyRevenue: 0,
+                        formattedMonthlyRevenue: 'Rp 0',
+                        todayOrderCount: 0,
+                        monthlyOrderCount: 0,
+                        dailyRevenues: [],
+                        monthlyRevenues: []
+                    };
+                }
+            }
+
+            async loadOrderStatistics() {
+                try {
+                    const response = await fetch('/admin/api/orders/statistics');
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            this.orderStats = result.data;
+                            console.log('Order statistics loaded:', this.orderStats);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading order statistics:', error);
+                    this.orderStats = {
+                        pendingPayment: 0,
+                        pendingConfirmation: 0,
+                        totalOrders: 0
+                    };
+                }
             }
 
             updateStats() {
-                // Simulate real-time stats updates
-                const stats = {
-                    todaySales: this.formatCurrency(Math.floor(Math.random() * 50000000) + 30000000),
-                    pendingOrders: Math.floor(Math.random() * 30) + 10,
-                    lowStock: Math.floor(Math.random() * 15) + 5,
-                    monthlyRevenue: this.formatCurrency(Math.floor(Math.random() * 500000000) + 1000000000, true)
-                };
+                if (!this.revenueData) {
+                    console.warn('No revenue data available for stats update');
+                    return;
+                }
 
-                // Update DOM elements
-                document.getElementById('todaySales').textContent = stats.todaySales;
-                document.getElementById('pendingOrders').textContent = stats.pendingOrders;
-                document.getElementById('lowStock').textContent = stats.lowStock;
-                document.getElementById('monthlyRevenue').textContent = stats.monthlyRevenue;
+                // Update today's sales (penjualan hari ini)
+                const todaySalesElement = document.getElementById('todaySales');
+                if (todaySalesElement) {
+                    todaySalesElement.textContent = this.revenueData.formattedTodayRevenue || 'Rp 0';
+                }
+                
+                // Update today's revenue (pendapatan hari ini - same as sales for now)
+                const todayRevenueElement = document.getElementById('todayRevenue');
+                if (todayRevenueElement) {
+                    todayRevenueElement.textContent = this.revenueData.formattedTodayRevenue || 'Rp 0';
+                }
+
+                // Update monthly revenue (pendapatan bulan ini)
+                const monthlyRevenueElement = document.getElementById('monthlyRevenue');
+                if (monthlyRevenueElement) {
+                    monthlyRevenueElement.textContent = this.revenueData.formattedMonthlyRevenue || 'Rp 0';
+                }
+
+                // Update pending orders
+                const pendingOrdersElement = document.getElementById('pendingOrders');
+                if (pendingOrdersElement && this.orderStats) {
+                    const pendingCount = (this.orderStats.pendingPayment || 0) + (this.orderStats.pendingConfirmation || 0);
+                    pendingOrdersElement.textContent = pendingCount;
+                }
+
+                // Update percentage changes
+                this.updatePercentageChanges();
+
+                console.log('Stats updated with real data');
+            }
+
+            updatePercentageChanges() {
+                // Update today's sales percentage change (penjualan hari ini vs kemarin)
+                if (this.revenueData && this.revenueData.dailyRevenues && this.revenueData.dailyRevenues.length >= 2) {
+                    const todayData = this.revenueData.dailyRevenues[0];
+                    const yesterdayData = this.revenueData.dailyRevenues[1];
+                    
+                    const todayAmount = todayData.amount || 0;
+                    const yesterdayAmount = yesterdayData.amount || 0;
+                    
+                    const percentageChange = this.calculatePercentageChange(todayAmount, yesterdayAmount);
+                    this.updateStatChange('todaySales', percentageChange, 'kemarin');
+                }
+                
+                // Update today's revenue percentage change (pendapatan hari ini vs kemarin)
+                if (this.revenueData && this.revenueData.dailyRevenues && this.revenueData.dailyRevenues.length >= 2) {
+                    const todayData = this.revenueData.dailyRevenues[0];
+                    const yesterdayData = this.revenueData.dailyRevenues[1];
+                    
+                    const todayAmount = todayData.amount || 0;
+                    const yesterdayAmount = yesterdayData.amount || 0;
+                    
+                    const percentageChange = this.calculatePercentageChange(todayAmount, yesterdayAmount);
+                    this.updateStatChange('todayRevenue', percentageChange, 'kemarin');
+                }
+
+                // Update monthly revenue percentage change (pendapatan bulan ini vs bulan lalu)
+                if (this.revenueData && this.revenueData.monthlyRevenues && this.revenueData.monthlyRevenues.length >= 2) {
+                    const thisMonthData = this.revenueData.monthlyRevenues[0];
+                    const lastMonthData = this.revenueData.monthlyRevenues[1];
+                    
+                    const thisMonthAmount = thisMonthData.amount || 0;
+                    const lastMonthAmount = lastMonthData.amount || 0;
+                    
+                    const percentageChange = this.calculatePercentageChange(thisMonthAmount, lastMonthAmount);
+                    this.updateStatChange('monthlyRevenue', percentageChange, 'bulan lalu');
+                }
+            }
+
+            calculatePercentageChange(current, previous) {
+                if (previous === 0) {
+                    return current > 0 ? 100 : 0;
+                }
+                return ((current - previous) / previous) * 100;
+            }
+
+            updateStatChange(statId, percentageChange, period) {
+                const statCard = document.getElementById(statId).closest('.stat-card');
+                const statChangeElement = statCard.querySelector('.stat-change');
+                
+                if (!statChangeElement) return;
+
+                const isPositive = percentageChange >= 0;
+                const icon = isPositive ? 'fa-arrow-up' : 'fa-arrow-down';
+                const className = isPositive ? 'positive' : 'negative';
+                const sign = isPositive ? '+' : '';
+                
+                statChangeElement.className = `stat-change ${className}`;
+                statChangeElement.innerHTML = `
+                    <i class="fas ${icon}"></i>
+                    <span>${sign}${Math.abs(percentageChange).toFixed(1)}% dari ${period}</span>
+                `;
+            }
+
+            formatCurrencyShort(amount) {
+                if (amount >= 1000000000) {
+                    return 'Rp ' + (amount / 1000000000).toFixed(1) + 'B';
+                } else if (amount >= 1000000) {
+                    return 'Rp ' + (amount / 1000000).toFixed(1) + 'M';
+                } else if (amount >= 1000) {
+                    return 'Rp ' + (amount / 1000).toFixed(0) + 'K';
+                }
+                return 'Rp ' + amount.toLocaleString('id-ID');
             }
 
             loadRecentActivity() {
@@ -1176,15 +1337,15 @@
             }
 
             startRealTimeUpdates() {
-                // Update stats every 30 seconds
-                setInterval(() => {
-                    this.updateStats();
-                }, 30000);
+                // Update stats every 2 minutes
+                setInterval(async () => {
+                    await this.loadDashboardData();
+                }, 120000);
 
-                // Update activity every 2 minutes
+                // Update activity every 5 minutes
                 setInterval(() => {
                     this.loadRecentActivity();
-                }, 120000);
+                }, 300000);
             }
 
             formatCurrency(amount, short = false) {

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,14 +33,29 @@ public class OrderManagementService {
     private final OrderItemRepository orderItemRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
     
+    @Autowired
+    private RevenueService revenueService;
+    
     /**
      * Get all orders with pagination
      */
     public Page<Order> getAllOrders(int page, int size, String sortBy, String sortDirection) {
-        Sort sort = sortDirection.equalsIgnoreCase("desc") ? 
-            Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-        return orderRepository.findAllOrderByCreatedAtDesc(pageable);
+        try {
+            log.info("📦 Getting orders - page: {}, size: {}, sortBy: {}, sortDirection: {}", page, size, sortBy, sortDirection);
+
+            Sort sort = sortDirection.equalsIgnoreCase("desc") ?
+                Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+            Pageable pageable = PageRequest.of(page, size, sort);
+
+            Page<Order> orders = orderRepository.findAllOrderByCreatedAtDesc(pageable);
+            log.info("✅ Found {} orders out of {} total", orders.getNumberOfElements(), orders.getTotalElements());
+
+            return orders;
+        } catch (Exception e) {
+            log.error("❌ Error getting all orders: {}", e.getMessage(), e);
+            // Return empty page instead of throwing exception
+            return Page.empty();
+        }
     }
     
     /**
@@ -115,6 +131,16 @@ public class OrderManagementService {
         Order savedOrder = orderRepository.save(order);
         log.info("Order {} dikonfirmasi oleh admin", orderId);
         
+        // Record revenue when order is confirmed
+        try {
+            String confirmedBy = "Admin"; // You can get actual admin name from security context
+            revenueService.recordRevenue(savedOrder, confirmedBy);
+            log.info("Revenue recorded for order: {} with amount: {}", savedOrder.getOrderNumber(), savedOrder.getTotalAmount());
+        } catch (Exception e) {
+            log.error("Failed to record revenue for order: {}", savedOrder.getOrderNumber(), e);
+            // Don't throw exception here to avoid breaking the order confirmation process
+        }
+        
         return savedOrder;
     }
     
@@ -178,25 +204,40 @@ public class OrderManagementService {
      * Get order statistics
      */
     public OrderStatistics getOrderStatistics() {
-        long totalOrders = orderRepository.count();
-        long pendingPayment = orderRepository.countByStatus(OrderStatus.PENDING_PAYMENT);
-        long pendingConfirmation = orderRepository.countByStatus(OrderStatus.PENDING_CONFIRMATION);
-        long paid = orderRepository.countByStatus(OrderStatus.PAID);
-        long processing = orderRepository.countByStatus(OrderStatus.PROCESSING);
-        long shipped = orderRepository.countByStatus(OrderStatus.SHIPPED);
-        long delivered = orderRepository.countByStatus(OrderStatus.DELIVERED);
-        long cancelled = orderRepository.countByStatus(OrderStatus.CANCELLED);
-        
-        return OrderStatistics.builder()
-            .totalOrders(totalOrders)
-            .pendingPayment(pendingPayment)
-            .pendingConfirmation(pendingConfirmation)
-            .paid(paid)
-            .processing(processing)
-            .shipped(shipped)
-            .delivered(delivered)
-            .cancelled(cancelled)
-            .build();
+        try {
+            long totalOrders = orderRepository.count();
+            long pendingPayment = orderRepository.countByStatus(OrderStatus.PENDING_PAYMENT);
+            long pendingConfirmation = orderRepository.countByStatus(OrderStatus.PENDING_CONFIRMATION);
+            long paid = orderRepository.countByStatus(OrderStatus.PAID);
+            long processing = orderRepository.countByStatus(OrderStatus.PROCESSING);
+            long shipped = orderRepository.countByStatus(OrderStatus.SHIPPED);
+            long delivered = orderRepository.countByStatus(OrderStatus.DELIVERED);
+            long cancelled = orderRepository.countByStatus(OrderStatus.CANCELLED);
+
+            return OrderStatistics.builder()
+                .totalOrders(totalOrders)
+                .pendingPayment(pendingPayment)
+                .pendingConfirmation(pendingConfirmation)
+                .paid(paid)
+                .processing(processing)
+                .shipped(shipped)
+                .delivered(delivered)
+                .cancelled(cancelled)
+                .build();
+        } catch (Exception e) {
+            log.error("❌ Error getting order statistics: {}", e.getMessage(), e);
+            // Return empty statistics instead of throwing exception
+            return OrderStatistics.builder()
+                .totalOrders(0)
+                .pendingPayment(0)
+                .pendingConfirmation(0)
+                .paid(0)
+                .processing(0)
+                .shipped(0)
+                .delivered(0)
+                .cancelled(0)
+                .build();
+        }
     }
     
     /**
@@ -239,7 +280,19 @@ public class OrderManagementService {
         order.setPaidAt(LocalDateTime.now());
         order.setNotes(adminNotes != null ? adminNotes : "Pembayaran dikonfirmasi oleh admin");
         
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        
+        // Record revenue when payment is confirmed
+        try {
+            String confirmedBy = "Admin"; // You can get actual admin name from security context
+            revenueService.recordRevenue(savedOrder, confirmedBy);
+            log.info("Revenue recorded for payment confirmation: {} with amount: {}", savedOrder.getOrderNumber(), savedOrder.getTotalAmount());
+        } catch (Exception e) {
+            log.error("Failed to record revenue for payment confirmation: {}", savedOrder.getOrderNumber(), e);
+            // Don't throw exception here to avoid breaking the payment confirmation process
+        }
+        
+        return savedOrder;
     }
 
     /**
@@ -268,10 +321,37 @@ public class OrderManagementService {
     }
 
     /**
+     * Delete order and all related data
+     */
+    @Transactional
+    public void deleteOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new IllegalArgumentException("Order tidak ditemukan: " + orderId));
+
+        // Delete order items first
+        List<OrderItem> orderItems = orderItemRepository.findByOrderIdWithProduct(orderId);
+        if (!orderItems.isEmpty()) {
+            orderItemRepository.deleteAll(orderItems);
+            log.info("Deleted {} order items for order {}", orderItems.size(), orderId);
+        }
+
+        // Delete payment transactions
+        List<PaymentTransaction> transactions = paymentTransactionRepository.findByOrder(order);
+        if (!transactions.isEmpty()) {
+            paymentTransactionRepository.deleteAll(transactions);
+            log.info("Deleted {} payment transactions for order {}", transactions.size(), orderId);
+        }
+
+        // Delete the order
+        orderRepository.delete(order);
+        log.info("Order {} deleted successfully", orderId);
+    }
+
+    /**
      * Get order items
      */
     public List<OrderItem> getOrderItems(Long orderId) {
-        return orderItemRepository.findByOrderId(orderId);
+        return orderItemRepository.findByOrderIdWithProduct(orderId);
     }
 
     /**

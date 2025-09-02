@@ -29,6 +29,7 @@ public class SecurityConfig {
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                 http
                                 .authorizeHttpRequests(auth -> auth
+                                                // Public endpoints - no authentication required (order matters!)
                                                 .requestMatchers(
                                                                 "/auth/**",
                                                                 "/css/**",
@@ -37,18 +38,27 @@ public class SecurityConfig {
                                                                 "/assets/img/**",
                                                                 "/favicon.ico",
                                                                 "/error/**",
-                                                                "/admin/**",
-                                                                "/user/**",
                                                                 "/gold-price/**",
-                                                                "/api/cart/**")
+                                                                "/validasi/**") // Allow all public endpoints
                                                 .permitAll()
+                                                // // Specific user endpoints that should be public
+                                                // .requestMatchers(
+                                                // "/user/products/**", // Allow public access to product endpoints
+                                                // "/user/current/**", // Allow public access to current user endpoint
+                                                // "/user/home", // Allow public access to user home page
+                                                // "/user/katalog") // Allow public access to user catalog page
+                                                // .permitAll()
+                                                // Swagger documentation endpoints
                                                 .requestMatchers(
                                                                 "/v3/api-docs/**",
                                                                 "/swagger-ui/**",
                                                                 "/swagger-ui.html")
                                                 .permitAll()
+                                                // Admin endpoints - require ADMIN role
                                                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                                                // .requestMatchers("/user/**").permitAll()
+                                                // Remaining user endpoints - require USER role
+                                                .requestMatchers("/user/**").hasRole("USER")
+                                                // Any other request requires authentication
                                                 .anyRequest().authenticated())
                                 .csrf(csrf -> csrf.disable())
                                 .httpBasic(httpBasic -> httpBasic.disable())

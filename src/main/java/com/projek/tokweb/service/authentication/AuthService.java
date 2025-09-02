@@ -36,14 +36,49 @@ public class AuthService {
     @Autowired
     private EmailService emailService;
 
-    public void register(RegisterRequest request) {
-        User user = User.builder()
-                .namaLengkap(request.getNamaDepan() + " " + request.getNamaBelakang())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .nomorHp(request.getNomorHp())
-                .terferifikasi(true).build();
-        userRespository.save(user);
+    public Map<String, Object> register(RegisterRequest request) {
+        try {
+            // Check if email already exists
+            if (emailSudahTerdaftar(request.getEmail())) {
+                return Map.of(
+                    "success", false, 
+                    "message", "Email sudah terdaftar. Silakan gunakan email lain atau login."
+                );
+            }
+            
+            // Check if phone number already exists
+            if (nomorHPSudahTerdaftar(request.getNomorHp())) {
+                return Map.of(
+                    "success", false, 
+                    "message", "Nomor HP sudah terdaftar. Silakan gunakan nomor HP lain."
+                );
+            }
+            
+            // Create new user
+            User user = User.builder()
+                    .namaLengkap(request.getNamaDepan() + " " + request.getNamaBelakang())
+                    .email(request.getEmail())
+                    .password(passwordEncoder.encode(request.getPassword()))
+                    .nomorHp(request.getNomorHp())
+                    .role(Role.USER)
+                    .terferifikasi(true)
+                    .build();
+            
+            userRespository.save(user);
+            
+            return Map.of(
+                "success", true, 
+                "message", "Akun berhasil didaftarkan! Silakan login."
+            );
+            
+        } catch (Exception e) {
+            System.err.println("Error during registration: " + e.getMessage());
+            e.printStackTrace();
+            return Map.of(
+                "success", false, 
+                "message", "Terjadi kesalahan saat mendaftarkan akun. Silakan coba lagi."
+            );
+        }
     }
 
     public String login(LoginRequest request) throws MessagingException {

@@ -84,52 +84,59 @@ registerForm.addEventListener('submit', async function (e) {
             return;
         }
 
-        fetch(`/auth/register`, {
+        const response = await fetch(`/auth/register`, {
             method: 'POST',
             body: new FormData(document.getElementById('registerForm'))
-        })
-            .then(async response => {
-                if (!response.ok) {
-                    console.log("INI SAYA");
-                    alertSystem.error(
-                        'Error!',
-                        'Terjadi kesalahan saat memproses permintaan.',
-                        5000
-                    );
-                    addShakeAnimation(registerForm);
-                    return;
-                }
-                const result = await response.json();
+        });
+        
+        const result = await response.json();
+        console.log('Register response:', result);
+        
+        if (result.success) {
+            // Success
+            alertSystem.success(
+                'Registrasi Berhasil! 🎉',
+                result.message || `Selamat datang ${firstName} ${lastName}! Akun Anda telah berhasil dibuat.`,
+                5000
+            );
+            
+            registerForm.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                registerForm.style.transform = 'scale(1)';
+            }, 200);
+            
+            setTimeout(() => {
+                registerForm.reset();
                 alertSystem.success(
-                    'Registrasi Berhasil! 🎉',
-                    `Selamat datang ${firstName} ${lastName}! Akun Anda telah berhasil dibuat.`,
-                    5000
+                    'Akun Siap Digunakan',
+                    'Silakan login dengan akun baru Anda untuk mulai berbelanja!'
                 );
-                registerForm.style.transform = 'scale(1.02)';
-                setTimeout(() => {
-                    registerForm.style.transform = 'scale(1)';
-                }, 200);
-                setTimeout(() => {
-                    registerForm.reset();
-                    alertSystem.success(
-                        'Akun Siap Digunakan',
-                        'Silakan login dengan akun baru Anda untuk mulai berbelanja!'
-                    );
 
-                    setTimeout(() => {
-                        authContainer.classList.remove('show-register');
-                        document.getElementById('loginEmail').value = email;
-                        alertSystem.info('Formulir Login', 'Email Anda telah diisi otomatis. Masukkan password untuk login.', 3000);
-                    }, 4000);
-                }, 5000);
-            }).catch(errorNya => {
-                nsole.error('Error:', errorNya);
+                setTimeout(() => {
+                    authContainer.classList.remove('show-register');
+                    document.getElementById('loginEmail').value = email;
+                    alertSystem.info('Formulir Login', 'Email Anda telah diisi otomatis. Masukkan password untuk login.', 3000);
+                }, 3000);
+            }, 2000);
+        } else {
+            // Handle specific errors
+            if (result.errors) {
+                // Validation errors
+                let errorMessage = 'Data tidak valid:';
+                Object.entries(result.errors).forEach(([field, message]) => {
+                    errorMessage += `\n• ${message}`;
+                });
+                alertSystem.error('Validasi Gagal', errorMessage, 5000);
+            } else {
+                // General error
                 alertSystem.error(
-                    'Kesalahan Sistem',
-                    'Gagal Menghubungi Server.',
+                    'Registrasi Gagal',
+                    result.message || 'Terjadi kesalahan saat mendaftarkan akun.',
                     5000
                 );
-            })
+            }
+            addShakeAnimation(registerForm);
+        }
 
         // Check if email already exists (simulation)
         // const existingEmails = ['admin@aureliagold.com', 'user@aureliagold.com'];

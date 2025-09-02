@@ -780,6 +780,7 @@
                 <ul class="nav-menu">
                     <li><a href="/user/home" class="nav-link">Beranda</a></li>
                     <li><a href="/user/katalog" class="nav-link">Katalog</a></li>
+                    <li><a href="/user/my-orders" class="nav-link">Pesanan</a></li>
                     <li><a href="#" class="nav-link">Tentang Kami</a></li>
                     <li><a href="#" class="nav-link">Kontak</a></li>
                 </ul>
@@ -1078,7 +1079,24 @@
                 else if (data?.data && Array.isArray(data.data)) products = data.data;
                 else if (data?.content && Array.isArray(data.content)) products = data.content;
 
-                if (!products.length) return; // biarkan sample card statis jika kosong
+                // Jika produk kosong, tampilkan pesan keterangan
+                if (!products.length) {
+                    container.innerHTML = `
+                        <div class="no-products-message" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #666; background: #f8fafc; border-radius: 15px; margin: 20px 0;">
+                            <i class="fas fa-gem" style="font-size: 64px; margin-bottom: 24px; color: #d4af37; opacity: 0.7;"></i>
+                            <h3 style="font-size: 24px; margin-bottom: 12px; color: #374151;">Belum Ada Produk Tersedia</h3>
+                            <p style="font-size: 16px; line-height: 1.6; max-width: 500px; margin: 0 auto 24px; color: #6b7280;">
+                                Koleksi perhiasan emas kami sedang dalam persiapan. <br>
+                                Produk-produk berkualitas akan segera hadir untuk Anda.
+                            </p>
+                            <div style="background: linear-gradient(135deg, #d4af37, #b8860b); color: #0a0a0a; padding: 12px 24px; border-radius: 25px; display: inline-block; font-weight: 600; font-size: 14px;">
+                                <i class="fas fa-clock" style="margin-right: 8px;"></i>
+                                Segera Hadir
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
 
                 const html = products.map(r => {
                     const p = this.normalizeProduct(r);
@@ -1172,7 +1190,7 @@
                         return;
                     }
                     
-                    const response = await fetch('/api/cart/add', {
+                    const response = await fetch('/user/api/cart/add', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json', // Ubah ke JSON
@@ -1741,14 +1759,34 @@
 
             async loadCategories() {
                 try {
-                    // Ambil semua produk aktif (untuk hitung kategori)
-                    const res = await fetch('/admin/products/active?page=0&size=100');
-                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                    const payload = await res.json();
-                    this.renderCategories(payload);
+                    // Gunakan endpoint user yang baru
+                    let res, payload;
+                    
+                    // Coba endpoint public/products/active terlebih dahulu
+                    try {
+                        res = await fetch('/public/products/active?page=0&size=100');
+                        if (res.ok) {
+                            const contentType = res.headers.get('content-type');
+                            if (contentType && contentType.includes('application/json')) {
+                                payload = await res.json();
+                                console.log('Categories loaded from public endpoint:', payload);
+                                this.renderCategories(payload);
+                                return;
+                            }
+                        }
+                    } catch (error) {
+                        console.log('Public products endpoint error:', error.message);
+                    }
+                    
+                    // Fallback: tampilkan kategori default dengan 0 produk
+                    console.log('Using default categories (no products available)');
+                    this.renderCategories({ data: { content: [] } });
+                    
                 } catch (e) {
                     console.error('Error loading categories:', e);
-                    this.showError('categoriesGrid', 'Gagal memuat kategori');
+                    // Tampilkan kategori default daripada error
+                    console.log('Showing default categories due to error');
+                    this.renderCategories({ data: { content: [] } });
                 }
             }
 
@@ -1840,21 +1878,49 @@
             // Tambahkan method loadFeaturedProducts yang hilang
             async loadFeaturedProducts() {
                 try {
-                    // Ambil produk aktif untuk ditampilkan di beranda
-                    const res = await fetch('/admin/products/active?page=0&size=8');
-                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                    const payload = await res.json();
-                    this.renderFeaturedProducts(payload);
+                    // Gunakan endpoint public yang baru
+                    let res, payload;
+                    
+                    // Coba endpoint public/products/active terlebih dahulu
+                    try {
+                        res = await fetch('/public/products/active?page=0&size=8');
+                        if (res.ok) {
+                            const contentType = res.headers.get('content-type');
+                            if (contentType && contentType.includes('application/json')) {
+                                payload = await res.json();
+                                console.log('Featured products loaded from public endpoint:', payload);
+                                this.renderFeaturedProducts(payload);
+                                return;
+                            } else {
+                                console.log('Public products endpoint returned non-JSON response');
+                            }
+                        } else {
+                            console.log('Public products endpoint HTTP error:', res.status);
+                        }
+                    } catch (error) {
+                        console.log('Public products endpoint error:', error.message);
+                    }
+                    
+                    // Fallback: tampilkan pesan produk kosong dengan desain yang menarik
+                    console.log('Using fallback - no products available');
+                    this.renderFeaturedProducts({ data: { content: [] } });
+                    
                 } catch (e) {
                     console.error('Error loading featured products:', e);
-                    // Tampilkan pesan keterangan jika gagal
+                    // Tampilkan pesan keterangan jika terjadi error fatal
                     const container = document.querySelector('.products-grid');
                     if (container) {
                         container.innerHTML = `
-                            <div class="no-products-message" style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
-                                <i class="fas fa-info-circle" style="font-size: 48px; margin-bottom: 16px; color: #3b82f6;"></i>
-                                <h3>Belum ada produk tersedia</h3>
-                                <p>Produk akan ditampilkan di sini setelah admin menambahkan produk baru.</p>
+                            <div class="no-products-message" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #666; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 15px; margin: 20px 0;">
+                                <i class="fas fa-exclamation-triangle" style="font-size: 64px; margin-bottom: 24px; color: #856404; opacity: 0.7;"></i>
+                                <h3 style="font-size: 24px; margin-bottom: 12px; color: #856404;">Produk Sedang Dimuat</h3>
+                                <p style="font-size: 16px; line-height: 1.6; max-width: 500px; margin: 0 auto 24px; color: #856404;">
+                                    Produk akan ditampilkan di sini setelah admin menambahkan koleksi emas.
+                                </p>
+                                <div style="background: linear-gradient(135deg, #d4af37, #b8860b); color: #ffffff; padding: 12px 24px; border-radius: 25px; display: inline-block; font-weight: 600; font-size: 14px; cursor: pointer;" onclick="window.location.reload();">
+                                    <i class="fas fa-refresh" style="margin-right: 8px;"></i>
+                                    Muat Ulang
+                                </div>
                             </div>
                         `;
                     }
@@ -1871,7 +1937,7 @@
                         return;
                     }
 
-                    const response = await fetch(`/api/cart?userId=${userId}`);
+                    const response = await fetch(`/user/api/cart?userId=${userId}`);
                     if (response.ok) {
                         const result = await response.json();
                         if (result.success) {

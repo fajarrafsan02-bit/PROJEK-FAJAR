@@ -304,6 +304,26 @@ public class ProductService {
         Page<Product> productPage = getAllActiveProductsWithPagination(page, size, sortBy, sortDirection);
         return productPage.map(ProductResponseDto::fromProduct);
     }
+    
+    public Page<Product> searchActiveProductsWithPagination(String keyword, int page, int size, String sortBy,
+            String sortDirection) {
+        Sort sort = sortDirection.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return productRepository.findByIsActiveTrue(pageable);
+        }
+
+        return productRepository
+                .findByIsActiveTrueAndNameContainingIgnoreCaseOrIsActiveTrueAndDescriptionContainingIgnoreCaseOrIsActiveTrueAndCategoryContainingIgnoreCase(
+                        keyword.trim(), keyword.trim(), keyword.trim(), pageable);
+    }
+
+    public Page<ProductResponseDto> searchActiveProductsWithPaginationAndFormattedResponse(String keyword, int page, int size,
+            String sortBy, String sortDirection) {
+        Page<Product> productPage = searchActiveProductsWithPagination(keyword, page, size, sortBy, sortDirection);
+        return productPage.map(ProductResponseDto::fromProduct);
+    }
 
     public void deleteProduct(Long productId) {
         Product existingProduct = productRepository.findById(productId)

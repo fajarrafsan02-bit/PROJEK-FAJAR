@@ -105,16 +105,37 @@ public class AuthControllerApi {
     @PostMapping("/register")
     public ResponseEntity<?> handleRegister(@ModelAttribute("registerRequest") @Valid RegisterRequest request,
             BindingResult result) {
-        if (result.hasErrors()) {
-            Map<String, String> errors = new HashMap<>();
-            result.getFieldErrors().forEach(error -> {
-                errors.put(error.getField(), error.getDefaultMessage());
-            });
-            return ResponseEntity.badRequest().body(errors);
+        try {
+            // Check for validation errors first
+            if (result.hasErrors()) {
+                Map<String, String> errors = new HashMap<>();
+                result.getFieldErrors().forEach(error -> {
+                    errors.put(error.getField(), error.getDefaultMessage());
+                });
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Data tidak valid",
+                    "errors", errors
+                ));
+            }
+            
+            // Call register service
+            Map<String, Object> registerResult = authService.register(request);
+            
+            if ((Boolean) registerResult.get("success")) {
+                return ResponseEntity.ok(registerResult);
+            } else {
+                return ResponseEntity.badRequest().body(registerResult);
+            }
+            
+        } catch (Exception e) {
+            System.err.println("Registration error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "success", false,
+                "message", "Terjadi kesalahan pada server. Silakan coba lagi."
+            ));
         }
-
-        authService.register(request);
-        return ResponseEntity.ok(Map.of("message", "AKUN ANDA BERHASIL DI DAFTAR"));
     }
 
     @PostMapping("/verifikasi-token")
