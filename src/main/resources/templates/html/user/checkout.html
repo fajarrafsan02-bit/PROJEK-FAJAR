@@ -726,12 +726,12 @@
                     <li><a href="/user/home" class="nav-link">Beranda</a></li>
                     <li><a href="/user/katalog" class="nav-link">Katalog</a></li>
                     <li><a href="/user/my-orders" class="nav-link">Pesanan</a></li>
-                    <li><a href="#" class="nav-link">Tentang Kami</a></li>
-                    <li><a href="#" class="nav-link">Kontak</a></li>
+                    <li><a href="/user/about" class="nav-link">Tentang Kami</a></li>
+                    <li><a href="/user/contact" class="nav-link">Kontak</a></li>
                 </ul>
 
                 <div class="nav-icons">
-                    <a href="#" class="nav-icon" title="Wishlist">
+                    <a href="/user/wishlist" class="nav-icon" title="Wishlist">
                         <i class="fas fa-heart"></i>
                         <span class="cart-badge" id="wishlistBadge">0</span>
                     </a>
@@ -1577,24 +1577,55 @@
                 try {
                     console.log('🗑️ Clearing cart after successful payment proof upload...');
 
-                    // Clear from localStorage (database is already cleared during checkout)
+                    // 1. Clear from localStorage first
                     localStorage.removeItem('cart');
                     localStorage.removeItem('checkoutData');
+                    localStorage.removeItem('cartChanged'); // Clear change flag
                     console.log('✅ Cart cleared from localStorage');
 
-                    // Update cart data
+                    // 2. Update local cart data
                     this.cart = [];
                     this.checkoutData = {};
 
-                    // Update badges immediately
+                    // 3. Force refresh cart from database to ensure it's empty
+                    try {
+                        const userId = await this.getCurrentUserId();
+                        if (userId) {
+                            console.log('🔄 Force refreshing cart from database for user:', userId);
+                            const response = await fetch(`/user/api/cart?userId=${userId}`);
+                            if (response.ok) {
+                                const result = await response.json();
+                                console.log('📥 Current cart from database after checkout:', result);
+                                if (result.success && result.data && result.data.items && result.data.items.length > 0) {
+                                    console.log('⚠️ Cart not empty in database, items still present:', result.data.items.length);
+                                } else {
+                                    console.log('✅ Cart confirmed empty in database');
+                                }
+                            }
+                        }
+                    } catch (dbError) {
+                        console.warn('⚠️ Could not verify database cart status:', dbError);
+                    }
+
+                    // 4. Update badges immediately
                     this.updateBadges();
 
-                    console.log('✅ Cart clearing completed');
+                    // 5. Trigger global cart refresh for all other pages/tabs
+                    if (window.CartBadgeManager) {
+                        console.log('🔄 Triggering global cart refresh...');
+                        await CartBadgeManager.forceRefresh();
+                        CartBadgeManager.triggerCartUpdate({ action: 'cleared_after_checkout' });
+                    }
+
+                    // 6. Set storage flag to notify other tabs
+                    localStorage.setItem('cartCleared', Date.now().toString());
+
+                    console.log('✅ Cart clearing completed successfully');
                     this.showNotification('Keranjang berhasil dikosongkan setelah pembayaran!', 'success');
 
                 } catch (error) {
                     console.error('❌ Error clearing cart:', error);
-                    this.showNotification('Keranjang dikosongkan dari browser', 'warning');
+                    this.showNotification('Ada masalah saat mengosongkan keranjang, silakan refresh halaman', 'warning');
                 }
             }
 

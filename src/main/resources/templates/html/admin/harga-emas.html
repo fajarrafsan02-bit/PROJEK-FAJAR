@@ -441,6 +441,34 @@
             margin-bottom: 20px;
         }
 
+        /* Global alert styles */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 0;
+            border: 1px solid transparent;
+        }
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info-color);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
         .api-status .alert {
             padding: 15px;
             border-radius: 8px;
@@ -1039,6 +1067,9 @@
                         <button class="btn btn-secondary" id="debugBtn" style="background: var(--warning-color);"><i class="fas fa-bug"></i> Debug</button>
                     </div>
                 </div>
+
+                <!-- UI Update Message Area -->
+                <div id="updateMessage" class="alert alert-info mt-3" style="display: none; margin-bottom: 16px;"></div>
 
                 <!-- Current Prices -->
                 <div class="current-prices" id="currentPrices">
@@ -2745,8 +2776,14 @@
                         const result = await response.json();
                         
                         if (result.success) {
-                            this.showUpdateMessage(`Update berhasil! Harga yang diupdate: ${updateMessage}`, 'success');
-                            this.showNotification('Update harga emas berhasil!', 'success');
+                            const lowerMsg = (result.message || '').toLowerCase();
+                            if (lowerMsg.includes('tidak berubah') || lowerMsg.includes('tidak perlu') || lowerMsg.includes('stabil')) {
+                                this.showUpdateMessage('Harga emas tidak berubah - menggunakan data terbaru yang sudah ada.', 'info');
+                                this.showNotification('Harga emas tidak berubah - menggunakan data terbaru yang sudah ada.', 'info');
+                            } else {
+                                this.showUpdateMessage(`Update berhasil! Harga yang diupdate: ${updateMessage}`, 'success');
+                                this.showNotification('Update harga emas berhasil!', 'success');
+                            }
                             
                             // Tunggu lebih lama agar backend selesai menyimpan data perubahan harga
                             await new Promise(resolve => setTimeout(resolve, 2000));

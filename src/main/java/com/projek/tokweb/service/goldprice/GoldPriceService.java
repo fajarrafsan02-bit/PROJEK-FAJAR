@@ -39,6 +39,8 @@ import com.projek.tokweb.config.ApplicationContextProvider;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.ApplicationEventPublisher;
 import com.projek.tokweb.event.GoldPriceUpdateEvent;
+import com.projek.tokweb.models.activity.ActivityType;
+import com.projek.tokweb.service.activity.ActivityLogService;
 
 
 @Service
@@ -53,6 +55,7 @@ public class GoldPriceService {
     private final GoldPriceChangeRepository goldPriceChangeRepository;
     private final ProductRepository productRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final ActivityLogService activityLogService;
 
     private final String API_URL = "https://gold.g.apised.com/v1/latest?metals=XAU&base_currency=IDR&weight_unit=gram";
     private final String API_KEY = "sk_Ac8d607d6205eBe1DEb1b0B627Aaa04c3D51FB8bD70951e3";
@@ -418,6 +421,18 @@ public class GoldPriceService {
 
             savePriceChange(purity + "k", oldHargaJual, roundedHargaJual, "MANUAL", "Update manual harga emas (dibulatkan)");
 
+            // Log aktivitas: update manual harga emas
+            activityLogService.logGoldPriceActivity(
+                ActivityType.GOLD_PRICE_UPDATE_MANUAL,
+                "Update Manual Harga Emas",
+                String.format("Harga emas %dk berhasil diupdate secara manual. %s -> %s", 
+                    purity,
+                    oldHargaJual > 0 ? String.format("Rp %.0f", oldHargaJual) : "N/A", 
+                    String.format("Rp %.0f", roundedHargaJual)),
+                "ADMIN", "Admin User", purity + "k",
+                oldHargaJual, roundedHargaJual, "Manual Update"
+            );
+
             return goldPriceRepository.save(newPrice);
 
         } catch (Exception e) {
@@ -498,6 +513,18 @@ public class GoldPriceService {
             
             // 18K - perubahan langsung
             savePriceChange("18k", latestPrice.getHargaJual18k(), roundedHargaJual18k, "MANUAL", "Update manual harga emas 18k");
+            
+            // Log aktivitas: update manual semua harga emas
+            activityLogService.logGoldPriceActivity(
+                ActivityType.GOLD_PRICE_UPDATE_MANUAL,
+                "Update Manual Semua Harga Emas",
+                String.format("Semua harga emas berhasil diupdate secara manual. 24K: %s, 22K: %s, 18K: %s", 
+                    String.format("Rp %.0f", roundedHargaJual24k), 
+                    String.format("Rp %.0f", roundedHargaJual22k), 
+                    String.format("Rp %.0f", roundedHargaJual18k)),
+                "ADMIN", "Admin User", "ALL",
+                null, null, "Manual Update All"
+            );
 
             GoldPrice savedPrice = goldPriceRepository.save(newPrice);
             log.info(">> Update manual semua harga emas berhasil disimpan (dibulatkan)");
@@ -608,36 +635,32 @@ public class GoldPriceService {
     }
 
     /**
-     * Update harga emas dari request dengan trigger event
+     * Update harga emas dari request dengan INSERT data baru (tidak update yang lama)
+     * Method ini mendukung update hanya dengan harga 24k (untuk backward compatibility)
      */
     @Transactional
     public GoldPrice updateGoldPriceFromRequest(double newHarga24k) {
         try {
-            log.info(">> Service: Memulai update harga emas dari request: {}", newHarga24k);
+            log.info(">> Service: Memulai insert harga emas baru dari request: {}", newHarga24k);
             
             // Validasi input
             if (newHarga24k <= 0) {
                 throw new RuntimeException("Harga 24K harus lebih dari 0");
             }
             
-            // Ambil harga emas terbaru
+            // Ambil harga emas terbaru untuk perbandingan saja (tidak untuk diupdate)
             GoldPrice latestGoldPrice = null;
             try {
                 latestGoldPrice = getLatestGoldPrice();
+                log.info(">> Service: Harga emas lama (untuk perbandingan): {}", latestGoldPrice);
             } catch (RuntimeException e) {
-                throw new RuntimeException("Tidak ada data harga emas yang tersedia");
+                log.info(">> Service: Tidak ada harga emas sebelumnya, ini akan menjadi data pertama");
             }
             
-            if (latestGoldPrice == null) {
-                throw new RuntimeException("Tidak ada data harga emas yang tersedia");
-            }
-            
-            log.info(">> Service: Harga emas lama: {}", latestGoldPrice);
-            
-            // Ambil harga lama untuk perbandingan yang benar
-            double oldHarga24k = latestGoldPrice.getHargaJual24k();
-            double oldHarga22k = latestGoldPrice.getHargaJual22k();
-            double oldHarga18k = latestGoldPrice.getHargaJual18k();
+            // Ambil harga lama untuk perbandingan
+            double oldHarga24k = latestGoldPrice != null ? latestGoldPrice.getHargaJual24k() : 0;
+            double oldHarga22k = latestGoldPrice != null ? latestGoldPrice.getHargaJual22k() : 0;
+            double oldHarga18k = latestGoldPrice != null ? latestGoldPrice.getHargaJual18k() : 0;
             
             // Hitung perubahan untuk 24K
             double changeAmount24k = newHarga24k - oldHarga24k;
@@ -646,53 +669,105 @@ public class GoldPriceService {
             log.info(">> Service: Perubahan harga 24K: {} -> {} ({}%, {})", 
                 oldHarga24k, newHarga24k, changePercent24k, changeAmount24k);
             
-            // Update harga emas
-            latestGoldPrice.setHargaJual24k(newHarga24k);
-            latestGoldPrice.setTanggalAmbil(LocalDateTime.now());
+            // Hitung harga berdasarkan kadar kemurnian dengan rasio yang benar
+            Map<String, Double> hargaJual = calculatePricesByPurity(newHarga24k, true);
+            Map<String, Double> hargaBeli = calculatePricesByPurity(newHarga24k, false);
             
-            // Hitung ulang harga berdasarkan kadar kemurnian dengan rasio yang benar
-            Map<String, Double> newPrices = calculatePricesByPurity(newHarga24k, true);
-            latestGoldPrice.setHargaJual24k(newPrices.get("24k"));
-            latestGoldPrice.setHargaJual22k(newPrices.get("22k"));
-            latestGoldPrice.setHargaJual18k(newPrices.get("18k"));
+            // VALIDASI: Cek apakah semua harga sama dengan data terbaru (toleransi 1 rupiah)
+            if (latestGoldPrice != null) {
+                double tolerance = 1.0; // Toleransi 1 rupiah untuk menghindari perbedaan pembulatan
+                
+                boolean allPricesSame = 
+                    Math.abs(hargaJual.get("24k") - latestGoldPrice.getHargaJual24k()) < tolerance &&
+                    Math.abs(hargaJual.get("22k") - latestGoldPrice.getHargaJual22k()) < tolerance &&
+                    Math.abs(hargaJual.get("18k") - latestGoldPrice.getHargaJual18k()) < tolerance;
+                
+                if (allPricesSame) {
+                    log.info(">> Service: Semua harga emas sama dengan data terbaru, tidak perlu INSERT baru");
+                    log.info(">> Service: Harga di database - 24K: {}, 22K: {}, 18K: {}", 
+                        latestGoldPrice.getHargaJual24k(), 
+                        latestGoldPrice.getHargaJual22k(), 
+                        latestGoldPrice.getHargaJual18k());
+                    log.info(">> Service: Harga dari API - 24K: {}, 22K: {}, 18K: {}", 
+                        hargaJual.get("24k"), hargaJual.get("22k"), hargaJual.get("18k"));
+                    log.info(">> Service: Data terakhir diupdate: {}", latestGoldPrice.getTanggalAmbil());
+                    
+                    // Log aktivitas: harga tidak berubah
+                    activityLogService.logGoldPriceActivity(
+                        ActivityType.GOLD_PRICE_NO_CHANGE,
+                        "Harga Emas Tidak Berubah",
+                        "Update harga emas dari API eksternal tidak dilakukan karena harga sama dengan data terbaru",
+                        "SYSTEM", "External API", "ALL",
+                        oldHarga24k, newHarga24k, "External API"
+                    );
+                    
+                    // Tambahkan properti khusus untuk menandai bahwa data tidak berubah
+                    // Kita akan gunakan ini di controller untuk memberikan keterangan yang tepat
+                    return latestGoldPrice;
+                }
+                
+                log.info(">> Service: Ada perubahan harga, akan melakukan INSERT data baru");
+                log.info(">> Service: Perubahan - 24K: {} -> {}, 22K: {} -> {}, 18K: {} -> {}", 
+                    latestGoldPrice.getHargaJual24k(), hargaJual.get("24k"),
+                    latestGoldPrice.getHargaJual22k(), hargaJual.get("22k"),
+                    latestGoldPrice.getHargaJual18k(), hargaJual.get("18k"));
+            }
             
-            newPrices = calculatePricesByPurity(newHarga24k, false);
-            latestGoldPrice.setHargaBeli24k(newPrices.get("24k"));
-            latestGoldPrice.setHargaBeli22k(newPrices.get("22k"));
-            latestGoldPrice.setHargaBeli18k(newPrices.get("18k"));
+            // BUAT DATA BARU (INSERT) - hanya jika ada perubahan harga
+            GoldPrice newGoldPrice = GoldPrice.builder()
+                    .hargaJual24k(hargaJual.get("24k"))
+                    .hargaBeli24k(hargaBeli.get("24k"))
+                    .hargaJual22k(hargaJual.get("22k"))
+                    .hargaBeli22k(hargaBeli.get("22k"))
+                    .hargaJual18k(hargaJual.get("18k"))
+                    .hargaBeli18k(hargaBeli.get("18k"))
+                    .tanggalAmbil(LocalDateTime.now())
+                    .goldPriceEnum(GoldPriceEnum.SISTEM) // Dari API eksternal
+                    .build();
             
-            log.info(">> Service: Harga baru yang akan disimpan: {}", latestGoldPrice);
+            log.info(">> Service: Harga baru yang akan di-INSERT: {}", newGoldPrice);
             
-            // Simpan ke database
-            GoldPrice savedGoldPrice = goldPriceRepository.save(latestGoldPrice);
+            // Simpan ke database sebagai record baru
+            GoldPrice savedGoldPrice = goldPriceRepository.save(newGoldPrice);
+            log.info(">> Service: Harga emas baru berhasil di-INSERT dengan ID: {}", savedGoldPrice.getId());
+            
+            // Log aktivitas: update harga berhasil
+            activityLogService.logGoldPriceActivity(
+                ActivityType.GOLD_PRICE_UPDATE_API,
+                "Update Harga Emas dari API",
+                String.format("Harga emas berhasil diupdate dari API eksternal. 24K: %s -> %s", 
+                    String.format("Rp %.0f", oldHarga24k), String.format("Rp %.0f", newHarga24k)),
+                "SYSTEM", "External API", "24k",
+                oldHarga24k, newHarga24k, "External API"
+            );
             
             // Simpan riwayat perubahan untuk semua karat dengan source EXTERNAL_API
-            // Karena ini dipanggil dari updateAllPrices (API eksternal)
-            
-            // 24K - perubahan langsung
-            savePriceChange("24k", oldHarga24k, newHarga24k, "EXTERNAL_API", "Update dari API eksternal");
-            
-            // 22K - perubahan berdasarkan rasio
-            double newHarga22k = newPrices.get("22k");
-            if (Math.abs(newHarga22k - oldHarga22k) > 0.01) {
-                double changeAmount22k = newHarga22k - oldHarga22k;
-                double changePercent22k = oldHarga22k > 0 ? ((changeAmount22k / oldHarga22k) * 100) : 0;
-                log.info(">> Service: Perubahan harga 22K: {} -> {} ({}%, {})", 
-                    oldHarga22k, newHarga22k, changePercent22k, changeAmount22k);
-                savePriceChange("22k", oldHarga22k, newHarga22k, "EXTERNAL_API", "Update dari API eksternal (rasio 22K)");
+            if (latestGoldPrice != null) {
+                // 24K - perubahan langsung
+                savePriceChange("24k", oldHarga24k, hargaJual.get("24k"), "EXTERNAL_API", "Update dari API eksternal");
+                
+                // 22K - perubahan berdasarkan rasio
+                double newHarga22k = hargaJual.get("22k");
+                if (Math.abs(newHarga22k - oldHarga22k) > 0.01) {
+                    double changeAmount22k = newHarga22k - oldHarga22k;
+                    double changePercent22k = oldHarga22k > 0 ? ((changeAmount22k / oldHarga22k) * 100) : 0;
+                    log.info(">> Service: Perubahan harga 22K: {} -> {} ({}%, {})", 
+                        oldHarga22k, newHarga22k, changePercent22k, changeAmount22k);
+                    savePriceChange("22k", oldHarga22k, newHarga22k, "EXTERNAL_API", "Update dari API eksternal (rasio 22K)");
+                }
+                
+                // 18K - perubahan berdasarkan rasio
+                double newHarga18k = hargaJual.get("18k");
+                if (Math.abs(newHarga18k - oldHarga18k) > 0.01) {
+                    double changeAmount18k = newHarga18k - oldHarga18k;
+                    double changePercent18k = oldHarga18k > 0 ? ((changeAmount18k / oldHarga18k) * 100) : 0;
+                    log.info(">> Service: Perubahan harga 18K: {} -> {} ({}%, {})", 
+                        oldHarga18k, newHarga18k, changePercent18k, changeAmount18k);
+                    savePriceChange("18k", oldHarga18k, newHarga18k, "EXTERNAL_API", "Update dari API eksternal (rasio 18K)");
+                }
             }
             
-            // 18K - perubahan berdasarkan rasio
-            double newHarga18k = newPrices.get("18k");
-            if (Math.abs(newHarga18k - oldHarga18k) > 0.01) {
-                double changeAmount18k = newHarga18k - oldHarga18k;
-                double changePercent18k = oldHarga18k > 0 ? ((changeAmount18k / oldHarga18k) * 100) : 0;
-                log.info(">> Service: Perubahan harga 18K: {} -> {} ({}%, {})", 
-                    oldHarga18k, newHarga18k, changePercent18k, changeAmount18k);
-                savePriceChange("18k", oldHarga18k, newHarga18k, "EXTERNAL_API", "Update dari API eksternal (rasio 18K)");
-            }
-            
-            log.info(">> Service: Update harga emas berhasil: {} -> {}", oldHarga24k, newHarga24k);
+            log.info(">> Service: Insert harga emas berhasil: {} -> {}", oldHarga24k, newHarga24k);
             
             // Publish event untuk update harga produk
             eventPublisher.publishEvent(new GoldPriceUpdateEvent(this, savedGoldPrice));
@@ -700,7 +775,7 @@ public class GoldPriceService {
             return savedGoldPrice;
             
         } catch (Exception e) {
-            log.error(">> Service: Error dalam update harga emas: {}", e.getMessage(), e);
+            log.error(">> Service: Error dalam insert harga emas: {}", e.getMessage(), e);
             throw new RuntimeException("Gagal mengambil atau menyimpan harga emas: " + e.getMessage());
         }
     }

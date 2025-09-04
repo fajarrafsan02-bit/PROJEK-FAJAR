@@ -1,14 +1,23 @@
 package com.projek.tokweb.utils;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import com.projek.tokweb.models.User;
 import com.projek.tokweb.models.Role;
+import com.projek.tokweb.repository.UserRespository;
 
 @Component
 public class AuthUtils {
+    
+    private static UserRespository userRepository;
+    
+    @Autowired
+    public void setUserRepository(UserRespository userRepository) {
+        AuthUtils.userRepository = userRepository;
+    }
     
     /**
      * Get current authenticated user from security context
@@ -18,14 +27,45 @@ public class AuthUtils {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             
-            if (authentication != null && authentication.isAuthenticated() 
-                && authentication.getPrincipal() instanceof User) {
-                return (User) authentication.getPrincipal();
+            System.out.println("🔍 [DEBUG] Authentication check - exists: " + (authentication != null));
+            
+            if (authentication != null && authentication.isAuthenticated()) {
+                Object principal = authentication.getPrincipal();
+                System.out.println("🔍 [DEBUG] Principal type: " + principal.getClass().getSimpleName());
+                
+                if (principal instanceof User) {
+                    User user = (User) principal;
+                    System.out.println("✅ [DEBUG] User found via principal - ID: " + user.getId() + ", Email: " + user.getEmail());
+                    return user;
+                } else if (principal instanceof String) {
+                    // Handle case where principal is email string
+                    String email = (String) principal;
+                    System.out.println("🔍 [DEBUG] Principal is email string: " + email);
+                    
+                    if (userRepository != null) {
+                        var userOpt = userRepository.findByEmail(email);
+                        if (userOpt.isPresent()) {
+                            User user = userOpt.get();
+                            System.out.println("✅ [DEBUG] User found via email lookup - ID: " + user.getId() + ", Email: " + user.getEmail());
+                            return user;
+                        } else {
+                            System.out.println("❌ [DEBUG] User not found in database for email: " + email);
+                        }
+                    } else {
+                        System.out.println("❌ [DEBUG] UserRepository is null, cannot lookup user by email");
+                    }
+                } else {
+                    System.out.println("❌ [DEBUG] Unknown principal type: " + principal.getClass());
+                }
+            } else {
+                System.out.println("❌ [DEBUG] Authentication is null or not authenticated");
             }
         } catch (Exception e) {
-            System.err.println("Error getting current user: " + e.getMessage());
+            System.err.println("❌ Error getting current user: " + e.getMessage());
+            e.printStackTrace();
         }
         
+        System.out.println("❌ [DEBUG] Returning null user");
         return null;
     }
     

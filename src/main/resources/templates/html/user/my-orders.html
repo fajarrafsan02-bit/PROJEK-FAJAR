@@ -48,7 +48,171 @@
             background: var(--gray-light);
             color: var(--black-luxury);
             line-height: 1.6;
+            overflow-x: hidden;
         }
+
+        /* ===== SCROLL ANIMATIONS ===== */
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .fade-in-up.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .fade-in-left {
+            opacity: 0;
+            transform: translateX(-50px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .fade-in-left.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .fade-in-right {
+            opacity: 0;
+            transform: translateX(50px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .fade-in-right.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .scale-in {
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .scale-in.animate {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .slide-in-bottom {
+            opacity: 0;
+            transform: translateY(100px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .slide-in-bottom.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stagger-animation {
+            transition-delay: 0s;
+        }
+
+        .stagger-animation:nth-child(1) { transition-delay: 0.1s; }
+        .stagger-animation:nth-child(2) { transition-delay: 0.2s; }
+        .stagger-animation:nth-child(3) { transition-delay: 0.3s; }
+        .stagger-animation:nth-child(4) { transition-delay: 0.4s; }
+        .stagger-animation:nth-child(5) { transition-delay: 0.5s; }
+        .stagger-animation:nth-child(6) { transition-delay: 0.6s; }
+        .stagger-animation:nth-child(7) { transition-delay: 0.7s; }
+        .stagger-animation:nth-child(8) { transition-delay: 0.8s; }
+
+        /* Tab buttons specific stagger animation */
+        .order-tabs .stagger-animation {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .order-tabs .stagger-animation.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===== PAGE LOADING ANIMATION ===== */
+        .page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--white-pure);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .page-loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-content {
+            text-align: center;
+        }
+
+        .loader-logo {
+            font-family: "Playfair Display", serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--gold-primary);
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--gray-medium);
+            border-top: 4px solid var(--gold-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        .loader-text {
+            margin-top: 20px;
+            color: var(--gray-elegant);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Enhanced empty state animation */
+        .empty-state .empty-icon i {
+            animation: float 3s ease-in-out infinite;
+        }
+
 
         /* Header & Navigation */
         .header {
@@ -223,7 +387,10 @@
             color: var(--black-luxury);
             cursor: pointer;
             padding: 10px;
+            z-index: 1001;
         }
+
+
 
         /* Main Container */
         .container {
@@ -325,7 +492,7 @@
         }
 
         .order-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-5px) scale(1.01);
             box-shadow: var(--shadow-luxury);
             border-color: var(--gold-primary);
         }
@@ -679,6 +846,19 @@
         @media (max-width: 768px) {
             .nav-menu {
                 display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--white-pure);
+                flex-direction: column;
+                padding: 20px;
+                box-shadow: var(--shadow-soft);
+                border-radius: 0 0 15px 15px;
+            }
+
+            .nav-menu.active {
+                display: flex;
             }
 
             .mobile-menu-toggle {
@@ -694,28 +874,48 @@
 
             .nav-container {
                 flex-wrap: wrap;
+                position: relative;
+            }
+
+            .logo {
+                font-size: 28px;
             }
 
             .nav-icons {
                 order: 2;
+                gap: 15px;
             }
 
             .page-title {
                 font-size: 28px;
             }
 
+            .page-subtitle {
+                font-size: 16px;
+            }
+
             .order-tabs {
                 padding: 4px;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .order-tabs::-webkit-scrollbar {
+                display: none;
             }
 
             .tab-btn {
                 padding: 12px 16px;
                 font-size: 12px;
+                min-width: 120px;
+                flex-shrink: 0;
             }
 
             .order-header {
                 flex-direction: column;
                 align-items: flex-start;
+                gap: 15px;
             }
 
             .order-status {
@@ -725,15 +925,57 @@
 
             .order-progress {
                 width: 100%;
+                margin-top: 10px;
             }
 
             .order-actions {
-                justify-content: flex-start;
+                justify-content: stretch;
+                flex-direction: column;
+                gap: 10px;
             }
 
             .action-btn {
-                flex: 1;
+                width: 100%;
                 justify-content: center;
+                margin: 0;
+            }
+
+            .order-item {
+                padding: 12px;
+            }
+
+            .item-image {
+                width: 50px;
+                height: 50px;
+            }
+
+            .item-name {
+                font-size: 14px;
+            }
+
+            .item-specs {
+                font-size: 12px;
+            }
+
+            .item-price {
+                font-size: 14px;
+            }
+
+            .tracking-timeline {
+                padding-left: 25px;
+            }
+
+            .tracking-step {
+                padding-left: 20px;
+                margin-bottom: 15px;
+            }
+
+            .step-title {
+                font-size: 13px;
+            }
+
+            .step-time {
+                font-size: 11px;
             }
         }
 
@@ -742,18 +984,98 @@
                 padding: 20px 15px;
             }
 
+            .logo {
+                font-size: 24px;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
+
+            .page-subtitle {
+                font-size: 14px;
+            }
+
             .order-card {
-                padding: 20px;
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .order-id {
+                font-size: 16px;
+            }
+
+            .order-total {
+                font-size: 16px;
+            }
+
+            .tab-btn {
+                padding: 10px 12px;
+                font-size: 10px;
+                min-width: 100px;
+            }
+
+            .tab-count {
+                font-size: 10px;
+                padding: 1px 6px;
             }
 
             .order-item {
                 flex-direction: column;
                 text-align: center;
+                gap: 10px;
+                padding: 10px;
             }
 
             .item-image {
+                width: 60px;
+                height: 60px;
+                align-self: center;
+            }
+
+            .item-details {
+                text-align: center;
+            }
+
+            .item-name {
+                font-size: 13px;
+            }
+
+            .item-specs {
+                font-size: 11px;
+            }
+
+            .item-price {
+                font-size: 13px;
+                text-align: center;
+            }
+
+            .empty-icon {
                 width: 80px;
                 height: 80px;
+                font-size: 32px;
+            }
+
+            .empty-title {
+                font-size: 20px;
+            }
+
+            .empty-text {
+                font-size: 14px;
+            }
+
+            .mobile-nav-menu {
+                width: 280px;
+            }
+
+            .mobile-nav-links a {
+                padding: 12px 15px;
+                font-size: 14px;
+            }
+
+            .mobile-search-input {
+                padding: 12px;
+                font-size: 14px;
             }
         }
 
@@ -789,10 +1111,678 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--gold-dark);
         }
+
+        /* Footer Styles */
+        .footer {
+            background: var(--black-luxury);
+            color: var(--white-pearl);
+            margin-top: 80px;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .footer.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 60px 30px 30px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .footer.animate .footer-section {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .footer.animate .footer-section:nth-child(1) { transition-delay: 0.1s; }
+        .footer.animate .footer-section:nth-child(2) { transition-delay: 0.2s; }
+        .footer.animate .footer-section:nth-child(3) { transition-delay: 0.3s; }
+        .footer.animate .footer-section:nth-child(4) { transition-delay: 0.4s; }
+
+        .footer-section h3 {
+            font-family: "Playfair Display", serif;
+            color: var(--gold-primary);
+            font-size: 32px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            opacity: 0;
+            transform: translateY(-20px) scale(0.9);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .footer.animate .footer-section h3 {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            transition-delay: 0.1s;
+            animation: logoFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-5px) scale(1.02); }
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .footer-section h4 {
+            color: var(--gold-primary);
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(-15px);
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .footer.animate .footer-section h4 {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .footer.animate .footer-section:nth-child(2) h4 { transition-delay: 0.25s; }
+        .footer.animate .footer-section:nth-child(3) h4 { transition-delay: 0.35s; }
+        .footer.animate .footer-section:nth-child(4) h4 { transition-delay: 0.45s; }
+
+        .footer-section p {
+            color: var(--gray-light);
+            line-height: 1.6;
+            margin-bottom: 15px;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .footer.animate .footer-section p {
+            opacity: 1;
+            transform: translateY(0);
+            transition-delay: 0.2s;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .footer.animate .footer-links li {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .footer.animate .footer-section:nth-child(2) .footer-links li:nth-child(1) { transition-delay: 0.3s; }
+        .footer.animate .footer-section:nth-child(2) .footer-links li:nth-child(2) { transition-delay: 0.35s; }
+        .footer.animate .footer-section:nth-child(2) .footer-links li:nth-child(3) { transition-delay: 0.4s; }
+        .footer.animate .footer-section:nth-child(2) .footer-links li:nth-child(4) { transition-delay: 0.45s; }
+        .footer.animate .footer-section:nth-child(2) .footer-links li:nth-child(5) { transition-delay: 0.5s; }
+
+        .footer.animate .footer-section:nth-child(3) .footer-links li:nth-child(1) { transition-delay: 0.4s; }
+        .footer.animate .footer-section:nth-child(3) .footer-links li:nth-child(2) { transition-delay: 0.45s; }
+        .footer.animate .footer-section:nth-child(3) .footer-links li:nth-child(3) { transition-delay: 0.5s; }
+        .footer.animate .footer-section:nth-child(3) .footer-links li:nth-child(4) { transition-delay: 0.55s; }
+
+        .footer-links a {
+            color: var(--gray-light);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .footer-links a::before {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gold-primary);
+            transition: width 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold-primary);
+            transform: translateX(5px);
+        }
+
+        .footer-links a:hover::before {
+            width: 100%;
+        }
+
+        .footer-contact p {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 15px;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .footer.animate .footer-contact p {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .footer.animate .footer-section:nth-child(4) .footer-contact p:nth-child(1) { transition-delay: 0.5s; }
+        .footer.animate .footer-section:nth-child(4) .footer-contact p:nth-child(2) { transition-delay: 0.55s; }
+        .footer.animate .footer-section:nth-child(4) .footer-contact p:nth-child(3) { transition-delay: 0.6s; }
+
+        .footer-contact i {
+            color: var(--gold-primary);
+            margin-right: 10px;
+            width: 16px;
+            transform: scale(0);
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .footer.animate .footer-contact i {
+            transform: scale(1);
+        }
+
+        .footer.animate .footer-section:nth-child(4) .footer-contact p:nth-child(1) i { transition-delay: 0.6s; }
+        .footer.animate .footer-section:nth-child(4) .footer-contact p:nth-child(2) i { transition-delay: 0.65s; }
+        .footer.animate .footer-section:nth-child(4) .footer-contact p:nth-child(3) i { transition-delay: 0.7s; }
+
+        .footer-bottom {
+            border-top: 1px solid var(--gray-dark);
+            padding-top: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .footer.animate .footer-bottom {
+            opacity: 1;
+            transform: translateY(0);
+            transition-delay: 0.5s;
+        }
+
+        .footer-bottom-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-bottom p {
+            color: var(--gray-light);
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 15px;
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--gray-dark);
+            color: var(--white-pearl);
+            text-decoration: none;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            transform: scale(0.8);
+            opacity: 0;
+        }
+
+        .footer.animate .social-link {
+            transform: scale(1);
+            opacity: 1;
+            transition-delay: 0.6s;
+        }
+
+        .footer.animate .social-link:nth-child(1) { transition-delay: 0.7s; }
+        .footer.animate .social-link:nth-child(2) { transition-delay: 0.8s; }
+        .footer.animate .social-link:nth-child(3) { transition-delay: 0.9s; }
+
+        .social-link:hover {
+            background: var(--gold-primary);
+            color: var(--black-luxury);
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Responsive Footer */
+        @media (max-width: 1024px) {
+            .footer-content {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 30px;
+            }
+
+            .footer-section:first-child {
+                grid-column: 1 / -1;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .footer-container {
+                padding: 40px 20px 20px;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+                text-align: center;
+            }
+
+            .footer-bottom-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .footer-section h3 {
+                font-size: 28px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .footer-container {
+                padding: 30px 15px 15px;
+            }
+
+            .footer-section h3 {
+                font-size: 24px;
+            }
+
+            .footer-section h4 {
+                font-size: 16px;
+            }
+
+            .social-link {
+                width: 35px;
+                height: 35px;
+            }
+        }
+
+        /* Order Detail Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--white-pure);
+            border-radius: 25px;
+            max-width: 900px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-luxury);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 35px;
+            border-bottom: 2px solid var(--gray-medium);
+            background: var(--gradient-gold);
+            border-radius: 25px 25px 0 0;
+        }
+
+        .modal-title {
+            font-family: "Playfair Display", serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--black-luxury);
+            margin: 0;
+        }
+
+        .modal-close {
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--black-luxury);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: rgba(0, 0, 0, 0.2);
+            transform: scale(1.1);
+        }
+
+        .modal-body {
+            padding: 35px;
+        }
+
+        .detail-section {
+            margin-bottom: 35px;
+        }
+
+        .detail-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-section-title {
+            font-family: "Playfair Display", serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--gray-elegant);
+            font-size: 16px;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: var(--black-luxury);
+            font-size: 16px;
+            text-align: right;
+        }
+
+        .detail-items-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            background: var(--gray-light);
+            border-radius: 15px;
+            gap: 20px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .detail-item:hover {
+            border-color: var(--gold-primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .detail-item-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: var(--gray-medium);
+        }
+
+        .detail-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .detail-item-info {
+            flex: 1;
+        }
+
+        .detail-item-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .detail-item-specs {
+            font-size: 14px;
+            color: var(--gray-elegant);
+            margin-bottom: 8px;
+        }
+
+        .detail-item-quantity {
+            font-size: 14px;
+            color: var(--gray-elegant);
+            background: rgba(212, 175, 55, 0.1);
+            padding: 4px 12px;
+            border-radius: 15px;
+            display: inline-block;
+        }
+
+        .detail-item-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--gold-primary);
+            text-align: right;
+        }
+
+        .detail-summary {
+            background: var(--gradient-gold);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+
+        .detail-summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--black-luxury);
+        }
+
+        .detail-summary-total {
+            border-top: 2px solid rgba(0, 0, 0, 0.2);
+            margin-top: 15px;
+            padding-top: 15px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .detail-tracking {
+            background: var(--white-pure);
+            border: 2px solid var(--gray-medium);
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .detail-tracking-timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .detail-tracking-timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--gray-medium);
+            border-radius: 2px;
+        }
+
+        .detail-tracking-step {
+            position: relative;
+            margin-bottom: 25px;
+            padding-left: 25px;
+        }
+
+        .detail-tracking-step:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-tracking-step::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 8px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--gray-medium);
+            border: 3px solid var(--white-pure);
+            box-shadow: 0 0 0 2px var(--gray-medium);
+        }
+
+        .detail-tracking-step.completed::before {
+            background: var(--success-color);
+            box-shadow: 0 0 0 2px var(--success-color);
+        }
+
+        .detail-tracking-step.active::before {
+            background: var(--gold-primary);
+            box-shadow: 0 0 0 2px var(--gold-primary), 0 0 0 6px rgba(212, 175, 55, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .detail-tracking-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 6px;
+        }
+
+        .detail-tracking-time {
+            font-size: 14px;
+            color: var(--gray-elegant);
+            margin-bottom: 4px;
+        }
+
+        .detail-tracking-desc {
+            font-size: 13px;
+            color: var(--gray-elegant);
+            line-height: 1.4;
+        }
+
+        /* Responsive Modal */
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 98%;
+                max-height: 95vh;
+                border-radius: 20px;
+            }
+
+            .modal-header {
+                padding: 25px 20px;
+            }
+
+            .modal-title {
+                font-size: 24px;
+            }
+
+            .modal-body {
+                padding: 25px 20px;
+            }
+
+            .detail-section-title {
+                font-size: 20px;
+            }
+
+            .detail-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .detail-item-image {
+                align-self: center;
+            }
+
+            .detail-item-price {
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
-    <header class="header">
+    <!-- Page Loader -->
+    <div class="page-loader" id="pageLoader">
+        <div class="loader-content">
+            <div class="loader-logo">Fajar Gold</div>
+            <div class="loader-spinner"></div>
+            <div class="loader-text">Memuat pesanan Anda...</div>
+        </div>
+    </div>
+
+    <header class="header fade-in-up">
         <div class="top-bar">
             <div class="container">
                 <span>🚚 Gratis Ongkir untuk pembelian di atas Rp 5.000.000 | 📞 Hubungi: 0812-3456-7890</span>
@@ -801,18 +1791,18 @@
         
         <nav class="navbar">
             <div class="nav-container">
-                <a href="index.html" class="logo">Fajar Gold</a>
+                <a href="/user/home" class="logo">Fajar Gold</a>
                 
-                <button class="mobile-menu-toggle">
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
                 
-                <ul class="nav-menu">
+                <ul class="nav-menu" id="navMenu">
                     <li><a href="/user/home" class="nav-link">Beranda</a></li>
                     <li><a href="/user/katalog" class="nav-link">Katalog</a></li>
                     <li><a href="/user/my-orders" class="nav-link active">Pesanan Saya</a></li>
-                    <li><a href="#" class="nav-link">Tentang Kami</a></li>
-                    <li><a href="#" class="nav-link">Kontak</a></li>
+                    <li><a href="/user/about" class="nav-link">Tentang Kami</a></li>
+                    <li><a href="/user/contact" class="nav-link">Kontak</a></li>
                 </ul>
                 
                 <div class="search-bar">
@@ -823,71 +1813,177 @@
                 </div>
                 
                 <div class="nav-icons">
-                    <a href="wishlist.html" class="nav-icon" title="Wishlist">
+                    <a href="/user/wishlist" class="nav-icon" title="Wishlist">
                         <i class="fas fa-heart"></i>
                         <span class="cart-badge" id="wishlistBadge">0</span>
                     </a>
-                    <a href="cart.html" class="nav-icon" title="Keranjang">
+                    <a href="/user/cart" class="nav-icon" title="Keranjang">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="cart-badge" id="cartBadge">0</span>
                     </a>
                 </div>
             </div>
         </nav>
+
     </header>
 
     <div class="container">
-        <div class="page-header">
+        <div class="page-header fade-in-up">
             <h1 class="page-title">Pesanan Saya</h1>
             <p class="page-subtitle">Pantau status pesanan Anda dan lacak pengiriman produk emas berkualitas tinggi</p>
         </div>
 
-        <div class="order-tabs">
-            <button class="tab-btn active" data-status="all">
+        <div class="order-tabs scale-in">
+            <button class="tab-btn active stagger-animation" data-status="all">
                 <i class="fas fa-list"></i>
                 Semua
                 <span class="tab-count" id="allCount">0</span>
             </button>
-            <button class="tab-btn" data-status="pending">
+            <button class="tab-btn stagger-animation" data-status="pending">
                 <i class="fas fa-clock"></i>
                 Menunggu Konfirmasi
                 <span class="tab-count" id="pendingCount">0</span>
             </button>
-            <button class="tab-btn" data-status="processing">
+            <button class="tab-btn stagger-animation" data-status="processing">
                 <i class="fas fa-cog"></i>
                 Diproses
                 <span class="tab-count" id="processingCount">0</span>
             </button>
-            <button class="tab-btn" data-status="shipped">
+            <button class="tab-btn stagger-animation" data-status="shipped">
                 <i class="fas fa-truck"></i>
                 Dikirim
                 <span class="tab-count" id="shippedCount">0</span>
             </button>
-            <button class="tab-btn" data-status="delivered">
+            <button class="tab-btn stagger-animation" data-status="delivered">
                 <i class="fas fa-check-circle"></i>
                 Selesai
                 <span class="tab-count" id="deliveredCount">0</span>
             </button>
         </div>
 
-        <div class="orders-container active" id="allOrders">
+        <div class="orders-container active fade-in-up" id="allOrders">
             <!-- Orders will be populated by JavaScript -->
         </div>
 
-        <div class="orders-container" id="pendingOrders">
+        <div class="orders-container fade-in-up" id="pendingOrders">
             <!-- Pending orders will be populated by JavaScript -->
         </div>
 
-        <div class="orders-container" id="processingOrders">
+        <div class="orders-container fade-in-up" id="processingOrders">
             <!-- Processing orders will be populated by JavaScript -->
         </div>
 
-        <div class="orders-container" id="shippedOrders">
+        <div class="orders-container fade-in-up" id="shippedOrders">
             <!-- Shipped orders will be populated by JavaScript -->
         </div>
 
-        <div class="orders-container" id="deliveredOrders">
+        <div class="orders-container fade-in-up" id="deliveredOrders">
             <!-- Delivered orders will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div class="modal-overlay" id="orderDetailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalOrderId">Detail Pesanan</h2>
+                <button class="modal-close" onclick="orderManager.closeOrderDetailModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Order Information -->
+                <div class="detail-section">
+                    <h3 class="detail-section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Informasi Pesanan
+                    </h3>
+                    <div class="detail-row">
+                        <span class="detail-label">Nomor Pesanan</span>
+                        <span class="detail-value" id="detailOrderNumber">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Tanggal Pesanan</span>
+                        <span class="detail-value" id="detailOrderDate">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Status</span>
+                        <span class="detail-value" id="detailOrderStatus">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Metode Pembayaran</span>
+                        <span class="detail-value" id="detailPaymentMethod">-</span>
+                    </div>
+                </div>
+
+                <!-- Customer Information -->
+                <div class="detail-section">
+                    <h3 class="detail-section-title">
+                        <i class="fas fa-user"></i>
+                        Informasi Pelanggan
+                    </h3>
+                    <div class="detail-row">
+                        <span class="detail-label">Nama</span>
+                        <span class="detail-value" id="detailCustomerName">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value" id="detailCustomerEmail">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Telepon</span>
+                        <span class="detail-value" id="detailCustomerPhone">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Alamat Pengiriman</span>
+                        <span class="detail-value" id="detailShippingAddress">-</span>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="detail-section">
+                    <h3 class="detail-section-title">
+                        <i class="fas fa-box"></i>
+                        Produk Dipesan
+                    </h3>
+                    <div class="detail-items-grid" id="detailOrderItems">
+                        <!-- Items will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="detail-summary">
+                    <div class="detail-summary-row">
+                        <span>Subtotal</span>
+                        <span id="detailSubtotal">Rp 0</span>
+                    </div>
+                    <div class="detail-summary-row">
+                        <span>Ongkos Kirim</span>
+                        <span id="detailShipping">Rp 0</span>
+                    </div>
+                    <div class="detail-summary-row">
+                        <span>Pajak & Biaya Lain</span>
+                        <span id="detailTax">Rp 0</span>
+                    </div>
+                    <div class="detail-summary-row detail-summary-total">
+                        <span>Total Pembayaran</span>
+                        <span id="detailTotalAmount">Rp 0</span>
+                    </div>
+                </div>
+
+                <!-- Order Tracking -->
+                <div class="detail-section">
+                    <h3 class="detail-section-title">
+                        <i class="fas fa-route"></i>
+                        Pelacakan Pesanan
+                    </h3>
+                    <div class="detail-tracking">
+                        <div class="detail-tracking-timeline" id="detailTrackingTimeline">
+                            <!-- Tracking steps will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -895,6 +1991,99 @@
     <script src="/js/cart-badge-utility.js"></script>
     
     <script>
+        // Animation Observer untuk scroll animations
+        class AnimationObserver {
+            constructor() {
+                this.observer = new IntersectionObserver(
+                    (entries) => this.handleIntersection(entries),
+                    {
+                        threshold: 0.1,
+                        rootMargin: '0px 0px -50px 0px'
+                    }
+                );
+                this.init();
+            }
+
+            init() {
+                // Observe semua elemen dengan class animation
+                const animatedElements = document.querySelectorAll(
+                    '.fade-in-up, .fade-in-left, .fade-in-right, .scale-in, .slide-in-bottom, .footer'
+                );
+                animatedElements.forEach(el => this.observer.observe(el));
+            }
+
+            handleIntersection(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate');
+                        // Unobserve setelah animasi untuk performa
+                        this.observer.unobserve(entry.target);
+                    }
+                });
+            }
+            
+            // Method untuk observe elemen baru yang ditambahkan dinamis
+            observeNewElements(container) {
+                const newElements = container.querySelectorAll(
+                    '.fade-in-up, .fade-in-left, .fade-in-right, .scale-in, .slide-in-bottom, .footer'
+                );
+                newElements.forEach(el => {
+                    if (!el.classList.contains('animate')) {
+                        this.observer.observe(el);
+                    }
+                });
+            }
+        }
+
+        // Page Loader
+        class PageLoader {
+            constructor() {
+                this.loader = document.getElementById('pageLoader');
+                this.init();
+            }
+
+            init() {
+                // Hide loader setelah semua content dimuat
+                window.addEventListener('load', () => {
+                    setTimeout(() => {
+                        this.hideLoader();
+                        this.triggerInitialAnimations();
+                    }, 800);
+                });
+            }
+
+            hideLoader() {
+                if (this.loader) {
+                    this.loader.classList.add('hidden');
+                    setTimeout(() => {
+                        this.loader.style.display = 'none';
+                    }, 500);
+                }
+            }
+
+            triggerInitialAnimations() {
+                // Trigger animasi untuk elemen yang sudah terlihat
+                const visibleElements = document.querySelectorAll(
+                    '.header.fade-in-up, .page-header.fade-in-up, .order-tabs.scale-in'
+                );
+                visibleElements.forEach((el, index) => {
+                    setTimeout(() => {
+                        el.classList.add('animate');
+                        
+                        // Trigger stagger animations untuk tab buttons
+                        if (el.classList.contains('order-tabs')) {
+                            const tabButtons = el.querySelectorAll('.stagger-animation');
+                            tabButtons.forEach((btn, btnIndex) => {
+                                setTimeout(() => {
+                                    btn.classList.add('animate');
+                                }, btnIndex * 100);
+                            });
+                        }
+                    }, index * 200);
+                });
+            }
+        }
+
         class OrderManager {
             constructor() {
                 this.orders = [];
@@ -948,13 +2137,82 @@
                     });
                 });
 
-                // Mobile menu toggle
-                const mobileToggle = document.querySelector('.mobile-menu-toggle');
-                const navMenu = document.querySelector('.nav-menu');
+                // Mobile menu toggle functionality
+                this.setupMobileMenu();
                 
-                mobileToggle.addEventListener('click', () => {
-                    navMenu.style.display = navMenu.style.display === 'flex' ? 'none' : 'flex';
+                // Modal overlay click to close
+                const modal = document.getElementById('orderDetailModal');
+                if (modal) {
+                    modal.addEventListener('click', (e) => {
+                        // Close modal if clicked on overlay (not on modal content)
+                        if (e.target === modal) {
+                            this.closeOrderDetailModal();
+                        }
+                    });
+                }
+                
+                // ESC key to close modal and mobile menu
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.closeOrderDetailModal();
+                        this.closeMenu();
+                    }
                 });
+            }
+
+            setupMobileMenu() {
+                const mobileToggle = document.getElementById('mobileMenuToggle');
+                const navMenu = document.getElementById('navMenu');
+                
+                if (!mobileToggle || !navMenu) {
+                    console.warn('Mobile menu elements not found');
+                    return;
+                }
+
+                // Toggle mobile menu
+                mobileToggle.addEventListener('click', () => {
+                    this.toggleMenu();
+                });
+                
+                // Close menu when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!mobileToggle.contains(e.target) && !navMenu.contains(e.target)) {
+                        this.closeMenu();
+                    }
+                });
+
+                // Close menu when window is resized to desktop
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth > 768) {
+                        this.closeMenu();
+                    }
+                });
+            }
+
+            toggleMenu() {
+                const navMenu = document.getElementById('navMenu');
+                const mobileToggle = document.getElementById('mobileMenuToggle');
+                
+                if (navMenu && mobileToggle) {
+                    navMenu.classList.toggle('active');
+                    const icon = mobileToggle.querySelector('i');
+                    if (navMenu.classList.contains('active')) {
+                        icon.className = 'fas fa-times';
+                    } else {
+                        icon.className = 'fas fa-bars';
+                    }
+                }
+            }
+
+            closeMenu() {
+                const navMenu = document.getElementById('navMenu');
+                const mobileToggle = document.getElementById('mobileMenuToggle');
+                
+                if (navMenu && mobileToggle) {
+                    navMenu.classList.remove('active');
+                    const icon = mobileToggle.querySelector('i');
+                    icon.className = 'fas fa-bars';
+                }
             }
 
             generateSampleOrders() {
@@ -988,11 +2246,18 @@
                     const orderDate = new Date();
                     orderDate.setDate(orderDate.getDate() - Math.floor(Math.random() * 30));
 
+                    // Calculate shipping cost (free for orders over 5M, otherwise 50K)
+                    const shippingCost = total >= 5000000 ? 0 : 50000;
+                    const finalTotal = total + shippingCost;
+
                     orders.push({
                         id: `ORD-2024-${String(i).padStart(3, '0')}`,
                         date: orderDate,
                         status,
-                        total,
+                        total: finalTotal,
+                        subtotal: total,
+                        shippingAmount: shippingCost,
+                        shippingCost: shippingCost,
                         items: orderProducts,
                         tracking: this.generateTrackingInfo(status),
                         progress: this.getProgressPercentage(status)
@@ -1164,6 +2429,13 @@
                     } else {
                         container.innerHTML = orders.map(order => this.renderOrderCard(order)).join('');
                     }
+                    
+                    // Setup animation observer untuk elemen baru
+                    if (window.animationObserver) {
+                        setTimeout(() => {
+                            window.animationObserver.observeNewElements(container);
+                        }, 100);
+                    }
                 });
             }
 
@@ -1182,7 +2454,7 @@
                 const actionButtons = this.getActionButtons(order.status, order);
 
                 return `
-                    <div class="order-card">
+                    <div class="order-card fade-in-up stagger-animation">
                         <div class="order-header">
                             <div class="order-info">
                                 <div class="order-id">${order.orderNumber || order.id}</div>
@@ -1349,13 +2621,13 @@
                 const message = messages[status] || messages.all;
 
                 return `
-                    <div class="empty-state">
+                    <div class="empty-state scale-in">
                         <div class="empty-icon">
                             <i class="fas fa-shopping-bag"></i>
                         </div>
                         <div class="empty-title">${message.title}</div>
                         <div class="empty-text">${message.text}</div>
-                        <a href="catalog.html" class="empty-action">
+                        <a href="/user/katalog" class="empty-action">
                             <i class="fas fa-gem"></i>
                             ${message.action}
                         </a>
@@ -1384,14 +2656,58 @@
                 this.showNotification('Menghubungkan ke customer service...', 'info');
             }
 
-            viewDetails(orderId) {
+            async viewDetails(orderId) {
                 if (!orderId) {
                     this.showNotification('ID pesanan tidak valid', 'error');
                     return;
                 }
                 
-                // Redirect to order detail page or open modal
-                window.location.href = `/user/orders/${orderId}/detail`;
+                console.log('📋 Opening order details for:', orderId);
+                
+                try {
+                    // Show loading state
+                    this.showNotification('Memuat detail pesanan...', 'info');
+                    
+                    // Find order in current data first for quick display
+                    const order = this.orders.find(o => (o.id || o.orderNumber) === orderId);
+                    
+                    if (order) {
+                        // Show modal with current data
+                        this.showOrderDetailModal(order);
+                        
+                        // Then try to fetch fresh data from API
+                        try {
+                            const response = await fetch(`/user/api/orders/${orderId}`);
+                            if (response.ok) {
+                                const result = await response.json();
+                                if (result.success && result.data) {
+                                    console.log('📥 Fresh order data received:', result.data);
+                                    // Update modal with fresh data
+                                    this.showOrderDetailModal(result.data);
+                                }
+                            }
+                        } catch (apiError) {
+                            console.warn('⚠️ Could not fetch fresh order data:', apiError);
+                            // Continue with cached data
+                        }
+                    } else {
+                        // Order not found in cache, try API
+                        const response = await fetch(`/user/api/orders/${orderId}`);
+                        if (response.ok) {
+                            const result = await response.json();
+                            if (result.success && result.data) {
+                                this.showOrderDetailModal(result.data);
+                            } else {
+                                throw new Error(result.message || 'Order not found');
+                            }
+                        } else {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('❌ Error loading order details:', error);
+                    this.showNotification('Gagal memuat detail pesanan: ' + error.message, 'error');
+                }
             }
 
             trackPackage() {
@@ -1441,6 +2757,290 @@
                 }
             }
 
+            showOrderDetailModal(order) {
+                console.log('📋 Showing order detail modal for:', order);
+                
+                const modal = document.getElementById('orderDetailModal');
+                if (!modal) {
+                    console.error('❌ Order detail modal not found');
+                    return;
+                }
+                
+                // Populate modal with order data
+                this.populateOrderDetailModal(order);
+                
+                // Show modal
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            closeOrderDetailModal() {
+                const modal = document.getElementById('orderDetailModal');
+                if (modal) {
+                    modal.classList.remove('show');
+                    document.body.style.overflow = '';
+                }
+            }
+            
+            populateOrderDetailModal(order) {
+                console.log('📝 Populating modal with order data:', order);
+                
+                // Order Information
+                const modalTitle = document.getElementById('modalOrderId');
+                const orderNumber = document.getElementById('detailOrderNumber');
+                const orderDate = document.getElementById('detailOrderDate');
+                const orderStatus = document.getElementById('detailOrderStatus');
+                const paymentMethod = document.getElementById('detailPaymentMethod');
+                
+                if (modalTitle) modalTitle.textContent = `Detail Pesanan ${order.orderNumber || order.id}`;
+                if (orderNumber) orderNumber.textContent = order.orderNumber || order.id || '-';
+                if (orderDate) orderDate.textContent = this.formatDate(order.createdAt || order.orderDate);
+                if (orderStatus) {
+                    orderStatus.textContent = order.statusDisplayName || this.getStatusDisplayName(order.status) || order.status || '-';
+                    orderStatus.className = `detail-value status-${(order.status || '').toLowerCase().replace('_', '-')}`;
+                }
+                if (paymentMethod) paymentMethod.textContent = this.getPaymentMethodName(order.paymentMethod) || order.paymentMethod || '-';
+                
+                // Customer Information
+                const customerName = document.getElementById('detailCustomerName');
+                const customerEmail = document.getElementById('detailCustomerEmail');
+                const customerPhone = document.getElementById('detailCustomerPhone');
+                const shippingAddress = document.getElementById('detailShippingAddress');
+                
+                if (customerName) customerName.textContent = order.customerName || order.customer?.name || '-';
+                if (customerEmail) customerEmail.textContent = order.customerEmail || order.customer?.email || '-';
+                if (customerPhone) customerPhone.textContent = order.customerPhone || order.customer?.phone || '-';
+                if (shippingAddress) {
+                    const address = order.shippingAddress || order.customer?.address || '-';
+                    const city = order.shippingCity || order.customer?.city || '';
+                    const postalCode = order.shippingPostalCode || order.customer?.postalCode || '';
+                    shippingAddress.textContent = `${address}${city ? ', ' + city : ''}${postalCode ? ' ' + postalCode : ''}`;
+                }
+                
+                // Order Items
+                const itemsContainer = document.getElementById('detailOrderItems');
+                if (itemsContainer && order.items) {
+                    itemsContainer.innerHTML = order.items.map(item => {
+                        const itemName = item.productName || item.name || 'Produk Tidak Diketahui';
+                        const itemImage = item.productImage || item.imageUrl || '/placeholder.svg';
+                        const itemPrice = item.unitPrice || item.price || 0;
+                        const itemQuantity = item.quantity || 1;
+                        const itemSubtotal = item.subtotal || (itemPrice * itemQuantity);
+                        const itemWeight = item.weight || 'N/A';
+                        const itemPurity = item.purity || 'N/A';
+                        
+                        return `
+                            <div class="detail-item">
+                                <div class="detail-item-image">
+                                    <img src="${itemImage}" 
+                                         alt="${itemName}"
+                                         onerror="this.src='/placeholder.svg'">
+                                </div>
+                                <div class="detail-item-info">
+                                    <div class="detail-item-name">${itemName}</div>
+                                    <div class="detail-item-specs">Berat: ${itemWeight} gram | Kadar: ${itemPurity}</div>
+                                    <div class="detail-item-quantity">Qty: ${itemQuantity}</div>
+                                </div>
+                                <div class="detail-item-price">
+                                    <div>@ ${this.formatCurrency(itemPrice)}</div>
+                                    <div style="font-size: 14px; color: var(--gray-elegant); margin-top: 4px;">
+                                        Total: ${this.formatCurrency(itemSubtotal)}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else if (itemsContainer) {
+                    itemsContainer.innerHTML = '<div class="detail-item"><div class="detail-item-info"><div class="detail-item-name">Tidak ada item ditemukan</div></div></div>';
+                }
+                
+                // Order Summary
+                const subtotal = document.getElementById('detailSubtotal');
+                const shipping = document.getElementById('detailShipping');
+                const tax = document.getElementById('detailTax');
+                const totalAmount = document.getElementById('detailTotalAmount');
+                
+                const orderSubtotal = order.subtotalAmount || order.subtotal || 0;
+                const orderShipping = order.shippingAmount || order.shipping || order.shippingCost || order.ongkosKirim || order.deliveryFee || 0;
+                const orderTax = order.taxAmount || order.tax || 0;
+                const orderTotal = order.totalAmount || order.total || 0;
+                
+                // Convert shipping amount to number if it's a string
+                let shippingAmount = 0;
+                if (typeof orderShipping === 'string') {
+                    // Handle string values like "25000", "25000.0", etc.
+                    const cleanShipping = orderShipping.replace(/[^0-9.-]/g, '');
+                    shippingAmount = parseFloat(cleanShipping) || 0;
+                } else if (typeof orderShipping === 'number') {
+                    shippingAmount = orderShipping;
+                } else if (orderShipping && typeof orderShipping === 'object' && orderShipping.toString) {
+                    // Handle BigDecimal objects from Spring Boot
+                    shippingAmount = parseFloat(orderShipping.toString()) || 0;
+                } else if (orderShipping === null || orderShipping === undefined) {
+                    shippingAmount = 0;
+                }
+                
+                // Enhanced debugging with all possible shipping fields
+                console.log('🚚 Shipping cost debug:', {
+                    rawOrderData: order,
+                    shippingAmount: order.shippingAmount,
+                    shipping: order.shipping,
+                    shippingCost: order.shippingCost,
+                    ongkosKirim: order.ongkosKirim,
+                    deliveryFee: order.deliveryFee,
+                    // Check nested object structures
+                    orderDetails: order.orderDetails,
+                    checkout: order.checkout,
+                    payment: order.payment,
+                    // Check all keys in the order object
+                    allOrderKeys: Object.keys(order),
+                    originalShipping: orderShipping,
+                    parsedShipping: shippingAmount,
+                    orderSubtotal: orderSubtotal,
+                    orderTotal: orderTotal
+                });
+                
+                // Also check if shipping cost might be in nested objects
+                let fallbackShipping = 0;
+                if (order.checkout && order.checkout.shippingCost) {
+                    fallbackShipping = order.checkout.shippingCost;
+                } else if (order.orderDetails && order.orderDetails.shipping) {
+                    fallbackShipping = order.orderDetails.shipping;
+                } else if (order.payment && order.payment.shippingAmount) {
+                    fallbackShipping = order.payment.shippingAmount;
+                }
+                
+                // Use fallback if main shipping is 0 but total suggests there should be shipping
+                if (shippingAmount === 0 && fallbackShipping > 0) {
+                    console.log('📦 Using fallback shipping cost:', fallbackShipping);
+                    shippingAmount = typeof fallbackShipping === 'string' ? parseFloat(fallbackShipping) : fallbackShipping;
+                }
+                
+                // If still 0 but total suggests shipping cost, calculate from total - subtotal
+                if (shippingAmount === 0 && orderTotal > orderSubtotal) {
+                    const calculatedShipping = orderTotal - orderSubtotal - orderTax;
+                    if (calculatedShipping > 0) {
+                        console.log('🔧 Calculated shipping from total difference:', calculatedShipping);
+                        shippingAmount = calculatedShipping;
+                    }
+                }
+                
+                // Final fallback: if order total is around 1.995M and subtotal is lower, shipping likely exists
+                // This handles the specific case mentioned by user
+                if (shippingAmount === 0) {
+                    const totalValue = typeof orderTotal === 'string' ? parseFloat(orderTotal.replace(/[^0-9.-]/g, '')) : orderTotal;
+                    const subtotalValue = typeof orderSubtotal === 'string' ? parseFloat(orderSubtotal.replace(/[^0-9.-]/g, '')) : orderSubtotal;
+                    
+                    // If subtotal < 5M, there should typically be shipping cost
+                    if (subtotalValue > 0 && subtotalValue < 5000000 && totalValue > subtotalValue) {
+                        const estimatedShipping = Math.max(25000, totalValue - subtotalValue); // Default shipping or calculated
+                        console.log('📊 Estimated shipping cost based on policy:', estimatedShipping);
+                        shippingAmount = estimatedShipping;
+                    }
+                }
+                
+                if (subtotal) subtotal.textContent = this.formatCurrency(orderSubtotal);
+                if (shipping) {
+                    // Force reset styles first
+                    shipping.style.color = '';
+                    shipping.style.fontWeight = '';
+                    
+                    if (shippingAmount > 0) {
+                        // Show actual shipping cost
+                        const isCalculated = shippingAmount !== orderShipping; // Check if we calculated it
+                        if (isCalculated) {
+                            shipping.innerHTML = `${this.formatCurrency(shippingAmount)} <small style="color: var(--info-color); font-size: 10px;">(Calculated)</small>`;
+                            shipping.style.color = 'var(--info-color)';
+                        } else {
+                            shipping.textContent = this.formatCurrency(shippingAmount);
+                            shipping.style.color = 'var(--black-luxury)';
+                        }
+                        shipping.style.fontWeight = '600';
+                        console.log('✅ Displaying shipping cost:', this.formatCurrency(shippingAmount), isCalculated ? '(calculated)' : '(from API)');
+                    } else {
+                        // Only show free if subtotal is actually >= 5M or shipping is explicitly 0
+                        const subtotalValue = typeof orderSubtotal === 'string' ? parseFloat(orderSubtotal.replace(/[^0-9.-]/g, '')) : orderSubtotal;
+                        const totalValue = typeof orderTotal === 'string' ? parseFloat(orderTotal.replace(/[^0-9.-]/g, '')) : orderTotal;
+                        
+                        if (subtotalValue >= 5000000) {
+                            shipping.innerHTML = 'GRATIS <small style="color: var(--success-color); font-size: 12px;">(Pembelian > 5 Juta)</small>';
+                            shipping.style.color = 'var(--success-color)';
+                            shipping.style.fontWeight = '600';
+                            console.log('✅ Displaying free shipping (order > 5M):', subtotalValue);
+                        } else if (totalValue > subtotalValue) {
+                            // There's a difference between total and subtotal, likely shipping cost
+                            const impliedShipping = totalValue - subtotalValue - (orderTax || 0);
+                            if (impliedShipping > 0) {
+                                shipping.innerHTML = `${this.formatCurrency(impliedShipping)} <small style="color: var(--warning-color); font-size: 10px;">(Calculated)</small>`;
+                                shipping.style.color = 'var(--warning-color)';
+                                shipping.style.fontWeight = '600';
+                                console.log('⚠️ Displaying calculated shipping cost:', impliedShipping);
+                            } else {
+                                shipping.innerHTML = 'Rp 0 <small style="color: var(--error-color); font-size: 10px;">(Data Issue?)</small>';
+                                shipping.style.color = 'var(--error-color)';
+                                shipping.style.fontWeight = '600';
+                            }
+                        } else {
+                            // If subtotal < 5M but shipping shows 0 and total = subtotal, there might be a data issue
+                            shipping.innerHTML = 'Rp 0 <small style="color: var(--error-color); font-size: 10px;">(Data Issue?)</small>';
+                            shipping.style.color = 'var(--error-color)';
+                            shipping.style.fontWeight = '600';
+                            console.warn('⚠️ Potential shipping data issue: subtotal < 5M but shipping = 0', {
+                                subtotal: subtotalValue,
+                                total: totalValue,
+                                shipping: shippingAmount
+                            });
+                        }
+                    }
+                }
+                if (tax) tax.textContent = orderTax > 0 ? this.formatCurrency(orderTax) : 'Rp 0';
+                if (totalAmount) totalAmount.textContent = this.formatCurrency(orderTotal);
+                
+                // Order Tracking
+                const trackingTimeline = document.getElementById('detailTrackingTimeline');
+                if (trackingTimeline) {
+                    const trackingSteps = this.generateTrackingSteps(order.status);
+                    trackingTimeline.innerHTML = trackingSteps.map(step => {
+                        let stepClass = '';
+                        if (step.completed) stepClass = 'completed';
+                        else if (step.active) stepClass = 'active';
+                        
+                        return `
+                            <div class="detail-tracking-step ${stepClass}">
+                                <div class="detail-tracking-title">${step.title}</div>
+                                ${step.time ? `<div class="detail-tracking-time">${step.time}</div>` : ''}
+                                ${step.description ? `<div class="detail-tracking-desc">${step.description}</div>` : ''}
+                            </div>
+                        `;
+                    }).join('');
+                }
+                
+                console.log('✅ Modal populated successfully');
+            }
+            
+            getStatusDisplayName(status) {
+                const statusNames = {
+                    'PENDING_PAYMENT': 'Menunggu Pembayaran',
+                    'PENDING_CONFIRMATION': 'Menunggu Konfirmasi',
+                    'PAID': 'Sudah Dibayar',
+                    'PROCESSING': 'Diproses',
+                    'SHIPPED': 'Dikirim',
+                    'DELIVERED': 'Selesai',
+                    'CANCELLED': 'Dibatalkan'
+                };
+                return statusNames[status] || status;
+            }
+            
+            getPaymentMethodName(method) {
+                const methodNames = {
+                    'QR_CODE': 'QR Code',
+                    'BANK_TRANSFER': 'Transfer Bank',
+                    'CASH': 'Tunai',
+                    'CREDIT_CARD': 'Kartu Kredit'
+                };
+                return methodNames[method] || method;
+            }
+
             formatCurrency(amount) {
                 try {
                     // Handle BigDecimal from API (comes as number or string)
@@ -1448,7 +3048,9 @@
                     if (typeof amount === 'number') {
                         numericAmount = amount;
                     } else if (typeof amount === 'string') {
-                        numericAmount = parseFloat(amount);
+                        // Remove any non-numeric characters except decimal point
+                        const cleanAmount = amount.replace(/[^0-9.-]/g, '');
+                        numericAmount = parseFloat(cleanAmount);
                     } else if (amount && typeof amount === 'object' && amount.toString) {
                         // Handle BigDecimal objects
                         numericAmount = parseFloat(amount.toString());
@@ -1458,6 +3060,7 @@
 
                     // Check if it's a valid number
                     if (isNaN(numericAmount)) {
+                        console.warn('Invalid amount for currency formatting:', amount);
                         return 'Rp 0';
                     }
 
@@ -1534,6 +3137,7 @@
             // Initialize wishlist badge from localStorage
             const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
             const wishlistBadge = document.getElementById('wishlistBadge');
+            
             if (wishlistBadge) {
                 wishlistBadge.textContent = wishlist.length;
                 if (wishlist.length === 0) {
@@ -1590,19 +3194,55 @@
             });
         }
 
-        // Initialize order manager and badges
+        // Initialize all systems
         let orderManager;
+        let footerAnimationTriggered = false;
+        
+        // Add scroll listener for additional footer effects
+        function addFooterScrollEffects() {
+            window.addEventListener('scroll', () => {
+                const footer = document.querySelector('.footer');
+                if (!footer) return;
+                
+                const footerRect = footer.getBoundingClientRect();
+                const windowHeight = window.innerHeight;
+                
+                // Trigger special effects when footer is 80% visible
+                if (footerRect.top < windowHeight * 0.8 && !footerAnimationTriggered) {
+                    footerAnimationTriggered = true;
+                    
+                    // Add sparkling effect
+                    setTimeout(() => {
+                        footer.style.boxShadow = '0 -10px 50px rgba(212, 175, 55, 0.2)';
+                    }, 500);
+                    
+                    // Add subtle background gradient animation
+                    setTimeout(() => {
+                        footer.style.background = 'linear-gradient(135deg, var(--black-luxury) 0%, var(--black-soft) 50%, var(--black-luxury) 100%)';
+                        footer.style.backgroundSize = '200% 200%';
+                        footer.style.animation = 'gradientShift 8s ease infinite';
+                    }, 800);
+                }
+            });
+        }
+        
         document.addEventListener('DOMContentLoaded', () => {
+            // Initialize animation systems
+            window.animationObserver = new AnimationObserver();
+            window.pageLoader = new PageLoader();
+            
+            // Initialize order manager and badges
             orderManager = new OrderManager();
             initializeBadges();
             setupRealTimeBadgeUpdates();
+            addFooterScrollEffects();
             
             // Update wishlist badge periodically (cart badge updates automatically)
             setInterval(() => {
                 initializeBadges();
             }, 15000); // Update every 15 seconds for better responsiveness
             
-            console.log('My Orders: All systems initialized with real-time updates');
+            console.log('My Orders: All systems with animations initialized! ✨🎭');
         });
 
         // Global function to trigger immediate badge refresh (can be called from other scripts)
@@ -1612,7 +3252,63 @@
             if (window.cartBadgeManager) {
                 window.cartBadgeManager.refreshCart();
             }
-        };
+        };  
     </script>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <h3>Fajar Gold</h3>
+                        <p>Toko emas terpercaya dengan kualitas terbaik dan harga kompetitif</p>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Navigasi</h4>
+                    <ul class="footer-links">
+                        <li><a href="/user/home">Beranda</a></li>
+                        <li><a href="/user/katalog">Katalog</a></li>
+                        <li><a href="/user/my-orders">Pesanan Saya</a></li>
+                        <li><a href="/user/about">Tentang Kami</a></li>
+                        <li><a href="/user/contact">Kontak</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Layanan</h4>
+                    <ul class="footer-links">
+                        <li><a href="/user/wishlist">Wishlist</a></li>
+                        <li><a href="/user/cart">Keranjang</a></li>
+                        <li><a href="/user/checkout">Checkout</a></li>
+                        <li><a href="#">Bantuan</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Kontak</h4>
+                    <div class="footer-contact">
+                        <p><i class="fas fa-phone"></i> 0812-3456-7890</p>
+                        <p><i class="fas fa-envelope"></i> info@fajargold.com</p>
+                        <p><i class="fas fa-map-marker-alt"></i> Jakarta, Indonesia</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="footer-bottom-content">
+                    <p>&copy; 2024 Fajar Gold. All rights reserved.</p>
+                    <div class="footer-social">
+                        <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
 </body>
 </html>

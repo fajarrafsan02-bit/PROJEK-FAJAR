@@ -126,6 +126,8 @@ public class ProductService {
         if (request.getMinStock() != null) {
             if (request.getMinStock() < 0) {
                 errors.add("stok minimun tidak boleh kurang dari 0");
+            } else {
+                existingProduct.setMinStock(request.getMinStock());
             }
         }
 

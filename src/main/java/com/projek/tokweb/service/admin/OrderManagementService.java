@@ -3,6 +3,7 @@ package com.projek.tokweb.service.admin;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,15 @@ import com.projek.tokweb.models.customer.PaymentStatus;
 import com.projek.tokweb.repository.customer.OrderRepository;
 import com.projek.tokweb.repository.customer.OrderItemRepository;
 import com.projek.tokweb.repository.customer.PaymentTransactionRepository;
+import com.projek.tokweb.repository.admin.ProductRepository;
+import com.projek.tokweb.models.admin.Product;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
+import com.projek.tokweb.models.activity.ActivityType;
+import com.projek.tokweb.service.activity.ActivityLogService;
+import com.projek.tokweb.service.customer.CheckoutService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +42,12 @@ public class OrderManagementService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
+    private final ActivityLogService activityLogService;
+    private final CheckoutService checkoutService;
+    private final ProductRepository productRepository;
+    
+    @PersistenceContext
+    private EntityManager entityManager;
     
     @Autowired
     private RevenueService revenueService;
@@ -102,10 +118,12 @@ public class OrderManagementService {
     }
     
     /**
-     * Confirm order (change status to PAID)
+     * Confirm order (change status to PAID) - USES CHECKOUT SERVICE FOR STOCK MANAGEMENT
      */
     @Transactional
     public Order confirmOrder(Long orderId, String adminNotes) {
+        log.info("🔄 [ORDER_CONFIRM] Starting order confirmation for ID: {}", orderId);
+        
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new IllegalArgumentException("Order tidak ditemukan: " + orderId));
         
@@ -113,35 +131,56 @@ public class OrderManagementService {
             throw new IllegalStateException("Order tidak dapat dikonfirmasi dengan status: " + order.getStatus());
         }
         
-        // Update order status
-        order.setStatus(OrderStatus.PAID);
-        order.setPaidAt(LocalDateTime.now());
-        order.setNotes(adminNotes != null ? adminNotes : "Dikonfirmasi oleh admin");
-        
-        // Update payment transaction if exists
+        // Get external payment ID from payment transaction
         List<PaymentTransaction> transactions = paymentTransactionRepository.findByOrder(order);
-        if (!transactions.isEmpty()) {
-            PaymentTransaction latestTransaction = transactions.get(0);
-            latestTransaction.setStatus(PaymentStatus.SUCCESS);
-            latestTransaction.setCompletedAt(LocalDateTime.now());
-            latestTransaction.setNotes("Dikonfirmasi oleh admin");
-            paymentTransactionRepository.save(latestTransaction);
+        if (transactions.isEmpty()) {
+            throw new IllegalStateException("Tidak ada payment transaction untuk order: " + orderId);
         }
         
-        Order savedOrder = orderRepository.save(order);
-        log.info("Order {} dikonfirmasi oleh admin", orderId);
+        PaymentTransaction latestTransaction = transactions.get(0);
+        String externalId = latestTransaction.getExternalPaymentId();
         
-        // Record revenue when order is confirmed
+        log.info("💳 [ORDER_CONFIRM] Using external payment ID: {} for order: {}", externalId, orderId);
+        
+        // USE CHECKOUT SERVICE TO CONFIRM PAYMENT WITH STOCK MANAGEMENT
+        try {
+            log.info("🔄 [ORDER_CONFIRM] Calling CheckoutService.confirmPayment for external ID: {}", externalId);
+            checkoutService.confirmPayment(externalId);
+            log.info("✅ [ORDER_CONFIRM] CheckoutService.confirmPayment completed successfully");
+        } catch (Exception e) {
+            log.error("❌ [ORDER_CONFIRM] Error in CheckoutService.confirmPayment: {}", e.getMessage(), e);
+            throw new IllegalStateException("Gagal mengkonfirmasi pembayaran: " + e.getMessage(), e);
+        }
+        
+        // Refresh order from database after CheckoutService update
+        Order confirmedOrder = orderRepository.findById(orderId)
+            .orElseThrow(() -> new IllegalArgumentException("Order tidak ditemukan setelah konfirmasi: " + orderId));
+        
+        // Update admin notes if provided
+        if (adminNotes != null && !adminNotes.trim().isEmpty()) {
+            String existingNotes = confirmedOrder.getNotes();
+            String newNotes = existingNotes != null ? existingNotes + "\n" + adminNotes : adminNotes;
+            confirmedOrder.setNotes(newNotes);
+            confirmedOrder = orderRepository.save(confirmedOrder);
+        }
+        
+        log.info("🏆 [ORDER_CONFIRM] Order {} dikonfirmasi oleh admin dengan status: {}", orderId, confirmedOrder.getStatus());
+        
+        // Record revenue when order is confirmed (non-blocking)
         try {
             String confirmedBy = "Admin"; // You can get actual admin name from security context
-            revenueService.recordRevenue(savedOrder, confirmedBy);
-            log.info("Revenue recorded for order: {} with amount: {}", savedOrder.getOrderNumber(), savedOrder.getTotalAmount());
+            var revenueResult = revenueService.recordRevenue(confirmedOrder, confirmedBy);
+            if (revenueResult != null) {
+                log.info("Revenue recorded for order: {} with amount: {}", confirmedOrder.getOrderNumber(), confirmedOrder.getTotalAmount());
+            } else {
+                log.warn("Failed to record revenue for order: {}, but order confirmation continues", confirmedOrder.getOrderNumber());
+            }
         } catch (Exception e) {
-            log.error("Failed to record revenue for order: {}", savedOrder.getOrderNumber(), e);
+            log.error("Failed to record revenue for order: {}", confirmedOrder.getOrderNumber(), e);
             // Don't throw exception here to avoid breaking the order confirmation process
         }
         
-        return savedOrder;
+        return confirmedOrder;
     }
     
     /**
@@ -175,14 +214,33 @@ public class OrderManagementService {
         Order savedOrder = orderRepository.save(order);
         log.info("Order {} status diubah dari {} ke {} oleh admin", orderId, order.getStatus(), newStatus);
         
+        // Log aktivitas berdasarkan status baru
+        ActivityType activityType = getActivityTypeForStatus(newStatus);
+        String activityTitle = getActivityTitleForStatus(newStatus);
+        String activityDescription = String.format("Pesanan %s dari %s berubah status ke %s oleh admin", 
+            savedOrder.getOrderNumber(),
+            savedOrder.getCustomerName(),
+            newStatus.getDisplayName());
+            
+        activityLogService.logActivity(
+            activityType,
+            activityTitle,
+            activityDescription,
+            "ADMIN",
+            "Admin System",
+            "ADMIN"
+        );
+        
         return savedOrder;
     }
     
     /**
-     * Cancel order
+     * Cancel order - USES CHECKOUT SERVICE FOR STOCK RESTORE
      */
     @Transactional
     public Order cancelOrder(Long orderId, String reason) {
+        log.info("🚫 [ORDER_CANCEL] Starting order cancellation for ID: {}", orderId);
+        
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new IllegalArgumentException("Order tidak ditemukan: " + orderId));
         
@@ -190,14 +248,44 @@ public class OrderManagementService {
             throw new IllegalStateException("Order tidak dapat dibatalkan dengan status: " + order.getStatus());
         }
         
-        order.setStatus(OrderStatus.CANCELLED);
-        order.setCancelledAt(LocalDateTime.now());
-        order.setNotes("Dibatalkan oleh admin. Alasan: " + (reason != null ? reason : "Tidak ada alasan"));
-        
-        Order savedOrder = orderRepository.save(order);
-        log.info("Order {} dibatalkan oleh admin. Alasan: {}", orderId, reason);
-        
-        return savedOrder;
+        // Get external payment ID from payment transaction
+        List<PaymentTransaction> transactions = paymentTransactionRepository.findByOrder(order);
+        if (!transactions.isEmpty()) {
+            PaymentTransaction latestTransaction = transactions.get(0);
+            String externalId = latestTransaction.getExternalPaymentId();
+            
+            log.info("💳 [ORDER_CANCEL] Using external payment ID: {} for order: {}", externalId, orderId);
+            
+            // USE CHECKOUT SERVICE TO CANCEL ORDER WITH STOCK RESTORE
+            try {
+                log.info("🔄 [ORDER_CANCEL] Calling CheckoutService.cancelOrder for external ID: {}", externalId);
+                checkoutService.cancelOrder(externalId, reason);
+                log.info("✅ [ORDER_CANCEL] CheckoutService.cancelOrder completed successfully");
+            } catch (Exception e) {
+                log.error("❌ [ORDER_CANCEL] Error in CheckoutService.cancelOrder: {}", e.getMessage(), e);
+                throw new IllegalStateException("Gagal membatalkan pesanan: " + e.getMessage(), e);
+            }
+            
+            // Refresh order from database after CheckoutService update
+            Order cancelledOrder = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order tidak ditemukan setelah pembatalan: " + orderId));
+            
+            log.info("🏆 [ORDER_CANCEL] Order {} dibatalkan oleh admin dengan status: {}", orderId, cancelledOrder.getStatus());
+            
+            return cancelledOrder;
+        } else {
+            // Fallback: No payment transaction found, just update order status locally
+            log.warn("⚠️ [ORDER_CANCEL] No payment transaction found for order {}, updating status locally only", orderId);
+            
+            order.setStatus(OrderStatus.CANCELLED);
+            order.setCancelledAt(LocalDateTime.now());
+            order.setNotes("Dibatalkan oleh admin. Alasan: " + (reason != null ? reason : "Tidak ada alasan"));
+            
+            Order savedOrder = orderRepository.save(order);
+            log.info("Order {} dibatalkan oleh admin. Alasan: {}", orderId, reason);
+            
+            return savedOrder;
+        }
     }
     
     /**
@@ -264,35 +352,90 @@ public class OrderManagementService {
     }
 
     /**
-     * Confirm payment (change status from PENDING_CONFIRMATION to PAID)
+     * Confirm payment (change status from PENDING_CONFIRMATION to PAID) - Admin version without stock reduction
      */
     @Transactional
     public Order confirmPayment(Long orderId, String adminNotes) {
+        log.info("🔄 [ADMIN_CONFIRM] Starting payment confirmation for order: {}", orderId);
+        
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new IllegalArgumentException("Order tidak ditemukan: " + orderId));
         
+        // Check if order can be confirmed
         if (order.getStatus() != OrderStatus.PENDING_CONFIRMATION) {
-            throw new IllegalStateException("Order tidak dapat dikonfirmasi dengan status: " + order.getStatus());
+            log.error("❌ [ADMIN_CONFIRM] Cannot confirm order {} with status: {}", orderId, order.getStatus());
+            throw new IllegalStateException("Order tidak dapat dikonfirmasi dengan status: " + order.getStatus().getDisplayName());
         }
         
-        // Update order status
-        order.setStatus(OrderStatus.PAID);
-        order.setPaidAt(LocalDateTime.now());
-        order.setNotes(adminNotes != null ? adminNotes : "Pembayaran dikonfirmasi oleh admin");
-        
-        Order savedOrder = orderRepository.save(order);
-        
-        // Record revenue when payment is confirmed
         try {
-            String confirmedBy = "Admin"; // You can get actual admin name from security context
-            revenueService.recordRevenue(savedOrder, confirmedBy);
-            log.info("Revenue recorded for payment confirmation: {} with amount: {}", savedOrder.getOrderNumber(), savedOrder.getTotalAmount());
+            // PERBAIKAN: Kurangi stok produk terlebih dahulu sebelum mengubah status
+            try {
+                log.info("📉 [ADMIN_CONFIRM] Reducing product stock for order: {}", order.getOrderNumber());
+                reduceProductStockForOrder(order);
+                log.info("✅ [ADMIN_CONFIRM] Stock reduction completed successfully");
+            } catch (Exception e) {
+                log.error("❌ [ADMIN_CONFIRM] Failed to reduce stock for order {}: {}", orderId, e.getMessage());
+                throw new IllegalStateException("Gagal mengurangi stok produk: " + e.getMessage(), e);
+            }
+            
+            // Update order status to PAID
+            order.setStatus(OrderStatus.PAID);
+            order.setPaidAt(LocalDateTime.now());
+            
+            // Update admin notes
+            if (adminNotes != null && !adminNotes.trim().isEmpty()) {
+                String existingNotes = order.getNotes();
+                String newNotes = existingNotes != null ? existingNotes + "\n" + adminNotes : adminNotes;
+                order.setNotes(newNotes);
+            } else {
+                order.setNotes("Pembayaran dikonfirmasi oleh admin");
+            }
+            
+            Order savedOrder = orderRepository.save(order);
+            log.info("✅ [ADMIN_CONFIRM] Order saved with PAID status: {}", orderId);
+            
+            // Log aktivitas: pembayaran dikonfirmasi (async to avoid transaction issues)
+            try {
+                // Use a separate thread to avoid transaction rollback issues
+                CompletableFuture.runAsync(() -> {
+                    try {
+                        activityLogService.logActivity(
+                            ActivityType.ORDER_CONFIRMED,
+                            "Pembayaran Dikonfirmasi",
+                            String.format("Pembayaran pesanan %s dari %s telah dikonfirmasi oleh admin", 
+                                savedOrder.getOrderNumber(),
+                                savedOrder.getCustomerName()),
+                            "ADMIN",
+                            "Admin System",
+                            "ADMIN"
+                        );
+                        log.info("✅ [ADMIN_CONFIRM] Activity log recorded for order: {}", orderId);
+                    } catch (Exception e) {
+                        log.warn("⚠️ [ADMIN_CONFIRM] Failed to log activity for order {}: {}", orderId, e.getMessage());
+                    }
+                });
+            } catch (Exception e) {
+                log.warn("⚠️ [ADMIN_CONFIRM] Failed to start async activity logging for order {}: {}", orderId, e.getMessage());
+                // Don't throw exception here
+            }
+            
+            // Record revenue when payment is confirmed
+            try {
+                String confirmedBy = "Admin"; // You can get actual admin name from security context
+                revenueService.recordRevenue(savedOrder, confirmedBy);
+                log.info("✅ [ADMIN_CONFIRM] Revenue recorded for payment confirmation: {} with amount: {}", savedOrder.getOrderNumber(), savedOrder.getTotalAmount());
+            } catch (Exception e) {
+                log.warn("⚠️ [ADMIN_CONFIRM] Failed to record revenue for payment confirmation: {}", savedOrder.getOrderNumber(), e);
+                // Don't throw exception here to avoid breaking the payment confirmation process
+            }
+            
+            log.info("🏆 [ADMIN_CONFIRM] Payment confirmation completed successfully for order: {}", orderId);
+            return savedOrder;
+            
         } catch (Exception e) {
-            log.error("Failed to record revenue for payment confirmation: {}", savedOrder.getOrderNumber(), e);
-            // Don't throw exception here to avoid breaking the payment confirmation process
+            log.error("❌ [ADMIN_CONFIRM] Error confirming payment for order {}: {}", orderId, e.getMessage(), e);
+            throw new IllegalStateException("Gagal mengkonfirmasi pembayaran: " + e.getMessage(), e);
         }
-        
-        return savedOrder;
     }
 
     /**
@@ -391,6 +534,46 @@ public class OrderManagementService {
         return csv.toString().getBytes();
     }
     
+    /**
+     * Helper method to get ActivityType for order status
+     */
+    private ActivityType getActivityTypeForStatus(OrderStatus status) {
+        switch (status) {
+            case PAID:
+                return ActivityType.ORDER_CONFIRMED;
+            case PROCESSING:
+                return ActivityType.ORDER_PROCESSING;
+            case SHIPPED:
+                return ActivityType.ORDER_SHIPPED;
+            case DELIVERED:
+                return ActivityType.ORDER_COMPLETED;
+            case CANCELLED:
+                return ActivityType.ORDER_CANCELLED;
+            default:
+                return ActivityType.ORDER_STATUS_UPDATE;
+        }
+    }
+    
+    /**
+     * Helper method to get activity title for order status
+     */
+    private String getActivityTitleForStatus(OrderStatus status) {
+        switch (status) {
+            case PAID:
+                return "Pesanan Dikonfirmasi";
+            case PROCESSING:
+                return "Pesanan Sedang Diproses";
+            case SHIPPED:
+                return "Pesanan Dikirim";
+            case DELIVERED:
+                return "Pesanan Selesai";
+            case CANCELLED:
+                return "Pesanan Dibatalkan";
+            default:
+                return "Status Pesanan Diubah";
+        }
+    }
+    
     // Inner class for statistics
     public static class OrderStatistics {
         private final long totalOrders;
@@ -483,5 +666,69 @@ public class OrderManagementService {
                                         paid, processing, shipped, delivered, cancelled);
             }
         }
+    }
+
+    /**
+     * Reduce product stock when admin confirms order payment
+     */
+    @Transactional
+    private void reduceProductStockForOrder(Order order) {
+        if (order == null || order.getItems() == null || order.getItems().isEmpty()) {
+            log.warn("⚠️ [STOCK_REDUCTION] Order or order items is null/empty");
+            return;
+        }
+        
+        log.info("🔄 [STOCK_REDUCTION] Processing stock reduction for order: {}", order.getOrderNumber());
+        
+        for (OrderItem orderItem : order.getItems()) {
+            try {
+                Product product = orderItem.getProduct();
+                int orderedQuantity = orderItem.getQuantity();
+                
+                log.info("🔍 [STOCK_REDUCTION] Processing product: {} | Current stock: {} | Ordered qty: {}", 
+                         product.getName(), product.getStock(), orderedQuantity);
+                
+                // Lock product untuk mencegah race condition
+                Product lockedProduct = productRepository.findByIdForUpdate(product.getId())
+                        .orElseThrow(() -> new IllegalStateException("Product tidak ditemukan: " + product.getId()));
+                
+                int currentStock = lockedProduct.getStock();
+                
+                // Validasi stock masih mencukupi
+                if (currentStock < orderedQuantity) {
+                    log.error("❌ [STOCK_REDUCTION] Stock tidak mencukupi untuk: {} | Tersedia: {}, Diminta: {}", 
+                             lockedProduct.getName(), currentStock, orderedQuantity);
+                    throw new IllegalStateException(
+                        String.format("Stock tidak mencukupi untuk produk '%s'. Tersedia: %d, Diminta: %d",
+                            lockedProduct.getName(), currentStock, orderedQuantity));
+                }
+                
+                // Kurangi stock
+                int newStock = currentStock - orderedQuantity;
+                lockedProduct.setStock(newStock);
+                productRepository.save(lockedProduct);
+                
+                log.info("✅ [STOCK_REDUCTION] Stock updated for: {} | {} -> {}", 
+                         lockedProduct.getName(), currentStock, newStock);
+                
+            } catch (Exception e) {
+                log.error("❌ [STOCK_REDUCTION] Error reducing stock for product ID {}: {}", 
+                         orderItem.getProduct().getId(), e.getMessage());
+                e.printStackTrace();
+                throw new IllegalStateException("Gagal mengurangi stok untuk produk '" + 
+                    orderItem.getProduct().getName() + "': " + e.getMessage(), e);
+            }
+        }
+        
+        // Force flush untuk memastikan perubahan stock ter-commit
+        try {
+            entityManager.flush();
+            log.info("💾 [STOCK_REDUCTION] Stock changes flushed to database");
+        } catch (Exception e) {
+            log.error("⚠️ [STOCK_REDUCTION] Error flushing stock changes: {}", e.getMessage());
+            throw e;
+        }
+        
+        log.info("🏁 [STOCK_REDUCTION] Stock reduction completed for order: {}", order.getOrderNumber());
     }
 }

@@ -98,7 +98,7 @@ public class AdminControllerApi {
         }
     }
 
-    @PostMapping("/update-product/{productId}")
+    @PostMapping(value = "/update-product/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateProduct(
             @PathVariable Long productId,
             @RequestParam(value = "name", required = false) String name,
@@ -112,8 +112,14 @@ public class AdminControllerApi {
             @RequestParam(value = "isActive", required = false) Boolean isActive,
             @RequestParam(value = "image", required = false) MultipartFile file) {
         try {
+            // Cek apakah produk ada
+            if (!productService.existsById(productId)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("Produk tidak ditemukan dengan ID: " + productId));
+            }
+            
             ProductResponseDto existingProduct = productService.getProductByIdWithFormattedResponse(productId);
-            System.out.println(existingProduct);
+            System.out.println("Existing product: " + existingProduct);
 
             ProductRequestDto request = ProductRequestDto.builder()
                     .name(name)
@@ -124,18 +130,30 @@ public class AdminControllerApi {
                     .stock(stock)
                     .minStock(minStock)
                     .markup(markup)
+                    .isActive(isActive != null ? isActive : true)
                     .build();
+
+            // Validasi data untuk update (tanpa validasi image karena opsional)
+            List<String> validationErrors = validateProductRequestForUpdate(request);
+            if (!validationErrors.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.error("Validasi gagal", validationErrors));
+            }
 
             // Handle image upload dengan replacement
             if (file != null && !file.isEmpty()) {
-                String oldImageUrl = existingProduct.getImageUrl();
-                String newImageUrl = cloudinaryService.uploadFileWithReplacement(file, oldImageUrl);
-                request.setImageUrl(newImageUrl);
+                try {
+                    String oldImageUrl = existingProduct.getImageUrl();
+                    String newImageUrl = cloudinaryService.uploadFileWithReplacement(file, oldImageUrl);
+                    request.setImageUrl(newImageUrl);
+                } catch (IOException e) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(ApiResponse.error("Gagal mengunggah gambar: " + e.getMessage()));
+                }
             } else {
                 // Jika tidak ada file baru, gunakan image yang lama
                 request.setImageUrl(existingProduct.getImageUrl());
             }
-            // request.setImageUrl(imageUrl);
 
             ProductResponseDto updated = productService.updateProductWithFormattedResponse(productId, request);
             return ResponseEntity.ok(ApiResponse.success("Produk Berhasil Di Update.", updated));
@@ -143,8 +161,8 @@ public class AdminControllerApi {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.error(e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Gagal memperbarui produk: " + e.getMessage()));
         }
     }
 
@@ -219,8 +237,8 @@ public class AdminControllerApi {
 
         if (request.getCategory() == null || request.getCategory().trim().isEmpty()) {
             errors.add("Kategori produk tidak boleh kosong");
-        } else if (!request.getCategory().matches("^(cincin|kalung|gelang|anting|antam)$")) {
-            errors.add("Kategori harus Batangan, Cincin, Kalung, Gelang, Anting, atau Antam");
+        } else if (!request.getCategory().matches("^(CINCIN|KALUNG|GELANG|BATANGAN)$")) {
+            errors.add("Kategori harus CINCIN, KALUNG, GELANG, atau BATANGAN");
         }
 
         if (request.getMarkup() == null || request.getMarkup() < 0) {
@@ -230,6 +248,74 @@ public class AdminControllerApi {
         }
 
         // Validasi stok
+        if (request.getStock() != null && request.getStock() < 0) {
+            errors.add("Stok tidak boleh negatif");
+        }
+
+        if (request.getMinStock() != null && request.getMinStock() < 0) {
+            errors.add("Stok minimum tidak boleh negatif");
+        }
+
+        // Validasi minStock tidak boleh lebih besar dari stock
+        if (request.getStock() != null && request.getMinStock() != null) {
+            if (request.getMinStock() > request.getStock()) {
+                errors.add("Stok minimum tidak boleh lebih besar dari stok");
+            }
+        }
+
+        return errors;
+    }
+
+    // Method validasi khusus untuk update (lebih fleksibel)
+    private List<String> validateProductRequestForUpdate(ProductRequestDto request) {
+        List<String> errors = new ArrayList<>();
+
+        if (request.getName() != null) {
+            if (request.getName().trim().isEmpty()) {
+                errors.add("Nama produk tidak boleh kosong");
+            } else if (request.getName().length() < 3 || request.getName().length() > 100) {
+                errors.add("Nama produk harus antara 3-100 karakter");
+            }
+        }
+
+        if (request.getDescription() != null) {
+            if (request.getDescription().trim().isEmpty()) {
+                errors.add("Deskripsi produk tidak boleh kosong");
+            } else if (request.getDescription().length() < 5 || request.getDescription().length() > 500) {
+                errors.add("Deskripsi produk harus antara 5-500 karakter");
+            }
+        }
+
+        if (request.getWeight() != null) {
+            if (request.getWeight() <= 0) {
+                errors.add("Berat produk harus lebih dari 0");
+            } else if (request.getWeight() > 10000) {
+                errors.add("Berat produk maksimal 10.000 gram");
+            }
+        }
+
+        if (request.getPurity() != null) {
+            if (request.getPurity() < 10 || request.getPurity() > 24) {
+                errors.add("Kadar kemurnian harus antara 10-24 karat");
+            }
+        }
+
+        if (request.getCategory() != null) {
+            if (request.getCategory().trim().isEmpty()) {
+                errors.add("Kategori produk tidak boleh kosong");
+            } else if (!request.getCategory().matches("^(CINCIN|KALUNG|GELANG|BATANGAN)$")) {
+                errors.add("Kategori harus CINCIN, KALUNG, GELANG, atau BATANGAN");
+            }
+        }
+
+        if (request.getMarkup() != null) {
+            if (request.getMarkup() < 0) {
+                errors.add("Markup tidak boleh negatif");
+            } else if (request.getMarkup() > 1000) {
+                errors.add("Markup maksimal 1000%");
+            }
+        }
+
         if (request.getStock() != null && request.getStock() < 0) {
             errors.add("Stok tidak boleh negatif");
         }

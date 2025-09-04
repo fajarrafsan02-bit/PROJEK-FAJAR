@@ -18,6 +18,7 @@ import com.projek.tokweb.dto.ApiResponse;
 import com.projek.tokweb.dto.admin.ProductResponseDto;
 import com.projek.tokweb.models.User;
 import com.projek.tokweb.repository.UserRespository;
+import com.projek.tokweb.utils.AuthUtils;
 // import com.projek.tokweb.model.User;
 // import com.projek.tokweb.util.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,16 +40,27 @@ public class UserControllerApi {
     @GetMapping("/current")
     public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
         try {
-            // Untuk sementara, ambil user pertama (untuk testing)
-            // Nanti bisa diganti dengan sistem auth yang proper
-            User user = userRepository.findAll().stream().findFirst().orElse(null);
-            if (user == null) {
-                return ResponseEntity.badRequest()
-                        .body(ApiResponse.error("Tidak ada user tersedia"));
+            // Menggunakan AuthUtils untuk mendapatkan current user dari security context
+            User currentUser = AuthUtils.getCurrentUser();
+            
+            if (currentUser == null) {
+                // Jika tidak ada user yang login, coba ambil user pertama untuk development
+                User fallbackUser = userRepository.findAll().stream().findFirst().orElse(null);
+                if (fallbackUser == null) {
+                    return ResponseEntity.badRequest()
+                            .body(ApiResponse.error("Tidak ada user tersedia"));
+                }
+                
+                System.out.println("WARNING: No authenticated user found, using fallback user: " + fallbackUser.getEmail());
+                return ResponseEntity.ok(ApiResponse.success("User berhasil diambil (fallback)", fallbackUser));
             }
             
-            return ResponseEntity.ok(ApiResponse.success("User berhasil diambil", user));
+            System.out.println("Authenticated user found: " + currentUser.getEmail() + ", ID: " + currentUser.getId());
+            return ResponseEntity.ok(ApiResponse.success("User berhasil diambil", currentUser));
+            
         } catch (Exception e) {
+            System.err.println("Error getting current user: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error("Gagal mengambil user: " + e.getMessage()));
         }

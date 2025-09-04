@@ -32,4 +32,18 @@ public class UserController {
     public String myOrders() {
         return "html/user/my-orders";
     }
+    
+    @GetMapping("/wishlist")
+    public String wishlist() {
+        return "html/user/wishlist";
+    }
+
+    @GetMapping("/about")
+    public String about() {
+        return "html/user/about";
+    }
+    @GetMapping("/contact")
+    public String contact() {
+        return "html/user/contact";
+    }
 }

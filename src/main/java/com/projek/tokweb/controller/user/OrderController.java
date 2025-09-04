@@ -19,6 +19,7 @@ import com.projek.tokweb.models.customer.OrderItem;
 import com.projek.tokweb.models.customer.OrderStatus;
 import com.projek.tokweb.repository.customer.OrderItemRepository;
 import com.projek.tokweb.repository.customer.OrderRepository;
+import com.projek.tokweb.utils.AuthUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -54,8 +55,15 @@ public class OrderController {
     @GetMapping("/my-orders")
     public ResponseEntity<?> getMyOrders() {
         try {
-            // For now, use a dummy user ID. In production, get from JWT token or session
-            Long userId = 1L; // TODO: Get from authentication context
+            // Get current authenticated user ID
+            Long userId = AuthUtils.getCurrentUserId();
+            System.out.println("🔍 [ORDER_CONTROLLER] Getting orders for user ID: " + userId);
+            
+            if (userId == null) {
+                System.out.println("❌ [ORDER_CONTROLLER] User ID is null - user not authenticated");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.error("User tidak terautentikasi. Silakan login kembali."));
+            }
 
             List<Order> userOrders = orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
             System.out.println("📦 Found " + userOrders.size() + " orders for user ID: " + userId);
@@ -129,6 +137,16 @@ public class OrderController {
     @GetMapping("/{orderId}")
     public ResponseEntity<?> getOrderDetail(@PathVariable Long orderId) {
         try {
+            // Get current authenticated user ID
+            Long currentUserId = AuthUtils.getCurrentUserId();
+            System.out.println("🔍 [ORDER_CONTROLLER] Getting order detail for order ID: " + orderId + ", user ID: " + currentUserId);
+            
+            if (currentUserId == null) {
+                System.out.println("❌ [ORDER_CONTROLLER] User ID is null - user not authenticated");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.error("User tidak terautentikasi. Silakan login kembali."));
+            }
+
             Optional<Order> orderOpt = orderRepository.findById(orderId);
 
             if (orderOpt.isEmpty()) {
@@ -137,6 +155,14 @@ public class OrderController {
             }
 
             Order order = orderOpt.get();
+            
+            // Security check: Ensure user can only access their own orders
+            if (!order.getUserId().equals(currentUserId)) {
+                System.out.println("❌ [ORDER_CONTROLLER] Access denied - Order belongs to user " + order.getUserId() + " but current user is " + currentUserId);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(ApiResponse.error("Anda tidak memiliki akses ke pesanan ini."));
+            }
+            
             List<OrderItem> items = orderItemRepository.findByOrderIdWithProduct(orderId);
 
             Map<String, Object> orderDetail = new HashMap<>();

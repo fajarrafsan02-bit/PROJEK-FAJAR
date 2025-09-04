@@ -31,7 +31,7 @@ public class RevenueService {
     /**
      * Record revenue when admin confirms an order
      */
-    @Transactional
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public RevenueResponseDto recordRevenue(Order order, String confirmedBy) {
         try {
             // Check if revenue already exists for this order
@@ -59,7 +59,9 @@ public class RevenueService {
             
         } catch (Exception e) {
             log.error("Error recording revenue for order: {}", order.getOrderNumber(), e);
-            throw new RuntimeException("Failed to record revenue: " + e.getMessage());
+            // Don't throw RuntimeException which marks transaction for rollback
+            // Instead, return null and let the caller handle the error gracefully
+            return null;
         }
     }
     

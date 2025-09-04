@@ -19,6 +19,9 @@ import com.projek.tokweb.dto.customer.CheckoutRequest;
 import com.projek.tokweb.models.User;
 import com.projek.tokweb.repository.UserRespository;
 import com.projek.tokweb.service.customer.CheckoutService;
+import com.projek.tokweb.utils.AuthUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -68,12 +71,17 @@ public class UserCheckoutController {
                 ));
             }
 
-            // Get user (for now, create a dummy user - in production, get from authentication)
-            User user = User.builder()
-                    .id(1L)
-                    .namaLengkap(req.getCustomerInfo().getFullName())
-                    .email(req.getCustomerInfo().getEmail())
-                    .build();
+            // Get authenticated user with fallback
+            User user = getCurrentAuthenticatedUser();
+            if (user == null) {
+                System.out.println("❌ User not authenticated");
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "User tidak terautentikasi. Silakan login terlebih dahulu."
+                ));
+            }
+            
+            System.out.println("🛒 Processing checkout for user: " + user.getNamaLengkap() + " (ID: " + user.getId() + ")");
 
             // Use the checkout service to create real order
             Map<String, Object> paymentData = checkoutService.createOrder(req, user);
@@ -85,13 +93,71 @@ public class UserCheckoutController {
                 "data", paymentData
             ));
             
-        } catch (Exception e) {
-            System.out.println("=== CHECKOUT ERROR ===");
-            System.out.println("Error: " + e.getMessage());
-            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            System.out.println("=== CHECKOUT VALIDATION ERROR ===");
+            System.out.println("Validation Error: " + e.getMessage());
             return ResponseEntity.badRequest().body(Map.of(
                 "success", false,
+                "error", "VALIDATION_ERROR",
                 "message", e.getMessage()
+            ));
+        } catch (IllegalStateException e) {
+            System.out.println("=== CHECKOUT STATE ERROR ===");
+            System.out.println("State Error: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "error", "STATE_ERROR", 
+                "message", e.getMessage()
+            ));
+        } catch (Exception e) {
+            System.out.println("=== CHECKOUT SYSTEM ERROR ===");
+            System.out.println("System Error Type: " + e.getClass().getSimpleName());
+            System.out.println("System Error Message: " + e.getMessage());
+            System.out.println("Full Stack Trace:");
+            e.printStackTrace();
+            
+            // PERBAIKAN: Better error message mapping
+            String errorMessage = e.getMessage();
+            String errorType = "SYSTEM_ERROR";
+            int httpStatus = 500;
+            
+            if (errorMessage != null) {
+                // Handle specific error types
+                if (errorMessage.contains("rollback-only")) {
+                    errorMessage = "Transaksi gagal diproses karena ada masalah data. Silakan periksa data Anda dan coba lagi.";
+                    errorType = "TRANSACTION_ERROR";
+                } else if (errorMessage.contains("tidak ditemukan") || errorMessage.contains("not found")) {
+                    errorMessage = "Data yang diperlukan tidak ditemukan. " + errorMessage;
+                    errorType = "DATA_ERROR";
+                    httpStatus = 404;
+                } else if (errorMessage.contains("tidak aktif") || errorMessage.contains("tidak valid")) {
+                    errorMessage = "Data tidak valid: " + errorMessage;
+                    errorType = "VALIDATION_ERROR";
+                    httpStatus = 400;
+                } else if (errorMessage.contains("ConstraintViolation") || errorMessage.contains("constraint")) {
+                    errorMessage = "Terjadi konflik data. Silakan coba lagi atau hubungi administrator.";
+                    errorType = "CONSTRAINT_ERROR";
+                    httpStatus = 409;
+                } else if (errorMessage.toLowerCase().contains("connection") || 
+                          errorMessage.toLowerCase().contains("timeout") ||
+                          errorMessage.toLowerCase().contains("database")) {
+                    errorMessage = "Terjadi masalah koneksi database. Silakan coba lagi dalam beberapa saat.";
+                    errorType = "DATABASE_ERROR";
+                }
+            } else {
+                errorMessage = "Terjadi kesalahan sistem yang tidak diketahui. Silakan coba lagi.";
+            }
+            
+            System.out.println("=== MAPPED ERROR RESPONSE ===");
+            System.out.println("Error Type: " + errorType);
+            System.out.println("HTTP Status: " + httpStatus);
+            System.out.println("Error Message: " + errorMessage);
+            
+            return ResponseEntity.status(httpStatus).body(Map.of(
+                "success", false,
+                "error", errorType,
+                "message", errorMessage,
+                "timestamp", System.currentTimeMillis()
             ));
         }
     }
@@ -151,5 +217,51 @@ public class UserCheckoutController {
                 "message", "Gagal upload bukti pembayaran: " + e.getMessage()
             ));
         }
+    }
+    
+    /**
+     * Helper method to get current authenticated user with multiple fallback strategies
+     */
+    private User getCurrentAuthenticatedUser() {
+        System.out.println("🔍 [CONTROLLER] Attempting to get current user...");
+        
+        // Method 1: Try AuthUtils first
+        User user = AuthUtils.getCurrentUser();
+        if (user != null) {
+            System.out.println("✅ [CONTROLLER] User found via AuthUtils - ID: " + user.getId());
+            return user;
+        }
+        
+        // Method 2: Direct SecurityContext access
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.isAuthenticated()) {
+                Object principal = authentication.getPrincipal();
+                System.out.println("🔍 [CONTROLLER] Principal type: " + principal.getClass().getSimpleName());
+                
+                if (principal instanceof User) {
+                    user = (User) principal;
+                    System.out.println("✅ [CONTROLLER] User found via direct SecurityContext - ID: " + user.getId());
+                    return user;
+                } else if (principal instanceof String) {
+                    String email = (String) principal;
+                    System.out.println("🔍 [CONTROLLER] Principal is email: " + email + ", looking up in database...");
+                    
+                    var userOpt = userRespository.findByEmail(email);
+                    if (userOpt.isPresent()) {
+                        user = userOpt.get();
+                        System.out.println("✅ [CONTROLLER] User found via email lookup - ID: " + user.getId() + ", Email: " + user.getEmail());
+                        return user;
+                    } else {
+                        System.out.println("❌ [CONTROLLER] No user found for email: " + email);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("❌ [CONTROLLER] Error in fallback authentication: " + e.getMessage());
+        }
+        
+        System.out.println("❌ [CONTROLLER] All authentication methods failed");
+        return null;
     }
 }

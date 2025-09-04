@@ -69,25 +69,44 @@ public class GoldPriceController {
                         .build());
             }
             
-            // Update harga emas
-            GoldPrice updatedGoldPrice = goldPriceService.updateGoldPriceFromRequest(request.getHarga24k());
+            // Update harga emas (akan INSERT data baru jika ada perubahan, atau gunakan data existing jika sama)
+            GoldPrice goldPriceResult = goldPriceService.updateGoldPriceFromRequest(request.getHarga24k());
             
-            GoldPriceResponseDto response = GoldPriceResponseDto.fromGoldPrice(updatedGoldPrice);
+            GoldPriceResponseDto response = GoldPriceResponseDto.fromGoldPrice(goldPriceResult);
             
-            log.info(">> Controller: Update harga emas berhasil: {}", response);
+            // Cek apakah data baru di-insert atau menggunakan data existing
+            GoldPrice latestBeforeUpdate = null;
+            try {
+                // Ambil data terbaru sebelum update untuk perbandingan timestamp
+                latestBeforeUpdate = goldPriceService.getLatestGoldPrice();
+            } catch (Exception e) {
+                // Ignore jika tidak ada data
+            }
+            
+            String message;
+            if (latestBeforeUpdate != null && 
+                goldPriceResult.getId().equals(latestBeforeUpdate.getId())) {
+                // Data yang sama dikembalikan (tidak ada INSERT baru)
+                message = "Harga emas tidak berubah - menggunakan data terbaru yang sudah ada";
+                log.info(">> Controller: Harga emas tidak berubah, menggunakan data existing: {}", response);
+            } else {
+                // Data baru di-insert
+                message = "Harga emas berhasil disimpan sebagai data baru (histori terjaga)";
+                log.info(">> Controller: Insert harga emas baru berhasil: {}", response);
+            }
             
             return ResponseEntity.ok(ApiResponse.<GoldPriceResponseDto>builder()
                 .success(true)
-                .message("Harga emas berhasil diupdate")
+                .message(message)
                 .data(response)
                 .build());
                 
         } catch (Exception e) {
-            log.error(">> Controller: Error dalam update harga emas: {}", e.getMessage(), e);
+            log.error(">> Controller: Error dalam insert harga emas: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.<GoldPriceResponseDto>builder()
                     .success(false)
-                    .message("Gagal mengupdate harga emas: " + e.getMessage())
+                    .message("Gagal menyimpan harga emas baru: " + e.getMessage())
                     .build());
         }
     }

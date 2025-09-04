@@ -28,8 +28,11 @@ public class ProductResponseDto {
     private String formattedFinalPriceWithCurrency;
     private int stock;
     private int minStock;
-    private boolean isActive;
+    private boolean active; // Ubah dari isActive ke active untuk konsistensi
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createdAt;
+    
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateAt;
 
@@ -48,8 +51,9 @@ public class ProductResponseDto {
                 .formattedFinalPriceWithCurrency(NumberFormatter.formatCurrency(product.getFinalPrice()))
                 .stock(product.getStock())
                 .minStock(product.getMinStock())
-                .isActive(product.getIsActive())
-                .updateAt(product.getUpdateAt())
+                .active(product.getIsActive())
+                .createdAt(LocalDateTime.now()) // Default untuk created date
+                .updateAt(product.getUpdateAt()) // Akan null jika belum pernah diupdate
                 .build();
     }
 }

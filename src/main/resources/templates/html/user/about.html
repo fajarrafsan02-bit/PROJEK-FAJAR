@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tentang Kami - Fajar Gold</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold-primary: #d4af37;
+            --gold-light: #f7e98e;
+            --gold-dark: #b8860b;
+            --gold-accent: #ffd700;
+            --black-luxury: #0a0a0a;
+            --black-soft: #1a1a1a;
+            --white-pearl: #fff8dc;
+            --white-pure: #ffffff;
+            --gray-elegant: #4a5568;
+            --gray-light: #f7fafc;
+            --gray-medium: #e2e8f0;
+            --gray-dark: #2d3748;
+            --shadow-gold: 0 25px 50px rgba(212, 175, 55, 0.4);
+            --shadow-luxury: 0 30px 60px rgba(0, 0, 0, 0.2);
+            --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --gradient-gold: linear-gradient(135deg, #d4af37 0%, #ffd700 50%, #b8860b 100%);
+            --gradient-gold-reverse: linear-gradient(135deg, #b8860b 0%, #ffd700 50%, #d4af37 100%);
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background: var(--gray-light);
+            color: var(--black-luxury);
+            line-height: 1.6;
+        }
+
+        /* Header & Navigation */
+        .header {
+            background: var(--white-pure);
+            box-shadow: var(--shadow-soft);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .top-bar {
+            background: var(--gradient-gold);
+            padding: 12px 0;
+            text-align: center;
+            font-size: 14px;
+            color: var(--black-luxury);
+            font-weight: 500;
+        }
+
+        .navbar {
+            padding: 20px 0;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .logo {
+            font-family: "Playfair Display", serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--gold-primary);
+            text-decoration: none;
+            letter-spacing: 2px;
+            white-space: nowrap;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--black-luxury);
+            font-weight: 500;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 8px 0;
+        }
+
+        .nav-link:hover {
+            color: var(--gold-primary);
+        }
+
+        .nav-link.active {
+            color: var(--gold-primary);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gold-primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        .search-bar {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+            margin: 0 30px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid var(--gray-medium);
+            border-radius: 30px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: var(--white-pure);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--gold-primary);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: var(--black-luxury);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-btn:hover {
+            background: var(--gold-dark);
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .nav-icon {
+            position: relative;
+            color: var(--black-luxury);
+            font-size: 22px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            padding: 10px;
+            border-radius: 50%;
+        }
+
+        .nav-icon:hover {
+            color: var(--gold-primary);
+            background: rgba(212, 175, 55, 0.1);
+            transform: scale(1.1);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--error-color);
+            color: white;
+            font-size: 11px;
+            padding: 3px 7px;
+            border-radius: 12px;
+            min-width: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--black-luxury);
+            cursor: pointer;
+            padding: 10px;
+        }
+
+        /* About Page Styles */
+        .about-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 30px;
+        }
+
+        .page-title {
+            font-family: "Playfair Display", serif;
+            font-size: 42px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--black-luxury);
+            position: relative;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: var(--gradient-gold);
+            border-radius: 2px;
+        }
+
+        .page-subtitle {
+            text-align: center;
+            font-size: 18px;
+            color: var(--gray-elegant);
+            margin-bottom: 60px;
+        }
+
+        .hero-section {
+            background: var(--white-pure);
+            border-radius: 25px;
+            padding: 60px 40px;
+            margin-bottom: 60px;
+            box-shadow: var(--shadow-soft);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-gold);
+            opacity: 0.05;
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-icon {
+            width: 120px;
+            height: 120px;
+            background: var(--gradient-gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            font-size: 48px;
+            color: var(--black-luxury);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .hero-text {
+            font-size: 20px;
+            line-height: 1.8;
+            color: var(--gray-elegant);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-bottom: 80px;
+        }
+
+        .stat-card {
+            background: var(--white-pure);
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: var(--shadow-soft);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-luxury);
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--gold-primary);
+            margin-bottom: 10px;
+            font-family: "Playfair Display", serif;
+        }
+
+        .stat-label {
+            font-size: 16px;
+            color: var(--gray-elegant);
+            font-weight: 600;
+        }
+
+        .content-sections {
+            display: grid;
+            gap: 60px;
+        }
+
+        .content-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .content-section:nth-child(even) {
+            direction: rtl;
+        }
+
+        .content-section:nth-child(even) > * {
+            direction: ltr;
+        }
+
+        .section-content {
+            background: var(--white-pure);
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .section-image {
+            background: var(--gradient-gold);
+            border-radius: 25px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            color: var(--black-luxury);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section-title {
+            font-family: "Playfair Display", serif;
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .section-text {
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--gray-elegant);
+            margin-bottom: 25px;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 16px;
+            color: var(--gray-elegant);
+        }
+
+        .feature-list li i {
+            color: var(--gold-primary);
+            font-size: 18px;
+            width: 20px;
+        }
+
+        .team-section {
+            background: var(--white-pure);
+            border-radius: 25px;
+            padding: 60px 40px;
+            box-shadow: var(--shadow-soft);
+            margin-top: 80px;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .team-card {
+            background: var(--gray-light);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .team-card:hover {
+            background: var(--gradient-gold);
+            transform: translateY(-5px);
+        }
+
+        .team-avatar {
+            width: 100px;
+            height: 100px;
+            background: var(--gradient-gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 40px;
+            color: var(--black-luxury);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .team-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 8px;
+        }
+
+        .team-role {
+            font-size: 14px;
+            color: var(--gray-elegant);
+            margin-bottom: 15px;
+        }
+
+        .team-description {
+            font-size: 14px;
+            color: var(--gray-elegant);
+            line-height: 1.6;
+        }
+
+        .team-card:hover .team-role,
+        .team-card:hover .team-description {
+            color: var(--black-luxury);
+        }
+
+        .values-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 80px;
+        }
+
+        .value-card {
+            background: var(--white-pure);
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: var(--shadow-soft);
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .value-card:hover {
+            border-color: var(--gold-primary);
+            transform: translateY(-5px);
+        }
+
+        .value-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gradient-gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            font-size: 32px;
+            color: var(--black-luxury);
+        }
+
+        .value-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 15px;
+        }
+
+        .value-text {
+            font-size: 15px;
+            color: var(--gray-elegant);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 1024px) {
+            .content-section {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .nav-container {
+                padding: 0 20px;
+                gap: 20px;
+            }
+
+            .search-bar {
+                max-width: 300px;
+                margin: 0 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .search-bar {
+                order: 3;
+                width: 100%;
+                max-width: none;
+                margin: 15px 0 0 0;
+            }
+
+            .nav-container {
+                flex-wrap: wrap;
+            }
+
+            .nav-icons {
+                order: 2;
+            }
+
+            .about-container {
+                padding: 30px 20px;
+            }
+
+            .page-title {
+                font-size: 32px;
+            }
+
+            .hero-section {
+                padding: 40px 30px;
+            }
+
+            .stats-section {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+
+            .team-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .values-section {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-title {
+                font-size: 28px;
+            }
+
+            .section-title {
+                font-size: 26px;
+            }
+
+            .stats-section {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-number {
+                font-size: 36px;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(212, 175, 55, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--gold-primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--gray-light);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gold-primary);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gold-dark);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="top-bar">
+            <div class="container">
+                <span>🚚 Gratis Ongkir untuk pembelian di atas Rp 5.000.000 | 📞 Hubungi: 0812-3456-7890</span>
+            </div>
+        </div>
+
+        <nav class="navbar">
+            <div class="nav-container">
+                <a href="/user/home" class="logo">Fajar Gold</a>
+
+                <button class="mobile-menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <ul class="nav-menu">
+                    <li><a href="/user/home" class="nav-link">Beranda</a></li>
+                    <li><a href="/user/katalog" class="nav-link">Katalog</a></li>
+                    <li><a href="/user/my-orders" class="nav-link">Pesanan</a></li>
+                    <li><a href="/user/about" class="nav-link active">Tentang Kami</a></li>
+                    <li><a href="/user/contact" class="nav-link">Kontak</a></li>
+                </ul>
+
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="Cari produk emas..." id="searchInput">
+                    <button class="search-btn" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+
+                <div class="nav-icons">
+                    <a href="/user/wishlist" class="nav-icon" title="Wishlist">
+                        <i class="fas fa-heart"></i>
+                        <span class="cart-badge" id="wishlistBadge">0</span>
+                    </a>
+                    <a href="/user/cart" class="nav-icon" title="Keranjang">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-badge" id="cartBadge">0</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="about-container">
+        <h1 class="page-title">Tentang Fajar Gold</h1>
+        <p class="page-subtitle">Perjalanan kami dalam menyediakan perhiasan emas berkualitas terbaik sejak 1995</p>
+
+        <div class="hero-section">
+            <div class="hero-content">
+                <div class="hero-icon">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <p class="hero-text">
+                    Fajar Gold telah menjadi pilihan utama untuk perhiasan emas berkualitas tinggi selama lebih dari 25 tahun.
+                    Dengan komitmen terhadap keunggulan, inovasi, dan kepercayaan pelanggan, kami terus menghadirkan koleksi 
+                    emas terbaik yang memadukan tradisi dengan desain modern untuk memenuhi kebutuhan investasi dan fashion Anda.
+                </p>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <div class="stat-card">
+                <div class="stat-number">25+</div>
+                <div class="stat-label">Tahun Pengalaman</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">50K+</div>
+                <div class="stat-label">Pelanggan Puas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">1000+</div>
+                <div class="stat-label">Produk Berkualitas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">99.9%</div>
+                <div class="stat-label">Kemurnian Emas</div>
+            </div>
+        </div>
+
+        <div class="content-sections">
+            <div class="content-section">
+                <div class="section-content">
+                    <h3 class="section-title">
+                        <i class="fas fa-history"></i>
+                        Sejarah Kami
+                    </h3>
+                    <p class="section-text">
+                        Didirikan pada tahun 1995, Fajar Gold dimulai dari sebuah toko kecil dengan visi besar: 
+                        menyediakan perhiasan emas berkualitas tinggi dengan harga yang terjangkau. Berawal dari 
+                        satu outlet di Jakarta, kini kami telah berkembang menjadi salah satu retailer emas 
+                        terpercaya di Indonesia.
+                    </p>
+                    <p class="section-text">
+                        Perjalanan kami dimulai dengan komitmen sederhana namun kuat - memberikan pelayanan 
+                        terbaik dan produk berkualitas kepada setiap pelanggan. Hingga kini, nilai-nilai 
+                        tersebut masih menjadi fondasi utama dalam setiap aspek bisnis kami.
+                    </p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> Berdiri sejak 1995</li>
+                        <li><i class="fas fa-check-circle"></i> Pengalaman lebih dari 25 tahun</li>
+                        <li><i class="fas fa-check-circle"></i> Kepercayaan ribuan pelanggan</li>
+                    </ul>
+                </div>
+                <div class="section-image">
+                    <i class="fas fa-store"></i>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="section-content">
+                    <h3 class="section-title">
+                        <i class="fas fa-eye"></i>
+                        Visi & Misi
+                    </h3>
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: var(--gold-primary); font-size: 18px; margin-bottom: 10px;">VISI</h4>
+                        <p class="section-text">
+                            Menjadi retailer perhiasan emas terdepan di Indonesia yang dipercaya oleh masyarakat 
+                            dalam menyediakan produk berkualitas tinggi dan pelayanan yang excellence.
+                        </p>
+                    </div>
+                    <div>
+                        <h4 style="color: var(--gold-primary); font-size: 18px; margin-bottom: 10px;">MISI</h4>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-gem"></i> Menyediakan perhiasan emas berkualitas tinggi dengan desain yang elegan</li>
+                            <li><i class="fas fa-handshake"></i> Memberikan pelayanan yang ramah, profesional, dan terpercaya</li>
+                            <li><i class="fas fa-chart-line"></i> Membantu pelanggan dalam investasi emas yang menguntungkan</li>
+                            <li><i class="fas fa-award"></i> Mempertahankan standar kualitas tertinggi dalam setiap produk</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="section-image">
+                    <i class="fas fa-bullseye"></i>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="section-content">
+                    <h3 class="section-title">
+                        <i class="fas fa-medal"></i>
+                        Keunggulan Kami
+                    </h3>
+                    <p class="section-text">
+                        Fajar Gold berkomitmen untuk memberikan yang terbaik bagi setiap pelanggan. 
+                        Dengan standar kualitas internasional dan pelayanan yang personal, kami 
+                        memastikan setiap pembelian Anda adalah investasi yang berharga.
+                    </p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-certificate"></i> Sertifikat resmi untuk setiap produk emas</li>
+                        <li><i class="fas fa-shield-alt"></i> Garansi keaslian dan kualitas produk</li>
+                        <li><i class="fas fa-tools"></i> Layanan perawatan dan perbaikan jewelry</li>
+                        <li><i class="fas fa-exchange-alt"></i> Program buyback dengan harga kompetitif</li>
+                        <li><i class="fas fa-shipping-fast"></i> Pengiriman aman ke seluruh Indonesia</li>
+                        <li><i class="fas fa-headset"></i> Customer service 24/7</li>
+                    </ul>
+                </div>
+                <div class="section-image">
+                    <i class="fas fa-trophy"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="values-section">
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <h4 class="value-title">Kepercayaan</h4>
+                <p class="value-text">
+                    Membangun hubungan jangka panjang dengan pelanggan berdasarkan kepercayaan, 
+                    transparansi, dan integritas dalam setiap transaksi.
+                </p>
+            </div>
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h4 class="value-title">Kualitas</h4>
+                <p class="value-text">
+                    Mengutamakan kualitas terbaik dalam setiap produk dengan standar kemurnian 
+                    emas yang terjamin dan craftsmanship yang excellent.
+                </p>
+            </div>
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <h4 class="value-title">Inovasi</h4>
+                <p class="value-text">
+                    Terus berinovasi dalam desain dan pelayanan untuk memenuhi kebutuhan 
+                    pelanggan yang terus berkembang di era digital.
+                </p>
+            </div>
+        </div>
+
+        <div class="team-section">
+            <h3 class="section-title" style="text-align: center; justify-content: center;">
+                <i class="fas fa-users"></i>
+                Tim Profesional Kami
+            </h3>
+            <p style="text-align: center; color: var(--gray-elegant); margin-bottom: 20px;">
+                Didukung oleh tim berpengalaman yang siap memberikan pelayanan terbaik untuk Anda
+            </p>
+            
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h4 class="team-name">Budi Santoso</h4>
+                    <p class="team-role">CEO & Founder</p>
+                    <p class="team-description">
+                        Memimpin Fajar Gold sejak 1995 dengan visi membangun kepercayaan pelanggan 
+                        melalui kualitas dan pelayanan terdepan.
+                    </p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <i class="fas fa-gem"></i>
+                    </div>
+                    <h4 class="team-name">Sari Dewi</h4>
+                    <p class="team-role">Head of Design</p>
+                    <p class="team-description">
+                        Bertanggung jawab atas inovasi desain perhiasan yang memadukan 
+                        keindahan tradisional dengan tren modern.
+                    </p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <h4 class="team-name">Ahmad Rahman</h4>
+                    <p class="team-role">Quality Control Manager</p>
+                    <p class="team-description">
+                        Memastikan setiap produk memenuhi standar kualitas tertinggi 
+                        sebelum sampai ke tangan pelanggan.
+                    </p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h4 class="team-name">Lisa Permata</h4>
+                    <p class="team-role">Customer Experience Lead</p>
+                    <p class="team-description">
+                        Memimpin tim customer service untuk memberikan pengalaman berbelanja 
+                        yang tak terlupakan bagi setiap pelanggan.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Badge Utility Script -->
+    <script src="/js/cart-badge-utility.js"></script>
+
+    <script>
+        class AboutManager {
+            constructor() {
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.setupBadges();
+                this.animateStats();
+                
+                // Initial badge refresh after a short delay to ensure DOM is ready
+                setTimeout(() => {
+                    this.initializeWishlistBadge();
+                }, 100);
+            }
+
+            setupEventListeners() {
+                // Search functionality
+                const searchBtn = document.getElementById('searchBtn');
+                const searchInput = document.getElementById('searchInput');
+                
+                if (searchBtn) {
+                    searchBtn.addEventListener('click', () => this.handleSearch());
+                }
+                
+                if (searchInput) {
+                    searchInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') this.handleSearch();
+                    });
+                }
+
+                // Mobile menu toggle
+                const mobileToggle = document.querySelector('.mobile-menu-toggle');
+                const navMenu = document.querySelector('.nav-menu');
+                
+                if (mobileToggle && navMenu) {
+                    mobileToggle.addEventListener('click', () => {
+                        navMenu.style.display = navMenu.style.display === 'flex' ? 'none' : 'flex';
+                    });
+                }
+            }
+
+            async setupBadges() {
+                // Initialize wishlist badge from localStorage
+                this.initializeWishlistBadge();
+                
+                // Setup cart badge if cartBadgeManager is available
+                try {
+                    if (typeof window.cartBadgeManager !== 'undefined') {
+                        await window.cartBadgeManager.refreshCart();
+                    }
+                } catch (error) {
+                    console.error('Error setting up cart badge:', error);
+                }
+                
+                // Setup real-time updates
+                this.setupRealTimeBadgeUpdates();
+            }
+            
+            initializeWishlistBadge() {
+                try {
+                    // Get wishlist from localStorage
+                    const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+                    const wishlistBadge = document.getElementById('wishlistBadge');
+                    
+                    if (wishlistBadge) {
+                        wishlistBadge.textContent = wishlist.length;
+                        if (wishlist.length === 0) {
+                            wishlistBadge.style.display = 'none';
+                        } else {
+                            wishlistBadge.style.display = 'inline-block';
+                        }
+                    }
+                    
+                    console.log('About: Wishlist badge initialized with', wishlist.length, 'items');
+                } catch (error) {
+                    console.error('Error initializing wishlist badge:', error);
+                }
+            }
+            
+            setupRealTimeBadgeUpdates() {
+                // Listen for wishlist changes in localStorage
+                window.addEventListener('storage', (event) => {
+                    if (event.key === 'wishlist') {
+                        console.log('About: Wishlist storage changed, updating badge');
+                        this.initializeWishlistBadge();
+                    }
+                });
+
+                // Listen for custom wishlist events
+                window.addEventListener('wishlistUpdated', () => {
+                    console.log('About: Wishlist updated event received');
+                    this.initializeWishlistBadge();
+                });
+
+                // Listen for cart updates
+                window.addEventListener('cartUpdated', () => {
+                    console.log('About: Cart updated event received');
+                    if (window.cartBadgeManager) {
+                        window.cartBadgeManager.refreshCart();
+                    }
+                });
+
+                // Force refresh when page becomes visible
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden) {
+                        console.log('About: Page visible, refreshing badges');
+                        this.initializeWishlistBadge();
+                        if (window.cartBadgeManager) {
+                            window.cartBadgeManager.refreshCart();
+                        }
+                    }
+                });
+
+                // Force refresh when window gains focus
+                window.addEventListener('focus', () => {
+                    console.log('About: Window focused, refreshing badges');
+                    this.initializeWishlistBadge();
+                    if (window.cartBadgeManager) {
+                        window.cartBadgeManager.refreshCart();
+                    }
+                });
+            }
+
+            handleSearch() {
+                const query = document.getElementById('searchInput')?.value?.trim();
+                if (query) {
+                    window.location.href = `/user/katalog?search=${encodeURIComponent(query)}`;
+                }
+            }
+
+            animateStats() {
+                // Animate statistics numbers when they come into view
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const statNumbers = entry.target.querySelectorAll('.stat-number');
+                            statNumbers.forEach(stat => {
+                                const finalValue = stat.textContent;
+                                const numericValue = parseInt(finalValue.replace(/\D/g, ''));
+                                const suffix = finalValue.replace(/[\d.]/g, '');
+                                
+                                this.animateNumber(stat, 0, numericValue, suffix, 2000);
+                            });
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.5 });
+
+                const statsSection = document.querySelector('.stats-section');
+                if (statsSection) {
+                    observer.observe(statsSection);
+                }
+            }
+
+            animateNumber(element, start, end, suffix, duration) {
+                const startTime = performance.now();
+                const animate = (currentTime) => {
+                    const elapsedTime = currentTime - startTime;
+                    const progress = Math.min(elapsedTime / duration, 1);
+                    const currentValue = Math.floor(start + (end - start) * this.easeOutExpo(progress));
+                    
+                    element.textContent = currentValue + suffix;
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    }
+                };
+                requestAnimationFrame(animate);
+            }
+
+            easeOutExpo(t) {
+                return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            window.aboutManager = new AboutManager();
+            
+            // Update wishlist badge periodically
+            setInterval(() => {
+                if (window.aboutManager) {
+                    window.aboutManager.initializeWishlistBadge();
+                }
+            }, 10000); // Update every 10 seconds
+            
+            console.log('About: All systems initialized! ✨');
+        });
+        
+        // Global function to trigger immediate badge refresh (can be called from other scripts)
+        window.refreshAllBadges = function() {
+            console.log('About: Manual badge refresh triggered');
+            if (window.aboutManager) {
+                window.aboutManager.initializeWishlistBadge();
+            }
+            if (window.cartBadgeManager) {
+                window.cartBadgeManager.refreshCart();
+            }
+        };
+    </script>
+</body>
+
+</html>

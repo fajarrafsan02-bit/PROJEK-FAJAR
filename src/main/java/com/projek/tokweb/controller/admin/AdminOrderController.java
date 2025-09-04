@@ -17,6 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.projek.tokweb.models.customer.Order;
 import com.projek.tokweb.models.customer.OrderStatus;
 import com.projek.tokweb.service.admin.OrderManagementService;
+import com.projek.tokweb.service.customer.BuktiPembayaranService;
+import com.projek.tokweb.models.customer.BuktiPembayaran;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class AdminOrderController {
 
     private final OrderManagementService orderManagementService;
+    private final BuktiPembayaranService buktiPembayaranService;
 
     @GetMapping
     public ResponseEntity<?> getAllOrders(
@@ -35,16 +40,37 @@ public class AdminOrderController {
             @RequestParam(defaultValue = "desc") String sortDirection) {
 
         try {
+            System.out.println("📦 Getting all orders with page: " + page + ", size: " + size);
             var orders = orderManagementService.getAllOrders(page, size, sortBy, sortDirection);
+            
+            // Load bukti pembayaran for each order
+            var ordersWithBukti = orders.getContent().stream().map(order -> {
+                try {
+                    // Load bukti pembayaran if exists
+                    var bukti = buktiPembayaranService.getByOrderId(order.getId());
+                    order.setBukti(bukti);
+                    
+                    System.out.println("📋 Order ID: " + order.getId() + ", Status: " + order.getStatus() + 
+                                     ", Has bukti: " + (bukti != null ? "Yes (ID: " + bukti.getId() + ")" : "No"));
+                } catch (Exception e) {
+                    System.out.println("⚠️ Error loading bukti for order " + order.getId() + ": " + e.getMessage());
+                }
+                return order;
+            }).toList();
+            
+            System.out.println("✅ Loaded " + ordersWithBukti.size() + " orders with bukti data");
+            
             return ResponseEntity.ok(Map.of(
                 "success", true,
-                "data", orders.getContent(),
+                "data", ordersWithBukti,
                 "total", orders.getTotalElements(),
                 "page", orders.getNumber(),
                 "size", orders.getSize(),
                 "totalPages", orders.getTotalPages()
             ));
         } catch (Exception e) {
+            System.out.println("❌ Error in getAllOrders: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of(
                 "success", false,
                 "message", e.getMessage()
@@ -86,7 +112,20 @@ public class AdminOrderController {
     public ResponseEntity<?> confirmPayment(@PathVariable Long orderId, @RequestBody Map<String, String> request) {
         try {
             String adminNotes = request.get("notes");
-            var order = orderManagementService.confirmOrder(orderId, adminNotes);
+            System.out.println("🔄 [ADMIN] Confirming payment for order: " + orderId + ", Notes: " + adminNotes);
+            
+            var order = orderManagementService.confirmPayment(orderId, adminNotes);
+            System.out.println("✅ [ADMIN] Payment confirmed successfully for order: " + orderId);
+            
+            // PERBAIKAN: Load dan sertakan data bukti pembayaran dalam response
+            try {
+                var bukti = buktiPembayaranService.getByOrderId(order.getId());
+                order.setBukti(bukti);
+                System.out.println("📋 [ADMIN] Bukti pembayaran loaded for confirmed order: " + 
+                                 (bukti != null ? "Yes (ID: " + bukti.getId() + ")" : "No"));
+            } catch (Exception e) {
+                System.out.println("⚠️ [ADMIN] Error loading bukti for confirmed order " + order.getId() + ": " + e.getMessage());
+            }
 
             return ResponseEntity.ok(Map.of(
                 "success", true,
@@ -94,9 +133,11 @@ public class AdminOrderController {
                 "data", order
             ));
         } catch (Exception e) {
+            System.out.println("❌ [ADMIN] Error confirming payment for order " + orderId + ": " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of(
                 "success", false,
-                "message", e.getMessage()
+                "message", "Gagal mengkonfirmasi pesanan: " + e.getMessage()
             ));
         }
     }
@@ -295,6 +336,88 @@ public class AdminOrderController {
                 "success", false,
                 "message", e.getMessage()
             ));
+        }
+    }
+    
+    /**
+     * Endpoint untuk mengecek apakah ada bukti pembayaran untuk order tertentu
+     */
+    @GetMapping("/{orderId}/payment-proof/check")
+    public ResponseEntity<?> checkPaymentProof(@PathVariable Long orderId) {
+        try {
+            System.out.println("🔍 Checking payment proof for order: " + orderId);
+            
+            BuktiPembayaran bukti = buktiPembayaranService.getByOrderId(orderId);
+            boolean hasProof = (bukti != null);
+            
+            Map<String, Object> response = Map.of(
+                "success", true,
+                "hasPaymentProof", hasProof,
+                "fileName", hasProof ? bukti.getFileName() : null,
+                "contentType", hasProof ? bukti.getContentType() : null,
+                "uploadedAt", hasProof ? "File tersedia" : null
+            );
+            
+            System.out.println("✅ Payment proof check result for order " + orderId + ": " + hasProof);
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            System.out.println("❌ Error checking payment proof for order " + orderId + ": " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Gagal mengecek bukti pembayaran: " + e.getMessage()
+            ));
+        }
+    }
+    
+    /**
+     * Endpoint untuk menampilkan gambar bukti pembayaran berdasarkan order ID
+     */
+    @GetMapping("/{orderId}/payment-proof/image")
+    public ResponseEntity<byte[]> getPaymentProofImage(@PathVariable Long orderId) {
+        try {
+            System.out.println("🖼️ Getting payment proof image for order: " + orderId);
+            
+            BuktiPembayaran bukti = buktiPembayaranService.getByOrderId(orderId);
+            
+            if (bukti == null) {
+                System.out.println("❌ No payment proof found for order: " + orderId);
+                return ResponseEntity.notFound().build();
+            }
+            
+            if (bukti.getFileData() == null) {
+                System.out.println("❌ File data is null for order: " + orderId);
+                return ResponseEntity.notFound().build();
+            }
+            
+            // Set appropriate headers for image display
+            HttpHeaders headers = new HttpHeaders();
+            
+            // Determine content type
+            String contentType = bukti.getContentType();
+            if (contentType == null || contentType.trim().isEmpty()) {
+                // Default to jpeg if no content type
+                contentType = "image/jpeg";
+            }
+            headers.setContentType(MediaType.parseMediaType(contentType));
+            
+            // Set content disposition for inline display
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, 
+                "inline; filename=\"" + bukti.getFileName() + "\"");
+            
+            headers.setContentLength(bukti.getFileData().length);
+            
+            System.out.println("✅ Serving payment proof image for order " + orderId + 
+                             " - Size: " + bukti.getFileData().length + " bytes, Type: " + contentType);
+            
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(bukti.getFileData());
+                    
+        } catch (Exception e) {
+            System.out.println("❌ Error serving payment proof image for order " + orderId + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.notFound().build();
         }
     }
 }

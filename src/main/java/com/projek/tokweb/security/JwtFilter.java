@@ -36,6 +36,12 @@ public class JwtFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getServletPath();
+        String method = request.getMethod();
+        
+        // Log all requests to admin API endpoints for debugging
+        if (path.startsWith("/admin/api/")) {
+            System.out.println("🔒 [JWT_FILTER] " + method + " " + path);
+        }
 
         if (path.startsWith("/auth") ||
                 path.startsWith("/css") ||
@@ -49,14 +55,23 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         String token = null;
+        int cookieCount = 0;
 
         if (request.getCookies() != null) {
+            cookieCount = request.getCookies().length;
             for (Cookie cookie : request.getCookies()) {
                 if ("jwt".equals(cookie.getName())) {
                     token = cookie.getValue();
+                    if (path.startsWith("/admin/api/")) {
+                        System.out.println("🔑 [JWT_FILTER] Found JWT cookie: " + (token != null && token.length() > 10 ? token.substring(0, 10) + "..." : "null"));
+                    }
                     break;
                 }
             }
+        }
+
+        if (path.startsWith("/admin/api/")) {
+            System.out.println("🍪 [JWT_FILTER] Total cookies: " + cookieCount + ", JWT token found: " + (token != null));
         }
 
         if (token != null && !token.trim().isEmpty()) {
@@ -65,12 +80,24 @@ public class JwtFilter extends OncePerRequestFilter {
                 Optional<User> userOpt = userRespository.findByEmail(email);
 
                 if (userOpt.isPresent()) {
-
                     User user = userOpt.get();
+                    String roleName = "ROLE_" + user.getRole().name();
+                    
+                    if (path.startsWith("/admin/api/")) {
+                        System.out.println("👤 [JWT_FILTER] User: " + email + ", Role: " + roleName);
+                    }
 
                     UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, null,
-                            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
+                            List.of(new SimpleGrantedAuthority(roleName)));
                     SecurityContextHolder.getContext().setAuthentication(auth);
+                    
+                    if (path.startsWith("/admin/api/")) {
+                        System.out.println("✅ [JWT_FILTER] Authentication set successfully");
+                    }
+                } else {
+                    if (path.startsWith("/admin/api/")) {
+                        System.out.println("❌ [JWT_FILTER] User not found in database: " + email);
+                    }
                 }
             } catch (ExpiredJwtException e) {
                 System.out.println("Token Ambo Kardaluarsa " + e.getMessage());
@@ -158,6 +185,11 @@ public class JwtFilter extends OncePerRequestFilter {
                 request.getSession().setAttribute("errorLogin", "Jwt Filter Anda Error, Silahkan Login Ulang");
                 response.sendRedirect("/auth/login");
                 return;
+            }
+        } else {
+            // No token found
+            if (path.startsWith("/admin/api/")) {
+                System.out.println("⚠️ [JWT_FILTER] No JWT token found - request will be unauthorized");
             }
         }
         filterChain.doFilter(request, response);

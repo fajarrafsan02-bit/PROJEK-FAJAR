@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kontak Kami - Fajar Gold | Hubungi Toko Emas Terpercaya</title>
+    <meta name="description" content="Hubungi Fajar Gold untuk konsultasi perhiasan emas, investasi emas, atau pertanyaan lainnya. Kami siap melayani Anda dengan sepenuh hati.">
+    
+     Fonts 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+     Icons 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Reset dan Variabel CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Warna Utama Fajar Gold */
+            --gold-primary: #d4af37;
+            --gold-light: #f7e98e;
+            --gold-dark: #b8860b;
+            --gold-accent: #ffd700;
+            --gold-rose: #e8b4b8;
+            --gold-copper: #cd7f32;
+
+            /* Warna Netral */
+            --black-luxury: #0a0a0a;
+            --black-soft: #1a1a1a;
+            --white-pearl: #fff8dc;
+            --white-pure: #ffffff;
+            --gray-elegant: #4a5568;
+            --gray-light: #f7fafc;
+            --gray-medium: #e2e8f0;
+            --gray-dark: #2d3748;
+
+            /* Bayangan dan Gradien */
+            --shadow-gold: 0 25px 50px rgba(212, 175, 55, 0.4);
+            --shadow-luxury: 0 30px 60px rgba(0, 0, 0, 0.2);
+            --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --gradient-gold: linear-gradient(135deg, #d4af37 0%, #ffd700 50%, #b8860b 100%);
+            --gradient-gold-reverse: linear-gradient(135deg, #b8860b 0%, #ffd700 50%, #d4af37 100%);
+            --gradient-overlay: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%);
+        }
+
+        /* Body dan Layout Utama */
+        body {
+            font-family: "Inter", sans-serif;
+            line-height: 1.6;
+            color: var(--black-luxury);
+            background: var(--white-pure);
+        }
+
+        /* Header */
+        .header {
+            background: var(--white-pure);
+            box-shadow: var(--shadow-soft);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .header.scrolled {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 80px;
+        }
+
+        .logo {
+            font-family: "Playfair Display", serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--gold-primary);
+            text-decoration: none;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .logo:hover {
+            color: var(--gold-dark);
+            transform: scale(1.05);
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--black-luxury);
+            font-weight: 500;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--gold-primary);
+        }
+
+        .nav-link::after {
+            content: "";
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-gold);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--black-luxury);
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: var(--gradient-overlay);
+            padding: 120px 0 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('/placeholder.svg?height=600&width=1200&text=Contact+Us+Hero') center/cover;
+            opacity: 0.1;
+            z-index: -1;
+        }
+
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .hero-title {
+            font-family: "Playfair Display", serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--black-luxury);
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: var(--gray-elegant);
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 80px 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .section {
+            margin-bottom: 80px;
+        }
+
+        /* Contact Grid */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: start;
+        }
+
+        /* Contact Form */
+        .contact-form {
+            background: var(--white-pure);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-luxury);
+        }
+
+        .form-title {
+            font-family: "Playfair Display", serif;
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 20px;
+        }
+
+        .form-subtitle {
+            color: var(--gray-elegant);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid var(--gray-medium);
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: var(--white-pure);
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: var(--gradient-gold);
+            color: var(--black-luxury);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Contact Info */
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .info-card {
+            background: var(--white-pure);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-gold);
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-luxury);
+        }
+
+        .info-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--black-luxury);
+            margin-bottom: 20px;
+        }
+
+        .info-title {
+            font-family: "Playfair Display", serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 10px;
+        }
+
+        .info-details {
+            color: var(--gray-elegant);
+            line-height: 1.6;
+        }
+
+        .info-details a {
+            color: var(--gold-primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .info-details a:hover {
+            color: var(--gold-dark);
+        }
+
+        /* Quick Contact Buttons */
+        .quick-contact {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .quick-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 20px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: var(--white-pure);
+        }
+
+        .quick-btn.whatsapp {
+            background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+        }
+
+        .quick-btn.instagram {
+            background: linear-gradient(135deg, #e4405f 0%, #833ab4 50%, #f77737 100%);
+        }
+
+        .quick-btn.email {
+            background: linear-gradient(135deg, #ea4335 0%, #34a853 50%, #4285f4 100%);
+        }
+
+        .quick-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Map Section */
+        .map-section {
+            background: var(--gray-light);
+            padding: 80px 0;
+            margin-top: 80px;
+        }
+
+        .map-container {
+            background: var(--white-pure);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-luxury);
+            height: 400px;
+            position: relative;
+        }
+
+        .map-placeholder {
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-overlay);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: var(--gray-elegant);
+        }
+
+        .map-placeholder i {
+            font-size: 48px;
+            color: var(--gold-primary);
+            margin-bottom: 20px;
+        }
+
+        /* Business Hours */
+        .hours-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .hours-card {
+            background: var(--white-pure);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-soft);
+            text-align: center;
+        }
+
+        .hours-day {
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 8px;
+        }
+
+        .hours-time {
+            color: var(--gold-primary);
+            font-weight: 600;
+        }
+
+        .hours-time.closed {
+            color: var(--gray-elegant);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--black-luxury);
+            color: var(--white-pure);
+            padding: 60px 0 30px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section h3 {
+            font-family: "Playfair Display", serif;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--gold-primary);
+        }
+
+        .footer-section p,
+        .footer-section li {
+            color: var(--gray-medium);
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section a {
+            color: var(--gray-medium);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--gold-primary);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-link {
+            width: 40px;
+            height: 40px;
+            background: var(--gold-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--black-luxury);
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            background: var(--gold-light);
+            transform: translateY(-2px);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--gray-dark);
+            padding-top: 30px;
+            text-align: center;
+            color: var(--gray-medium);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .nav-menu {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--white-pure);
+                flex-direction: column;
+                padding: 20px;
+                box-shadow: var(--shadow-soft);
+            }
+
+            .nav-menu.active {
+                display: flex;
+            }
+
+            .hero-title {
+                font-size: 36px;
+            }
+
+            .hero-subtitle {
+                font-size: 18px;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-form {
+                padding: 30px 20px;
+            }
+
+            .quick-contact {
+                grid-template-columns: 1fr;
+            }
+
+            .hours-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease-out;
+        }
+
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Loading States */
+        .loading {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Cart and Wishlist Counters */
+        .cart-count, .wishlist-count {
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: 600;
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            min-width: 18px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .nav-link {
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+     Header 
+    <header class="header" id="header">
+        <nav class="nav-container">
+            <a href="index.html" class="logo">Fajar Gold</a>
+            
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html" class="nav-link">Beranda</a></li>
+                <li><a href="catalog.html" class="nav-link">Katalog</a></li>
+                <li><a href="about.html" class="nav-link">Tentang Kami</a></li>
+                <li><a href="contact.html" class="nav-link active">Kontak</a></li>
+                <li><a href="my-orders.html" class="nav-link">Pesanan Saya</a></li>
+                <li><a href="cart.html" class="nav-link">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" id="cartCount">0</span>
+                </a></li>
+                <li><a href="wishlist.html" class="nav-link">
+                    <i class="fas fa-heart"></i>
+                    <span class="wishlist-count" id="wishlistCount">0</span>
+                </a></li>
+            </ul>
+            
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </header>
+
+     Hero Section 
+    <section class="hero">
+        <div class="hero-container">
+            <h1 class="hero-title fade-in-up">Hubungi Kami</h1>
+            <p class="hero-subtitle fade-in-up">Kami siap membantu Anda dengan pertanyaan seputar perhiasan emas, investasi, atau layanan lainnya</p>
+        </div>
+    </section>
+    <main class="main-content">
+        <div class="container">
+            <div class="contact-grid">
+                <div class="contact-form scroll-reveal">
+                    <h2 class="form-title">Kirim Pesan</h2>
+                    <p class="form-subtitle">Isi formulir di bawah ini dan kami akan merespons dalam 24 jam</p>
+                    
+                    <form id="contactForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="firstName" class="form-label">Nama Depan *</label>
+                                <input type="text" id="firstName" name="firstName" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lastName" class="form-label">Nama Belakang *</label>
+                                <input type="text" id="lastName" name="lastName" class="form-input" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="email" class="form-label">Email *</label>
+                                <input type="email" id="email" name="email" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone" class="form-label">Nomor Telepon</label>
+                                <input type="tel" id="phone" name="phone" class="form-input">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="subject" class="form-label">Subjek *</label>
+                            <select id="subject" name="subject" class="form-select" required>
+                                <option value="">Pilih subjek pesan</option>
+                                <option value="product-inquiry">Pertanyaan Produk</option>
+                                <option value="investment-consultation">Konsultasi Investasi Emas</option>
+                                <option value="custom-order">Pesanan Khusus</option>
+                                <option value="repair-service">Layanan Reparasi</option>
+                                <option value="complaint">Keluhan</option>
+                                <option value="other">Lainnya</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message" class="form-label">Pesan *</label>
+                            <textarea id="message" name="message" class="form-textarea" placeholder="Tulis pesan Anda di sini..." required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-paper-plane"></i>
+                            Kirim Pesan
+                        </button>
+                    </form>
+                </div>
+
+                <div class="contact-info">
+                    <div class="info-card scroll-reveal">
+                        <div class="info-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h3 class="info-title">Alamat Toko</h3>
+                        <div class="info-details">
+                            Jl. Sudirman No. 123<br>
+                            Jakarta Pusat, DKI Jakarta 10220<br>
+                            Indonesia
+                        </div>
+                    </div>
+
+                    <div class="info-card scroll-reveal">
+                        <div class="info-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <h3 class="info-title">Telepon</h3>
+                        <div class="info-details">
+                            <a href="tel:+6281286196886">+62 812-8619-6886</a><br>
+                            <small>Senin - Sabtu: 09:00 - 21:00</small>
+                        </div>
+                    </div>
+
+                    <div class="info-card scroll-reveal">
+                        <div class="info-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <h3 class="info-title">Email</h3>
+                        <div class="info-details">
+                            <a href="mailto:fajar.rafsan02@gmail.com">fajar.rafsan02@gmail.com</a><br>
+                            <small>Respon dalam 24 jam</small>
+                        </div>
+                    </div>
+
+                    <div class="info-card scroll-reveal">
+                        <div class="info-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3 class="info-title">Jam Operasional</h3>
+                        <div class="info-details">
+                            Senin - Jumat: 09:00 - 21:00<br>
+                            Sabtu: 09:00 - 22:00<br>
+                            Minggu: 10:00 - 20:00
+                        </div>
+                    </div>
+
+                    <div class="quick-contact">
+                        <a href="https://wa.me/6281286196886?text=Halo%20Fajar%20Gold,%20saya%20ingin%20bertanya%20tentang%20produk%20emas" class="quick-btn whatsapp" target="_blank">
+                            <i class="fab fa-whatsapp"></i>
+                            WhatsApp
+                        </a>
+                        <a href="https://instagram.com/rffsn" class="quick-btn instagram" target="_blank">
+                            <i class="fab fa-instagram"></i>
+                            Instagram
+                        </a>
+                        <a href="mailto:fajar.rafsan02@gmail.com?subject=Pertanyaan%20tentang%20Fajar%20Gold" class="quick-btn email">
+                            <i class="fas fa-envelope"></i>
+                            Email
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <section class="map-section">
+        <div class="container">
+            <div class="map-container scroll-reveal">
+                <div class="map-placeholder">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <h3>Peta Lokasi Toko</h3>
+                    <p>Jl. Sudirman No. 123, Jakarta Pusat</p>
+                    <small>Klik untuk membuka di Google Maps</small>
+                </div>
+            </div>
+
+            <div class="hours-grid scroll-reveal">
+                <div class="hours-card">
+                    <div class="hours-day">Senin - Jumat</div>
+                    <div class="hours-time">09:00 - 21:00</div>
+                </div>
+                <div class="hours-card">
+                    <div class="hours-day">Sabtu</div>
+                    <div class="hours-time">09:00 - 22:00</div>
+                </div>
+                <div class="hours-card">
+                    <div class="hours-day">Minggu</div>
+                    <div class="hours-time">10:00 - 20:00</div>
+                </div>
+                <div class="hours-card">
+                    <div class="hours-day">Hari Libur Nasional</div>
+                    <div class="hours-time closed">Tutup</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Fajar Gold</h3>
+                    <p>Toko emas terpercaya dengan tradisi keunggulan dan kepercayaan yang telah teruji selama puluhan tahun.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://instagram.com/rffsn" class="social-link" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="https://wa.me/6281286196886" class="social-link" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Kontak Kami</h3>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> Jl. Sudirman No. 123, Jakarta Pusat</li>
+                        <li><i class="fas fa-phone"></i> +62 812-8619-6886</li>
+                        <li><i class="fas fa-envelope"></i> fajar.rafsan02@gmail.com</li>
+                        <li><i class="fas fa-clock"></i> Senin - Sabtu: 09:00 - 21:00</li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Layanan</h3>
+                    <ul>
+                        <li><a href="#">Jual Beli Emas</a></li>
+                        <li><a href="#">Custom Design</a></li>
+                        <li><a href="#">Reparasi Perhiasan</a></li>
+                        <li><a href="#">Konsultasi Investasi</a></li>
+                        <li><a href="#">Sertifikasi Emas</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Informasi</h3>
+                    <ul>
+                        <li><a href="about.html">Tentang Kami</a></li>
+                        <li><a href="#">Kebijakan Privasi</a></li>
+                        <li><a href="#">Syarat & Ketentuan</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Karir</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2024 Fajar Gold. Semua hak cipta dilindungi.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Contact Page Management System
+        class ContactPageManager {
+            constructor() {
+                this.header = document.getElementById('header');
+                this.mobileMenuToggle = document.getElementById('mobileMenuToggle');
+                this.navMenu = document.getElementById('navMenu');
+                this.contactForm = document.getElementById('contactForm');
+                this.submitBtn = document.getElementById('submitBtn');
+                
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.initScrollAnimations();
+                this.updateCartCount();
+                this.updateWishlistCount();
+                this.initFormValidation();
+            }
+
+            setupEventListeners() {
+                // Mobile menu toggle
+                this.mobileMenuToggle.addEventListener('click', () => {
+                    this.navMenu.classList.toggle('active');
+                });
+
+                // Close mobile menu when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!this.navMenu.contains(e.target) && !this.mobileMenuToggle.contains(e.target)) {
+                        this.navMenu.classList.remove('active');
+                    }
+                });
+
+                // Header scroll effect
+                window.addEventListener('scroll', () => {
+                    if (window.scrollY > 100) {
+                        this.header.classList.add('scrolled');
+                    } else {
+                        this.header.classList.remove('scrolled');
+                    }
+                });
+
+                // Contact form submission
+                this.contactForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleFormSubmission();
+                });
+
+                // Map placeholder click
+                document.querySelector('.map-placeholder').addEventListener('click', () => {
+                    const address = encodeURIComponent('Jl. Sudirman No. 123, Jakarta Pusat');
+                    window.open(`https://www.google.com/maps/search/?api=1&query=${address}`, '_blank');
+                });
+
+                // Real-time form validation
+                const inputs = this.contactForm.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    input.addEventListener('blur', () => this.validateField(input));
+                    input.addEventListener('input', () => this.clearFieldError(input));
+                });
+            }
+
+            initScrollAnimations() {
+                // Intersection Observer for scroll animations
+                const observerOptions = {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -50px 0px'
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('revealed');
+                        }
+                    });
+                }, observerOptions);
+
+                // Observe all elements with scroll-reveal class
+                document.querySelectorAll('.scroll-reveal').forEach(el => {
+                    observer.observe(el);
+                });
+            }
+
+            initFormValidation() {
+                // Add validation styles
+                const style = document.createElement('style');
+                style.textContent = `
+                    .form-input.error,
+                    .form-textarea.error,
+                    .form-select.error {
+                        border-color: #ef4444;
+                        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+                    }
+                    
+                    .form-input.success,
+                    .form-textarea.success,
+                    .form-select.success {
+                        border-color: #10b981;
+                        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+                    }
+                    
+                    .error-message {
+                        color: #ef4444;
+                        font-size: 12px;
+                        margin-top: 5px;
+                        display: block;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            validateField(field) {
+                const value = field.value.trim();
+                let isValid = true;
+                let errorMessage = '';
+
+                // Remove existing error message
+                this.clearFieldError(field);
+
+                // Required field validation
+                if (field.hasAttribute('required') && !value) {
+                    isValid = false;
+                    errorMessage = 'Field ini wajib diisi';
+                }
+
+                // Email validation
+                if (field.type === 'email' && value) {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(value)) {
+                        isValid = false;
+                        errorMessage = 'Format email tidak valid';
+                    }
+                }
+
+                // Phone validation
+                if (field.type === 'tel' && value) {
+                    const phoneRegex = /^[\+]?[0-9\-$$$$\s]+$/;
+                    if (!phoneRegex.test(value)) {
+                        isValid = false;
+                        errorMessage = 'Format nomor telepon tidak valid';
+                    }
+                }
+
+                // Name validation
+                if ((field.name === 'firstName' || field.name === 'lastName') && value) {
+                    if (value.length < 2) {
+                        isValid = false;
+                        errorMessage = 'Nama minimal 2 karakter';
+                    }
+                }
+
+                // Message validation
+                if (field.name === 'message' && value) {
+                    if (value.length < 10) {
+                        isValid = false;
+                        errorMessage = 'Pesan minimal 10 karakter';
+                    }
+                }
+
+                // Apply validation styles
+                if (isValid) {
+                    field.classList.remove('error');
+                    field.classList.add('success');
+                } else {
+                    field.classList.remove('success');
+                    field.classList.add('error');
+                    this.showFieldError(field, errorMessage);
+                }
+
+                return isValid;
+            }
+
+            showFieldError(field, message) {
+                const errorElement = document.createElement('span');
+                errorElement.className = 'error-message';
+                errorElement.textContent = message;
+                field.parentNode.appendChild(errorElement);
+            }
+
+            clearFieldError(field) {
+                const errorMessage = field.parentNode.querySelector('.error-message');
+                if (errorMessage) {
+                    errorMessage.remove();
+                }
+                field.classList.remove('error', 'success');
+            }
+
+            validateForm() {
+                const inputs = this.contactForm.querySelectorAll('input[required], select[required], textarea[required]');
+                let isFormValid = true;
+
+                inputs.forEach(input => {
+                    if (!this.validateField(input)) {
+                        isFormValid = false;
+                    }
+                });
+
+                return isFormValid;
+            }
+
+            async handleFormSubmission() {
+                if (!this.validateForm()) {
+                    this.showNotification('Mohon perbaiki kesalahan pada formulir', 'error');
+                    return;
+                }
+
+                // Show loading state
+                this.submitBtn.disabled = true;
+                this.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
+                this.contactForm.classList.add('loading');
+
+                try {
+                    // Simulate API call
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+
+                    // Get form data
+                    const formData = new FormData(this.contactForm);
+                    const data = Object.fromEntries(formData.entries());
+
+                    // Save to localStorage (simulate sending to server)
+                    const messages = JSON.parse(localStorage.getItem('contactMessages')) || [];
+                    messages.push({
+                        ...data,
+                        id: Date.now(),
+                        timestamp: new Date().toISOString(),
+                        status: 'sent'
+                    });
+                    localStorage.setItem('contactMessages', JSON.stringify(messages));
+
+                    // Show success message
+                    this.showNotification('Pesan berhasil dikirim! Kami akan merespons dalam 24 jam.', 'success');
+                    
+                    // Reset form
+                    this.contactForm.reset();
+                    this.contactForm.querySelectorAll('.success').forEach(field => {
+                        field.classList.remove('success');
+                    });
+
+                    // Send WhatsApp message option
+                    setTimeout(() => {
+                        if (confirm('Ingin mengirim pesan langsung via WhatsApp juga?')) {
+                            const message = encodeURIComponent(`Halo Fajar Gold, saya ${data.firstName} ${data.lastName}. ${data.message}`);
+                            window.open(`https://wa.me/6281286196886?text=${message}`, '_blank');
+                        }
+                    }, 1000);
+
+                } catch (error) {
+                    this.showNotification('Terjadi kesalahan. Silakan coba lagi.', 'error');
+                } finally {
+                    // Reset button state
+                    this.submitBtn.disabled = false;
+                    this.submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Pesan';
+                    this.contactForm.classList.remove('loading');
+                }
+            }
+
+            updateCartCount() {
+                const cart = JSON.parse(localStorage.getItem('cart')) || [];
+                const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+                const cartCountElement = document.getElementById('cartCount');
+                if (cartCountElement) {
+                    cartCountElement.textContent = cartCount;
+                    cartCountElement.style.display = cartCount > 0 ? 'inline' : 'none';
+                }
+            }
+
+            updateWishlistCount() {
+                const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+                const wishlistCountElement = document.getElementById('wishlistCount');
+                if (wishlistCountElement) {
+                    wishlistCountElement.textContent = wishlist.length;
+                    wishlistCountElement.style.display = wishlist.length > 0 ? 'inline' : 'none';
+                }
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 10px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                    z-index: 10000;
+                    font-weight: 500;
+                    max-width: 300px;
+                    animation: slideInRight 0.3s ease-out;
+                `;
+
+                notification.textContent = message;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.style.animation = 'slideOutRight 0.3s ease-in';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                }, 4000);
+            }
+        }
+
+        // Add CSS animations for notifications
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize Contact Page when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const contactPage = new ContactPageManager();
+            
+            // Welcome message
+            setTimeout(() => {
+                contactPage.showNotification('Selamat datang! Kami siap membantu Anda.', 'success');
+            }, 1000);
+        });
+
+        // Handle page visibility for performance
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Pause animations when page is not visible
+                document.querySelectorAll('.scroll-reveal').forEach(el => {
+                    el.style.animationPlayState = 'paused';
+                });
+            } else {
+                // Resume animations when page becomes visible
+                document.querySelectorAll('.scroll-reveal').forEach(el => {
+                    el.style.animationPlayState = 'running';
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

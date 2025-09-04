@@ -1,7 +1,9 @@
 package com.projek.tokweb.service.customer;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -153,7 +155,7 @@ public class CartService {
         
         if (cart == null || cart.getItems().isEmpty()) {
             return CartResponseDto.builder()
-                    .items(List.of())
+                    .items(new ArrayList<>())
                     .totalItems(0)
                     .totalPrice(0.0)
                     .build();
@@ -161,7 +163,7 @@ public class CartService {
         
         List<CartItemDto> items = cart.getItems().stream()
                 .map(this::mapToDto)
-                .toList();
+                .collect(Collectors.toList());
         
         return CartResponseDto.builder()
                 .cartId(cart.getId())

@@ -61,6 +61,168 @@
             background: var(--gray-light);
             min-height: 100vh;
             color: var(--black-luxury);
+            overflow-x: hidden;
+        }
+
+        /* ===== SCROLL ANIMATIONS ===== */
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .fade-in-up.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .fade-in-left {
+            opacity: 0;
+            transform: translateX(-50px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .fade-in-left.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .fade-in-right {
+            opacity: 0;
+            transform: translateX(50px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .fade-in-right.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .scale-in {
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .scale-in.animate {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .slide-in-bottom {
+            opacity: 0;
+            transform: translateY(100px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .slide-in-bottom.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stagger-animation {
+            transition-delay: 0s;
+        }
+
+        .stagger-animation:nth-child(1) { transition-delay: 0.1s; }
+        .stagger-animation:nth-child(2) { transition-delay: 0.2s; }
+        .stagger-animation:nth-child(3) { transition-delay: 0.3s; }
+        .stagger-animation:nth-child(4) { transition-delay: 0.4s; }
+        .stagger-animation:nth-child(5) { transition-delay: 0.5s; }
+        .stagger-animation:nth-child(6) { transition-delay: 0.6s; }
+        .stagger-animation:nth-child(7) { transition-delay: 0.7s; }
+        .stagger-animation:nth-child(8) { transition-delay: 0.8s; }
+
+        /* ===== PAGE LOADING ANIMATION ===== */
+        .page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--white-pure);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .page-loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-content {
+            text-align: center;
+        }
+
+        .loader-logo {
+            font-family: "Playfair Display", serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--gold-primary);
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--gray-medium);
+            border-top: 4px solid var(--gold-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        .loader-text {
+            margin-top: 20px;
+            color: var(--gray-elegant);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes slideInFromLeft {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInFromRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
         }
 
         .admin-container {
@@ -78,6 +240,7 @@
             overflow-y: auto;
             z-index: 1000;
             transition: all 0.3s ease;
+            animation: slideInFromLeft 0.6s ease-out;
         }
 
         .sidebar.collapsed {
@@ -200,14 +363,20 @@
         /* Header */
         .header {
             background: var(--white-pure);
-            padding: 20px 30px;
+            padding: 15px 30px;
             box-shadow: var(--shadow-soft);
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 999;
+            animation: slideInFromRight 0.6s ease-out;
+            transition: all 0.3s ease;
+        }
+
+        .header:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
 
         .header-title {
@@ -302,6 +471,12 @@
             padding: 30px;
             box-shadow: var(--shadow-soft);
             margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .orders-header:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
         }
 
         .orders-title {
@@ -327,6 +502,14 @@
             padding: 15px;
             background: var(--gradient-overlay);
             border-radius: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            background: var(--gradient-gold);
         }
 
         .stat-number {
@@ -440,6 +623,12 @@
             box-shadow: var(--shadow-soft);
             margin-top: 30px;
             overflow-x: auto;
+            transition: all 0.3s ease;
+        }
+
+        .orders-table-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
         }
 
         .orders-table {
@@ -471,6 +660,8 @@
 
         .orders-table tr:hover {
             background: var(--gray-light);
+            transform: scale(1.01);
+            transition: all 0.3s ease;
         }
 
         .order-id {
@@ -670,7 +861,12 @@
             max-height: 90vh;
             overflow-y: auto;
             transform: scale(0.9);
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content:hover {
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
         }
 
         .modal-overlay.active .modal-content {
@@ -720,6 +916,13 @@
             background: var(--gray-light);
             padding: 20px;
             border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .detail-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            background: var(--white-pure);
         }
 
         .detail-title {
@@ -829,67 +1032,157 @@
             box-shadow: var(--shadow-soft);
         }
 
-        /* Responsive Design */
+        /* ===== RESPONSIVE DESIGN MODERN ===== */
         @media (max-width: 1024px) {
             .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                z-index: 10000;
                 transform: translateX(-100%);
+                transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                box-shadow: 5px 0 30px rgba(0, 0, 0, 0.2);
             }
 
             .sidebar.open {
                 transform: translateX(0);
+                animation: slideInFromLeft 0.4s ease-out;
             }
 
             .main-content {
                 margin-left: 0;
+                width: 100%;
+                transition: all 0.3s ease;
             }
 
             .orders-controls {
                 flex-direction: column;
                 align-items: stretch;
+                gap: 15px;
             }
 
             .search-box {
                 max-width: none;
+                order: -1;
             }
 
             .filter-controls {
                 justify-content: center;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            /* Mobile overlay untuk sidebar */
+            .sidebar.open::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: -1;
             }
         }
 
         @media (max-width: 768px) {
             .header {
                 padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
             }
 
             .header-title {
                 font-size: 24px;
+                margin-bottom: 0;
+            }
+
+            .header-actions {
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 10px;
             }
 
             .content {
+                padding: 15px;
+            }
+
+            .orders-header {
                 padding: 20px;
+                margin-bottom: 20px;
+            }
+
+            .orders-title {
+                font-size: 24px;
+                text-align: center;
+                margin-bottom: 20px;
             }
 
             .orders-stats {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+
+            .stat-item {
+                padding: 12px;
+            }
+
+            .stat-number {
+                font-size: 20px;
             }
 
             .orders-table-container {
-                padding: 20px;
+                padding: 15px;
+                border-radius: 15px;
             }
 
             .orders-table {
-                font-size: 12px;
+                font-size: 11px;
             }
 
             .orders-table th,
             .orders-table td {
-                padding: 10px 8px;
+                padding: 8px 6px;
+            }
+
+            .customer-avatar {
+                width: 30px;
+                height: 30px;
+                font-size: 11px;
+            }
+
+            .customer-details h4 {
+                font-size: 12px;
+            }
+
+            .customer-details p {
+                font-size: 10px;
+            }
+
+            .order-actions {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .action-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 11px;
             }
 
             .order-detail-grid {
                 grid-template-columns: 1fr;
-                gap: 20px;
+                gap: 15px;
+            }
+
+            .modal-content {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .modal-title {
+                font-size: 20px;
             }
         }
 
@@ -942,13 +1235,49 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--gold-dark);
         }
+        
+        /* Refresh Button Styling */
+        .refresh-btn {
+            background: var(--gradient-gold);
+            color: var(--black-luxury);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-soft);
+        }
+        
+        .refresh-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
     </style>
 </head>
 
-<body>
-    <div class="admin-container">
-         Sidebar 
-        <aside class="sidebar" id="sidebar">
+    <body>
+        <!-- Page Loader -->
+        <div class="page-loader" id="pageLoader">
+            <div class="loader-content">
+                <div class="loader-logo">Fajar Gold</div>
+                <div class="loader-spinner"></div>
+                <div class="loader-text">Loading Admin Dashboard...</div>
+            </div>
+        </div>
+
+        <div class="admin-container">
+            <!-- Sidebar -->
+            <aside class="sidebar fade-in-left" id="sidebar">
             <div class="sidebar-header">
                 <button class="sidebar-toggle" id="sidebarToggle">
                     <i class="fas fa-bars"></i>
@@ -1003,8 +1332,8 @@
             </nav>
         </aside>
 
-        <main class="main-content">
-            <header class="header">
+            <main class="main-content fade-in-right">
+                <header class="header">
                 <h1 class="header-title">Manajemen Pesanan</h1>
                 <div class="header-actions">
                     <div style="display: flex; align-items: center; gap: 10px;">
@@ -1034,33 +1363,34 @@
             </header>
 
             <div class="content">
-                <div class="orders-header">
+                <div class="orders-header fade-in-up">
                     <h2 class="orders-title">
                         <i class="fas fa-shopping-cart"></i>
+                        Kelola Pesanan Pelanggan
                     </h2>
                     
                     <div class="orders-stats">
-                        <div class="stat-item">
+                        <div class="stat-item scale-in stagger-animation">
                             <span class="stat-number" id="totalOrders">156</span>
                             <span class="stat-label">Total Pesanan</span>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-item scale-in stagger-animation">
                             <span class="stat-number" id="pendingOrders">23</span>
                             <span class="stat-label">Menunggu Konfirmasi</span>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-item scale-in stagger-animation">
                             <span class="stat-number" id="processingOrders">18</span>
                             <span class="stat-label">Sedang Diproses</span>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-item scale-in stagger-animation">
                             <span class="stat-number" id="shippedOrders">12</span>
                             <span class="stat-label">Dalam Pengiriman</span>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-item scale-in stagger-animation">
                             <span class="stat-number" id="completedOrders">98</span>
                             <span class="stat-label">Selesai</span>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-item scale-in stagger-animation">
                             <span class="stat-number" id="cancelledOrders">5</span>
                             <span class="stat-label">Dibatalkan</span>
                         </div>
@@ -1103,7 +1433,7 @@
                 </div>
 
             
-                <div class="orders-table-container">
+                <div class="orders-table-container slide-in-bottom" id="ordersContainer">
                     <table class="orders-table" id="ordersTable">
                         <thead>
                             <tr>
@@ -1112,6 +1442,7 @@
                                 <th>Produk</th>
                                 <th>Total</th>
                                 <th>Status</th>
+                                <th>Bukti Pembayaran</th>
                                 <th>Tanggal</th>
                                 <th>Aksi</th>
                             </tr>
@@ -1148,6 +1479,28 @@
             
             <div class="order-detail-grid" id="orderDetailContent">
                  Order details will be populated by JavaScript 
+            </div>
+        </div>
+    </div>
+
+    <!-- Bukti Pembayaran Image Modal -->
+    <div class="modal-overlay" id="buktiModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Bukti Pembayaran</h3>
+                <button class="modal-close" id="buktiModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div style="text-align: center; padding: 20px;">
+                <img id="buktiImage" 
+                     style="max-width: 100%; max-height: 70vh; border-radius: 10px; box-shadow: var(--shadow-soft);" 
+                     alt="Bukti Pembayaran" />
+                <div style="margin-top: 15px; color: var(--gray-elegant); font-size: 14px;">
+                    <i class="fas fa-info-circle"></i> 
+                    Klik gambar untuk memperbesar atau gunakan scroll untuk zoom
+                </div>
             </div>
         </div>
     </div>
@@ -1244,7 +1597,9 @@
                     console.log('📦 Loading orders from API...');
                     console.log('🔗 API URL: /admin/api/orders?page=0&size=100&sortBy=createdAt&sortDirection=desc');
 
-                    const response = await fetch('/admin/api/orders?page=0&size=100&sortBy=createdAt&sortDirection=desc');
+                    const response = await fetch('/admin/api/orders?page=0&size=100&sortBy=createdAt&sortDirection=desc', {
+                        credentials: 'include' // Include cookies for authentication
+                    });
                     console.log('📡 Response status:', response.status);
                     console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
 
@@ -1574,6 +1929,9 @@
                             <span class="status-badge ${this.getStatusClass(order.status)}">
                                 ${this.getStatusText(order.status)}
                             </span>
+                        </td>
+                        <td>
+                            ${this.renderBuktiColumn(order)}
                         </td>
                         <td>
                             ${this.formatDate(order.createdAt)}
@@ -1934,6 +2292,26 @@
                 if (confirm('Apakah Anda yakin ingin menghapus pesanan ini?')) {
                     try {
                         console.log('🗑️ Deleting order:', orderId);
+                        
+                        // Find the table row element to remove it immediately for better UX
+                        const tableRows = this.ordersTableBody.querySelectorAll('tr');
+                        let targetRow = null;
+                        
+                        // Find the row that contains this order ID
+                        tableRows.forEach(row => {
+                            const orderIdElement = row.querySelector('.order-id');
+                            if (orderIdElement && orderIdElement.textContent.trim() === orderId.toString()) {
+                                targetRow = row;
+                            }
+                        });
+                        
+                        // Add a visual feedback - fade out the row
+                        if (targetRow) {
+                            targetRow.style.opacity = '0.5';
+                            targetRow.style.pointerEvents = 'none';
+                            console.log('👁️ Found and fading out target row for order:', orderId);
+                        }
+                        
                         const response = await fetch(`/admin/api/orders/${orderId}`, {
                             method: 'DELETE',
                             headers: {
@@ -1945,16 +2323,71 @@
                         console.log('📥 Delete order response:', result);
 
                         if (result.success) {
-                            // Remove from local orders array
-                            this.allOrders = this.allOrders.filter(o => o.id !== orderId);
-                            this.filterOrders();
+                            console.log('✅ Order deleted successfully from server');
+                            
+                            // Immediately remove the row from DOM for instant feedback
+                            if (targetRow) {
+                                targetRow.style.transition = 'all 0.3s ease-out';
+                                targetRow.style.transform = 'translateX(-100%)';
+                                targetRow.style.opacity = '0';
+                                
+                                setTimeout(() => {
+                                    if (targetRow.parentNode) {
+                                        targetRow.remove();
+                                        console.log('🗑️ Row removed from DOM');
+                                    }
+                                }, 300);
+                            }
+                            
+                            // Remove from local orders array - support both id and orderNumber
+                            const initialCount = this.allOrders.length;
+                            this.allOrders = this.allOrders.filter(o => {
+                                // Handle different ID formats
+                                const orderIdMatch = (o.id && o.id.toString() === orderId.toString()) || 
+                                                    (o.orderNumber && o.orderNumber.toString() === orderId.toString());
+                                return !orderIdMatch;
+                            });
+                            
+                            console.log(`🔄 Removed order from local array. Count changed from ${initialCount} to ${this.allOrders.length}`);
+                            
+                            // Update filtered orders
+                            this.filteredOrders = this.filteredOrders.filter(o => {
+                                const orderIdMatch = (o.id && o.id.toString() === orderId.toString()) || 
+                                                    (o.orderNumber && o.orderNumber.toString() === orderId.toString());
+                                return !orderIdMatch;
+                            });
+                            
+                            // Re-render the table after a short delay to ensure smooth transition
+                            setTimeout(() => {
+                                this.renderOrders();
+                                console.log('🔄 Table re-rendered after row removal');
+                            }, 350);
+                            
+                            // Update statistics
+                            this.updateStats();
                             this.loadStatisticsFromAPI();
+                            
                             this.showNotification('Pesanan berhasil dihapus', 'success');
+                            console.log('✅ UI updated after order deletion');
                         } else {
+                            // Restore the row if deletion failed
+                            if (targetRow) {
+                                targetRow.style.opacity = '1';
+                                targetRow.style.pointerEvents = 'auto';
+                            }
                             this.showNotification('Gagal menghapus pesanan: ' + (result.message || 'Unknown error'), 'error');
                         }
                     } catch (error) {
                         console.error('❌ Error deleting order:', error);
+                        // Restore the row if deletion failed
+                        const tableRows = this.ordersTableBody.querySelectorAll('tr');
+                        tableRows.forEach(row => {
+                            const orderIdElement = row.querySelector('.order-id');
+                            if (orderIdElement && orderIdElement.textContent.trim() === orderId.toString()) {
+                                row.style.opacity = '1';
+                                row.style.pointerEvents = 'auto';
+                            }
+                        });
                         this.showNotification('Gagal menghapus pesanan', 'error');
                     }
                 }
@@ -2006,10 +2439,24 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
+                        credentials: 'include', // Include cookies for authentication
                         body: JSON.stringify({
                             notes: 'Dikonfirmasi oleh admin melalui panel'
                         })
                     });
+
+                    // Handle authentication error
+                    if (response.status === 403) {
+                        this.showNotification('Akses ditolak. Silakan login ulang sebagai admin.', 'error');
+                        setTimeout(() => {
+                            window.location.href = '/auth/login';
+                        }, 2000);
+                        return;
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
 
                     const result = await response.json();
                     console.log('📥 Confirm order response:', result);
@@ -2023,7 +2470,7 @@
                     }
                 } catch (error) {
                     console.error('❌ Error confirming order:', error);
-                    this.showNotification('Gagal mengkonfirmasi pesanan', 'error');
+                    this.showNotification('Gagal mengkonfirmasi pesanan: ' + error.message, 'error');
                 }
             }
 
@@ -2118,6 +2565,58 @@
                     hour: '2-digit',
                     minute: '2-digit'
                 });
+            }
+
+            renderBuktiColumn(order) {
+                // PERBAIKAN: Tampilkan bukti pembayaran untuk semua status yang memiliki bukti
+                if (order.bukti && order.bukti.id) {
+                    // Tentukan warna border berdasarkan status
+                    let borderColor = 'var(--gold-primary)';
+                    let statusText = 'Ada Bukti';
+                    let statusIcon = 'fas fa-check-circle';
+                    let statusColor = 'var(--success-color)';
+                    
+                    if (order.status === 'PENDING_CONFIRMATION') {
+                        borderColor = 'var(--warning-color)';
+                        statusText = 'Menunggu Konfirmasi';
+                        statusIcon = 'fas fa-clock';
+                        statusColor = 'var(--warning-color)';
+                    } else if (order.status === 'PAID' || order.status === 'PROCESSING' || 
+                              order.status === 'SHIPPED' || order.status === 'DELIVERED') {
+                        borderColor = 'var(--success-color)';
+                        statusText = 'Sudah Konfirmasi';
+                        statusIcon = 'fas fa-check-circle';
+                        statusColor = 'var(--success-color)';
+                    }
+                    
+                    return `
+                        <div style="text-align: center;">
+                            <img src="/admin/api/orders/${order.id}/payment-proof/image" 
+                                 alt="Bukti Pembayaran" 
+                                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid ${borderColor};" 
+                                 onclick="window.viewBuktiImage('/admin/api/orders/${order.id}/payment-proof/image')" 
+                                 title="Klik untuk melihat ukuran penuh" 
+                                 onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'color: var(--error-color); font-size: 10px;\'><i class=\'fas fa-exclamation-triangle\'></i><br>Gagal load</div>'" />
+                            <div style="font-size: 10px; color: ${statusColor}; margin-top: 4px;">
+                                <i class="${statusIcon}"></i> ${statusText}
+                            </div>
+                        </div>
+                    `;
+                } else if (order.status === 'PENDING_CONFIRMATION' || order.status === 'PENDING_PAYMENT') {
+                    return `
+                        <div style="text-align: center; color: var(--warning-color);">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 24px;"></i>
+                            <div style="font-size: 10px; margin-top: 4px;">Belum Upload</div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div style="text-align: center; color: var(--gray-elegant);">
+                            <i class="fas fa-minus" style="font-size: 16px;"></i>
+                            <div style="font-size: 10px; margin-top: 4px;">-</div>
+                        </div>
+                    `;
+                }
             }
 
             showNotification(message, type = 'info') {
@@ -2268,6 +2767,55 @@
             }
         };
 
+        // Global function to view bukti pembayaran image
+        window.viewBuktiImage = function(imageUrl) {
+            console.log('📸 Viewing bukti image:', imageUrl);
+            const buktiModal = document.getElementById('buktiModal');
+            const buktiImage = document.getElementById('buktiImage');
+            
+            if (buktiModal && buktiImage) {
+                buktiImage.src = imageUrl;
+                buktiModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        };
+
+        // Setup bukti modal event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const buktiModal = document.getElementById('buktiModal');
+            const buktiModalClose = document.getElementById('buktiModalClose');
+            const buktiImage = document.getElementById('buktiImage');
+            
+            // Close modal when clicking the close button
+            if (buktiModalClose) {
+                buktiModalClose.addEventListener('click', () => {
+                    buktiModal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                });
+            }
+            
+            // Close modal when clicking outside the modal content
+            if (buktiModal) {
+                buktiModal.addEventListener('click', (e) => {
+                    if (e.target === buktiModal) {
+                        buktiModal.classList.remove('active');
+                        document.body.style.overflow = 'auto';
+                    }
+                });
+            }
+            
+            // Handle image load error
+            if (buktiImage) {
+                buktiImage.addEventListener('error', () => {
+                    console.error('❌ Failed to load bukti image');
+                    buktiImage.alt = 'Gambar tidak dapat dimuat';
+                    buktiImage.style.border = '2px dashed var(--gray-medium)';
+                    buktiImage.style.padding = '20px';
+                    buktiImage.style.textAlign = 'center';
+                });
+            }
+        });
+
         // Handle mobile menu
         document.addEventListener('click', (e) => {
             if (window.innerWidth <= 1024) {
@@ -2281,6 +2829,9 @@
             }
         });
     </script>
+    
+    <!-- Admin Animations Script -->
+    <script src="../../static/js/admin-animations.js"></script>
 </body>
 
 </html>

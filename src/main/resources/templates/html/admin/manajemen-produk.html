@@ -744,6 +744,251 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* Detail Modal Styles */
+        .detail-modal {
+            max-width: 800px;
+            width: 95%;
+        }
+
+        .detail-content {
+            display: grid;
+            gap: 25px;
+        }
+
+        .detail-image-section {
+            text-align: center;
+            padding: 20px;
+            background: var(--gray-light);
+            border-radius: 15px;
+        }
+
+        .detail-image {
+            max-width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .detail-placeholder {
+            width: 200px;
+            height: 200px;
+            background: var(--white-pure);
+            border: 2px dashed var(--gray-medium);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        .detail-placeholder i {
+            font-size: 60px;
+            color: var(--gold-primary);
+            opacity: 0.5;
+        }
+
+        .detail-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .detail-section {
+            background: var(--gray-light);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .detail-section-title {
+            font-family: "Playfair Display", serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .detail-section-icon {
+            color: var(--gold-primary);
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--gray-medium);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-row-label {
+            font-weight: 500;
+            color: var(--gray-elegant);
+            font-size: 14px;
+        }
+
+        .detail-row-value {
+            font-weight: 600;
+            color: var(--black-luxury);
+            font-size: 14px;
+        }
+
+        .detail-price {
+            text-align: center;
+            padding: 20px;
+            background: var(--gradient-gold);
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .detail-price-label {
+            font-size: 14px;
+            color: var(--black-soft);
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .detail-price-value {
+            font-family: "Playfair Display", serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--black-luxury);
+        }
+
+        .detail-description {
+            background: var(--gray-light);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .detail-description-title {
+            font-family: "Playfair Display", serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .detail-description-text {
+            color: var(--gray-elegant);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .detail-status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            gap: 5px;
+        }
+
+        .status-active {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-inactive {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+        }
+
+        .detail-timestamps {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .timestamp-item {
+            text-align: center;
+            padding: 15px;
+            background: var(--white-pure);
+            border-radius: 10px;
+            border: 1px solid var(--gray-medium);
+        }
+
+        .timestamp-label {
+            font-size: 12px;
+            color: var(--gray-elegant);
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .timestamp-value {
+            font-size: 13px;
+            color: var(--black-luxury);
+            font-weight: 600;
+        }
+
+        /* List View Styles */
+        .products-list {
+            display: block;
+        }
+
+        .products-list .product-card {
+            display: flex;
+            margin-bottom: 20px;
+            align-items: center;
+            min-height: 120px;
+        }
+
+        .products-list .product-image {
+            width: 120px;
+            height: 120px;
+            min-width: 120px;
+            margin-right: 20px;
+            border-radius: 10px;
+        }
+
+        .products-list .product-info {
+            flex: 1;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .products-list .product-main-info {
+            flex: 1;
+        }
+
+        .products-list .product-details {
+            display: flex;
+            gap: 30px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .products-list .product-actions {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .products-list .product-price {
+            margin: 5px 0;
+            font-size: 18px;
+        }
+
+        /* Active view styles */
+        .view-options .btn.active {
+            background: var(--gold-primary);
+            color: var(--black-luxury);
+        }
     </style>
 </head>
 
@@ -888,6 +1133,30 @@
                 </div>
             </div>
 
+            <!-- Product Detail Modal -->
+            <div class="modal" id="productDetailModal">
+                <div class="modal-content detail-modal">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Detail Produk</h3>
+                        <button class="modal-close" id="detailModalClose">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="detail-content" id="detailContent">
+                        <!-- Detail will be populated here -->
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" id="closeDetailBtn">Tutup</button>
+                        <button type="button" class="btn btn-primary" id="editFromDetailBtn">
+                            <i class="fas fa-edit"></i>
+                            Edit Produk
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Add/Edit Product Modal -->
             <div class="modal" id="productModal">
                 <div class="modal-content">
@@ -908,10 +1177,10 @@
                                 <label class="form-label">Kategori *</label>
                                 <select class="form-input" id="productCategory" required>
                                     <option value="">Pilih Kategori</option>
-                                    <option value="cincin">Cincin</option>
-                                    <option value="kalung">kalung</option>
-                                    <option value="gelang">Gelang</option>
-                                    <option value="anting">Anting</option>
+                                    <option value="CINCIN">Cincin</option>
+                                    <option value="KALUNG">Kalung</option>
+                                    <option value="GELANG">Gelang</option>
+                                    <option value="BATANGAN">Batangan</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -979,6 +1248,7 @@
                 this.products = [];
                 this.filteredProducts = [];
                 this.currentEditId = null;
+                this.currentView = 'grid'; // grid atau list
 
                 this.init();
             }
@@ -1045,8 +1315,8 @@
                                     isActive: product.active !== undefined ? product.active : true,
                                     minStock: product.minStock || 0,
                                     markup: markup,
-                                    createdAt: new Date(),
-                                    updatedAt: product.updateAt ? new Date(product.updateAt) : new Date()
+                                    createdAt: product.createdAt ? new Date(product.createdAt) : new Date(),
+                                    updatedAt: product.updateAt ? new Date(product.updateAt) : null
                                 };
                             });
 
@@ -1133,6 +1403,66 @@
                         this.closeModal();
                     }
                 });
+
+                // Detail modal event listeners
+                document.getElementById('detailModalClose').addEventListener('click', () => {
+                    this.closeDetailModal();
+                });
+
+                document.getElementById('closeDetailBtn').addEventListener('click', () => {
+                    this.closeDetailModal();
+                });
+
+                document.getElementById('editFromDetailBtn').addEventListener('click', () => {
+                    const modal = document.getElementById('productDetailModal');
+                    const productId = modal.dataset.productId;
+                    if (productId) {
+                        const product = this.products.find(p => p.id == productId);
+                        if (product) {
+                            this.closeDetailModal();
+                            this.openModal(product);
+                        }
+                    }
+                });
+
+                // Close detail modal when clicking outside
+                document.getElementById('productDetailModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'productDetailModal') {
+                        this.closeDetailModal();
+                    }
+                });
+
+                // View options event listeners
+                document.getElementById('gridViewBtn').addEventListener('click', () => {
+                    this.switchView('grid');
+                });
+
+                document.getElementById('listViewBtn').addEventListener('click', () => {
+                    this.switchView('list');
+                });
+
+                // Event delegation untuk tombol actions pada product cards
+                document.getElementById('productsGrid').addEventListener('click', (e) => {
+                    const button = e.target.closest('button[data-action]');
+                    if (button) {
+                        const action = button.dataset.action;
+                        const productId = parseInt(button.dataset.productId);
+                        
+                        if (productId) {
+                            switch (action) {
+                                case 'view':
+                                    this.viewProduct(productId);
+                                    break;
+                                case 'edit':
+                                    this.editProduct(productId);
+                                    break;
+                                case 'delete':
+                                    this.deleteProduct(productId);
+                                    break;
+                            }
+                        }
+                    }
+                });
             }
 
             openModal(product = null) {
@@ -1165,7 +1495,8 @@
 
             populateForm(product) {
                 document.getElementById('productName').value = product.name;
-                document.getElementById('productCategory').value = product.category;
+                // Convert category to uppercase untuk matching dengan options
+                document.getElementById('productCategory').value = product.category.toUpperCase();
                 document.getElementById('productWeight').value = product.weight;
                 document.getElementById('productPurity').value = product.purity;
                 document.getElementById('productMarkup').value = product.markup || 10;
@@ -1415,7 +1746,7 @@
                                 parseFloat(data.data.formattedWeight.replace(/[^\d.,]/g, '').replace(',', '.')) : 0;
                             const index = this.products.findIndex(p => p.id === id);
                             if (index !== -1) {
-                                // Update dengan data yang benar
+                                // Update dengan data yang benar, pastikan minStock ikut ter-update
                                 const updatedProduct = {
                                     ...this.products[index],
                                     name: data.data.name || productData.name,
@@ -1423,6 +1754,7 @@
                                     weight: weight || productData.weight,
                                     purity: data.data.purity || productData.purity,
                                     stock: data.data.stock || productData.stock,
+                                    minStock: data.data.minStock || productData.minStock,
                                     price: data.data.formattedFinalPrice || this.products[index].price,
                                     description: data.data.description || productData.description,
                                     image: data.data.imageUrl || this.products[index].image,
@@ -1559,64 +1891,175 @@
                     return;
                 }
 
-                grid.innerHTML = this.filteredProducts.map(product => `
-                    <div class="product-card">
-                        <div class="product-image">
-                            ${product.image ? `<img src="${product.image}" alt="${product.name}" />` : `<i class="fas fa-gem"></i>`}
-                        <div class="product-badge ${this.getStockBadgeClass(product.stock, product.minStock)}">
-                                ${this.getStockBadgeText(product.stock, product.minStock)}
-                        </div>
-                        </div>
-                        <div class="product-info">
-                            <h3 class="product-name">${product.name}</h3>
-                            <div class="product-category">${this.getCategoryName(product.category)}</div>
-                            
-                            <div class="product-details">
-                                <div class="detail-item">
-                                    <div class="detail-label">Berat</div>
-                                    <div class="detail-value">${product.weight}g</div>
-                                </div>
-                                <div class="detail-item">
-                                    <div class="detail-label">Kadar</div>
-                                    <div class="detail-value">${product.purity}k</div> 
-                                </div>
-                                <div class="detail-item">
-                                    <div class="detail-label">Stok</div>
-                                    <div class="detail-value">${product.stock} pcs</div>
-                                </div>
-                                <div class="detail-item">
-                                    <div class="detail-label">Status</div>
-                                    <div class="detail-value" style="color: ${this.getStockColor(product.stock, product.minStock)}">
-                                        ${this.getStockStatus(product.stock, product.minStock)}
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="product-price">
-                                ${this.formatCurrency(product.price)}
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn btn-small btn-view" onclick="productManager.viewProduct(${product.id})">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="btn btn-small btn-edit" onclick="productManager.editProduct(${product.id})">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn btn-small btn-delete" onclick="productManager.deleteProduct(${product.id})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
+                // Render berdasarkan view saat ini
+                if (this.currentView === 'list') {
+                    grid.innerHTML = this.renderProductsList();
+                } else {
+                    grid.innerHTML = this.renderProductsGrid();
+                }
             }
 
             viewProduct(id) {
                 const product = this.products.find(p => p.id === id);
                 if (product) {
-                    // In a real app, this would open a detailed view modal
-                    this.showNotification(`Viewing details for: ${product.name}`, 'info');
+                    this.openDetailModal(product);
                 }
+            }
+
+            openDetailModal(product) {
+                const modal = document.getElementById('productDetailModal');
+                const detailContent = document.getElementById('detailContent');
+                
+                // Populate detail content
+                detailContent.innerHTML = `
+                    <!-- Product Image -->
+                    <div class="detail-image-section">
+                        ${product.image ? 
+                            `<img src="${product.image}" alt="${product.name}" class="detail-image" />` :
+                            `<div class="detail-placeholder">
+                                <i class="fas fa-gem"></i>
+                            </div>`
+                        }
+                    </div>
+                    
+                    <!-- Product Price -->
+                    <div class="detail-price">
+                        <div class="detail-price-label">Harga Jual</div>
+                        <div class="detail-price-value">${this.formatCurrency(product.price)}</div>
+                    </div>
+                    
+                    <!-- Product Information -->
+                    <div class="detail-info-grid">
+                        <!-- Basic Info -->
+                        <div class="detail-section">
+                            <h4 class="detail-section-title">
+                                <i class="fas fa-info-circle detail-section-icon"></i>
+                                Informasi Dasar
+                            </h4>
+                            <div class="detail-row">
+                                <span class="detail-row-label">Nama Produk</span>
+                                <span class="detail-row-value">${product.name}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-row-label">Kategori</span>
+                                <span class="detail-row-value">${this.getCategoryName(product.category)}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-row-label">ID Produk</span>
+                                <span class="detail-row-value">#${product.id}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-row-label">Status</span>
+                                <span class="detail-status-badge ${product.isActive ? 'status-active' : 'status-inactive'}">
+                                    <i class="fas ${product.isActive ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                                    ${product.isActive ? 'Aktif' : 'Nonaktif'}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Specifications -->
+                        <div class="detail-section">
+                            <h4 class="detail-section-title">
+                                <i class="fas fa-cogs detail-section-icon"></i>
+                                Spesifikasi
+                            </h4>
+                            <div class="detail-row">
+                                <span class="detail-row-label">Berat</span>
+                                <span class="detail-row-value">${product.weight} gram</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-row-label">Kadar Emas</span>
+                                <span class="detail-row-value">${product.purity} Karat</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-row-label">Markup</span>
+                                <span class="detail-row-value">${product.markup || 0}%</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Stock Info -->
+                        <div class="detail-section">
+                            <h4 class="detail-section-title">
+                                <i class="fas fa-boxes detail-section-icon"></i>
+                                Informasi Stok
+                            </h4>
+                            <div class="detail-row">
+                                <span class="detail-row-label">Stok Tersedia</span>
+                                <span class="detail-row-value" style="color: ${this.getStockColor(product.stock, product.minStock)}">
+                                    ${product.stock} pcs
+                                </span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-row-label">Minimum Stok</span>
+                                <span class="detail-row-value">${product.minStock || 0} pcs</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-row-label">Status Stok</span>
+                                <span class="detail-status-badge ${this.getStockBadgeClass(product.stock, product.minStock) === 'badge-stock-good' ? 'status-active' : 'status-inactive'}">
+                                    <i class="fas ${this.getStockBadgeClass(product.stock, product.minStock) === 'badge-stock-good' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+                                    ${this.getStockStatus(product.stock, product.minStock)}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Timestamps -->
+                        <div class="detail-section">
+                            <h4 class="detail-section-title">
+                                <i class="fas fa-clock detail-section-icon"></i>
+                                Waktu
+                            </h4>
+                            <div class="detail-timestamps">
+                                <div class="timestamp-item">
+                                    <div class="timestamp-label">Dibuat</div>
+                                    <div class="timestamp-value">${this.formatDateTime(product.createdAt)}</div>
+                                </div>
+                                <div class="timestamp-item">
+                                    <div class="timestamp-label">Diperbarui</div>
+                                    <div class="timestamp-value">${this.formatDateTime(product.updatedAt)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Description -->
+                    ${product.description ? `
+                        <div class="detail-description">
+                            <h4 class="detail-description-title">
+                                <i class="fas fa-align-left detail-section-icon"></i>
+                                Deskripsi Produk
+                            </h4>
+                            <div class="detail-description-text">${product.description}</div>
+                        </div>
+                    ` : ''}
+                `;
+                
+                // Store current product for edit button
+                modal.dataset.productId = product.id;
+                
+                // Show modal
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+
+            closeDetailModal() {
+                const modal = document.getElementById('productDetailModal');
+                modal.classList.remove('show');
+                document.body.style.overflow = 'auto';
+                modal.dataset.productId = '';
+            }
+
+            formatDateTime(date) {
+                if (!date) return 'Belum pernah diperbarui';
+                
+                const options = {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                };
+                
+                return new Date(date).toLocaleDateString('id-ID', options);
             }
 
             editProduct(id) {
@@ -1687,6 +2130,133 @@
                     maximumFractionDigits: 0
                 }).format(numericAmount)
                     .replace(/^Rp\s*/, 'Rp ');
+            }
+
+            switchView(view) {
+                this.currentView = view;
+                
+                // Update button states
+                document.getElementById('gridViewBtn').classList.toggle('active', view === 'grid');
+                document.getElementById('listViewBtn').classList.toggle('active', view === 'list');
+                
+                // Update grid class
+                const grid = document.getElementById('productsGrid');
+                if (view === 'list') {
+                    grid.classList.add('products-list');
+                    grid.classList.remove('products-grid');
+                } else {
+                    grid.classList.add('products-grid');
+                    grid.classList.remove('products-list');
+                }
+                
+                // Re-render products with new view
+                this.renderProducts();
+            }
+
+            renderProductsGrid() {
+                return this.filteredProducts.map(product => `
+                    <div class="product-card">
+                        <div class="product-image">
+                            ${product.image ? `<img src="${product.image}" alt="${product.name}" />` : `<i class="fas fa-gem"></i>`}
+                            <div class="product-badge ${this.getStockBadgeClass(product.stock, product.minStock)}">
+                                ${this.getStockBadgeText(product.stock, product.minStock)}
+                            </div>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">${product.name}</h3>
+                            <div class="product-category">${this.getCategoryName(product.category)}</div>
+                            
+                            <div class="product-details">
+                                <div class="detail-item">
+                                    <div class="detail-label">Berat</div>
+                                    <div class="detail-value">${product.weight}g</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Kadar</div>
+                                    <div class="detail-value">${product.purity}k</div> 
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Stok</div>
+                                    <div class="detail-value">${product.stock} pcs</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Min Stok</div>
+                                    <div class="detail-value">${product.minStock || 0} pcs</div>
+                                </div>
+                            </div>
+                            
+                            <div class="product-price">
+                                ${this.formatCurrency(product.price)}
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn btn-small btn-view" data-action="view" data-product-id="${product.id}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-small btn-edit" data-action="edit" data-product-id="${product.id}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-small btn-delete" data-action="delete" data-product-id="${product.id}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            renderProductsList() {
+                return this.filteredProducts.map(product => `
+                    <div class="product-card">
+                        <div class="product-image">
+                            ${product.image ? `<img src="${product.image}" alt="${product.name}" />` : `<i class="fas fa-gem"></i>`}
+                            <div class="product-badge ${this.getStockBadgeClass(product.stock, product.minStock)}">
+                                ${this.getStockBadgeText(product.stock, product.minStock)}
+                            </div>
+                        </div>
+                        <div class="product-info">
+                            <div class="product-main-info">
+                                <h3 class="product-name">${product.name}</h3>
+                                <div class="product-category">${this.getCategoryName(product.category)}</div>
+                                
+                                <div class="product-details">
+                                    <div class="detail-item">
+                                        <div class="detail-label">Berat:</div>
+                                        <div class="detail-value">${product.weight}g</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Kadar:</div>
+                                        <div class="detail-value">${product.purity}k</div> 
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Stok:</div>
+                                        <div class="detail-value" style="color: ${this.getStockColor(product.stock, product.minStock)}">
+                                            ${product.stock} pcs
+                                        </div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Min Stok:</div>
+                                        <div class="detail-value">${product.minStock || 0} pcs</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="product-price">
+                                    ${this.formatCurrency(product.price)}
+                                </div>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn btn-small btn-view" data-action="view" data-product-id="${product.id}">
+                                    <i class="fas fa-eye"></i> Detail
+                                </button>
+                                <button class="btn btn-small btn-edit" data-action="edit" data-product-id="${product.id}">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="btn btn-small btn-delete" data-action="delete" data-product-id="${product.id}">
+                                    <i class="fas fa-trash"></i> Hapus
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
             }
 
             showNotification(message, type = 'info') {

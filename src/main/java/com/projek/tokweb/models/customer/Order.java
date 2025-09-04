@@ -20,6 +20,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -93,6 +95,12 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JsonManagedReference
     private List<OrderItem> items;
+
+    // Option 1: Use FetchType.LAZY with @EntityGraph (recommended)
+    // Option 2: Use FetchType.EAGER (simpler but can cause performance issues)
+    @OneToOne(fetch = FetchType.EAGER) // Changed from LAZY to EAGER
+    @JoinColumn(name = "bukti_id")
+    private BuktiPembayaran bukti;
 
     // @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     // @JsonManagedReference

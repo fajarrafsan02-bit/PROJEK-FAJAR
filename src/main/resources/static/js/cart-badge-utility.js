@@ -17,13 +17,19 @@ class CartBadgeManager {
         try {
             const userId = await this.getCurrentUserId();
             if (!userId) {
-                console.log('User belum login, cart kosong');
-                this.cart = [];
-                this.totalItems = 0;
+                // User belum login: coba fallback ke cart lokal bila ada, tanpa error bising
+                const local = this.safeGetLocalCart();
+                this.cart = local.items;
+                this.totalItems = local.totalItems;
+                console.log('CartBadgeManager: Guest mode, using local cart. Items:', this.cart.length);
                 return;
             }
 
-            const response = await fetch(`/user/api/cart?userId=${userId}`);
+            const response = await fetch(`/user/api/cart?userId=${userId}`, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
+                credentials: 'same-origin'
+            });
             if (response.ok) {
                 const result = await response.json();
                 if (result.success && result.data) {
@@ -31,25 +37,28 @@ class CartBadgeManager {
                     this.totalItems = result.data.totalItems || 0;
                     console.log('Cart loaded from database:', this.cart, 'Total items:', this.totalItems);
                 } else {
-                    console.error('Gagal load cart:', result.message);
-                    this.cart = [];
-                    this.totalItems = 0;
+                    console.warn('Gagal load cart (response body):', result && result.message);
+                    const local = this.safeGetLocalCart();
+                    this.cart = local.items;
+                    this.totalItems = local.totalItems;
                 }
             } else {
-                console.error('HTTP error loading cart:', response.status);
-                this.cart = [];
-                this.totalItems = 0;
+                console.warn('HTTP error loading cart:', response.status);
+                const local = this.safeGetLocalCart();
+                this.cart = local.items;
+                this.totalItems = local.totalItems;
             }
         } catch (error) {
-            console.error('Error loading cart:', error);
-            this.cart = [];
-            this.totalItems = 0;
+            console.warn('Error loading cart (network?):', error);
+            const local = this.safeGetLocalCart();
+            this.cart = local.items;
+            this.totalItems = local.totalItems;
         }
     }
 
     updateCartBadge() {
-        // Update semua cart badge di halaman
-        const cartBadges = document.querySelectorAll('.nav-icon[title="Keranjang"] .cart-badge, .cart-badge');
+        // Update HANYA cart badge di halaman, JANGAN wishlist badge
+        const cartBadges = document.querySelectorAll('.nav-icon[title="Keranjang"] .cart-badge, #cartBadge');
 
         cartBadges.forEach(badge => {
             // Hitung jumlah produk unik (bukan total quantity)
@@ -65,20 +74,31 @@ class CartBadgeManager {
 
             console.log('CartBadgeManager: Cart badge updated:', uniqueProducts, 'unique products (from', this.totalItems, 'total items)');
         });
+
+        // JANGAN update wishlist badge di sini!
+        console.log('CartBadgeManager: Wishlist badges are managed separately and not affected by cart changes');
     }
 
     async getCurrentUserId() {
         try {
-            const response = await fetch('/user/current');
+            const response = await fetch('/user/current', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
+                credentials: 'same-origin'
+            });
             if (response.ok) {
                 const result = await response.json();
-                if (result.success && result.data) {
+                if (result && result.success && result.data) {
+                    console.log('Current user from API:', result.data.email, 'ID:', result.data.id);
                     return result.data.id;
                 }
+            } else {
+                console.warn('Failed to get current user, HTTP status:', response.status);
             }
         } catch (error) {
-            console.error('Error getting current user:', error);
+            console.warn('Error getting current user (network?):', error);
         }
+        // Tidak ada fallback ke user ID statis agar tidak memicu fetch yang gagal/403
         return null;
     }
 
@@ -125,6 +145,34 @@ class CartBadgeManager {
     async refreshCart() {
         await this.loadCartFromDatabase();
         this.updateCartBadge();
+    }
+
+    // Ambil cart lokal secara aman (guest mode) tanpa mengganggu fitur lain
+    safeGetLocalCart() {
+        try {
+            // Coba beberapa kemungkinan key yang mungkin digunakan oleh halaman lain
+            const possibleKeys = ['cart', 'cartItems', 'cart_list'];
+            for (let i = 0; i < possibleKeys.length; i++) {
+                const raw = localStorage.getItem(possibleKeys[i]);
+                if (raw) {
+                    try {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) {
+                            return { items: parsed, totalItems: parsed.length };
+                        }
+                        if (parsed && Array.isArray(parsed.items)) {
+                            const total = typeof parsed.totalItems === 'number' ? parsed.totalItems : parsed.items.length;
+                            return { items: parsed.items, totalItems: total };
+                        }
+                    } catch (_) {
+                        // abaikan parsing error untuk key ini dan lanjutkan
+                    }
+                }
+            }
+        } catch (_) {
+            // akses localStorage bisa gagal di mode tertentu; abaikan dengan aman
+        }
+        return { items: [], totalItems: 0 };
     }
 
     // Method untuk trigger cart update event (untuk digunakan oleh halaman lain)

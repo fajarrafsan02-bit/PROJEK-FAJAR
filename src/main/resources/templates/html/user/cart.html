@@ -56,6 +56,9 @@
             position: sticky;
             top: 0;
             z-index: 1000;
+            overflow: hidden;
+            will-change: transform;
+            backface-visibility: hidden;
         }
 
         .top-bar {
@@ -503,10 +506,151 @@
                 font-size: 32px;
             }
         }
+
+        /* Adding scroll animation styles */
+        .scroll-animate {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .scroll-animate.animate-in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stagger-1 { transition-delay: 0.1s; }
+        .stagger-2 { transition-delay: 0.2s; }
+        .stagger-3 { transition-delay: 0.3s; }
+        .stagger-4 { transition-delay: 0.4s; }
+
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease-out;
+        }
+
+        .fade-in-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .slide-in-left {
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: all 0.6s ease-out;
+        }
+
+        .slide-in-left.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .slide-in-right {
+            opacity: 0;
+            transform: translateX(30px);
+            transition: all 0.6s ease-out;
+        }
+
+        .slide-in-right.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .scale-in {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.5s ease-out;
+        }
+
+        .scale-in.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Enhanced hover animations */
+        .cart-item {
+            transition: all 0.3s ease;
+        }
+
+        .cart-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .checkout-summary {
+            transition: all 0.3s ease;
+        }
+
+        .checkout-summary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+
+        /* Smooth scroll progress bar */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold-primary), var(--gold-secondary));
+            z-index: 999;
+            transition: width 0.1s ease;
+        }
+
+        /* Enhanced button animations */
+        .btn, .qty-btn, .remove-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .qty-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .remove-btn:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        /* Notification enhanced animation */
+        @keyframes slideInBounce {
+            0% {
+                transform: translateX(100%) scale(0.8);
+                opacity: 0;
+            }
+            60% {
+                transform: translateX(-10px) scale(1.05);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutBounce {
+            0% {
+                transform: translateX(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(100%) scale(0.8);
+                opacity: 0;
+            }
+        }
+        /* End of scroll animation styles */
     </style>
 </head>
 
 <body>
+    <!-- Adding scroll progress bar -->
+    <div class="scroll-progress" id="scrollProgress"></div>
+
     <header class="header">
         <div class="top-bar">
             <div class="container">
@@ -516,20 +660,20 @@
 
         <nav class="navbar">
             <div class="nav-container">
-                <a href="index.html" class="logo">Fajar Gold</a>
+                <a href="/user/home" class="logo">Fajar Gold</a>
 
                 <!-- ... existing code ... -->
                 <ul class="nav-menu">
                     <li><a href="/user/home" class="nav-link">Beranda</a></li>
                     <li><a href="/user/katalog" class="nav-link">Katalog</a></li>
                     <li><a href="/user/my-orders" class="nav-link">Pesanan</a></li>
-                    <li><a href="#" class="nav-link">Tentang Kami</a></li>
-                    <li><a href="#" class="nav-link">Kontak</a></li>
+                    <li><a href="/user/about" class="nav-link">Tentang Kami</a></li>
+                    <li><a href="/user/contact" class="nav-link">Kontak</a></li>
                 </ul>
                 <!-- ... existing code ... -->
 
                 <div class="nav-icons">
-                    <a href="#" class="nav-icon" title="Wishlist">
+                    <a href="/user/wishlist" class="nav-icon" title="Wishlist">
                         <i class="fas fa-heart"></i>
                         <span class="cart-badge" id="wishlistBadge">0</span>
                     </a>
@@ -542,56 +686,65 @@
         </nav>
     </header>
 
-    <div class="cart-container">
-        <h1 class="page-title">Keranjang Belanja</h1>
-
-        <div class="cart-content">
-            <div class="cart-items" id="cartItems">
+    <main class="main-content">
+        <div class="container">
+            <!-- Adding scroll animation classes to existing elements -->
+            <div class="page-header scroll-animate fade-in-up">
+                <h1 class="page-title">Keranjang Belanja</h1>
             </div>
 
-            <div class="cart-summary">
-                <div class="shipping-info">
-                    <i class="fas fa-truck"></i>
-                    Estimasi pengiriman: 2-3 hari kerja
-                </div>
-
-                <h3 class="summary-title">Ringkasan Pesanan</h3>
-
-                <div class="summary-row">
-                    <span>Subtotal (<span id="totalItems">0</span> item)</span>
-                    <span id="subtotal">Rp 0</span>
-                </div>
-
-                <div class="summary-row">
-                    <span>Ongkos Kirim</span>
-                    <span id="shippingCost">Rp 25.000</span>
-                </div>
-
-                <div class="summary-row">
-                    <span>Diskon</span>
-                    <span id="discount">-Rp 0</span>
-                </div>
-
-                <div class="summary-row">
-                    <span>Total</span>
-                    <span id="total">Rp 0</span>
-                </div>
-
-                <div class="promo-code">
-                    <h4>Kode Promo</h4>
-                    <div class="promo-input">
-                        <input type="text" placeholder="Masukkan kode promo" id="promoInput">
-                        <button onclick="cartManager.applyPromo()">Terapkan</button>
+            <div class="cart-layout">
+                <div class="cart-section scroll-animate slide-in-left stagger-1">
+                    <div class="cart-items" id="cartItems">
                     </div>
                 </div>
 
-                <button class="checkout-btn" onclick="cartManager.proceedToCheckout()">
-                    <i class="fas fa-credit-card"></i>
-                    Lanjut ke Pembayaran
-                </button>
+                <div class="checkout-section scroll-animate slide-in-right stagger-2">
+                    <div class="cart-summary">
+                        <div class="shipping-info">
+                            <i class="fas fa-truck"></i>
+                            Estimasi pengiriman: 2-3 hari kerja
+                        </div>
+
+                        <h3 class="summary-title">Ringkasan Pesanan</h3>
+
+                        <div class="summary-row">
+                            <span>Subtotal (<span id="totalItems">0</span> item)</span>
+                            <span id="subtotal">Rp 0</span>
+                        </div>
+
+                        <div class="summary-row">
+                            <span>Ongkos Kirim</span>
+                            <span id="shippingCost">Rp 25.000</span>
+                        </div>
+
+                        <div class="summary-row">
+                            <span>Diskon</span>
+                            <span id="discount">-Rp 0</span>
+                        </div>
+
+                        <div class="summary-row">
+                            <span>Total</span>
+                            <span id="total">Rp 0</span>
+                        </div>
+
+                        <div class="promo-code">
+                            <h4>Kode Promo</h4>
+                            <div class="promo-input">
+                                <input type="text" placeholder="Masukkan kode promo" id="promoInput">
+                                <button onclick="cartManager.applyPromo()">Terapkan</button>
+                            </div>
+                        </div>
+
+                        <button class="checkout-btn" onclick="cartManager.proceedToCheckout()">
+                            <i class="fas fa-credit-card"></i>
+                            Lanjut ke Pembayaran
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <script>
         class CartManager {
@@ -617,6 +770,9 @@
                 this.updateBadges();
                 this.updateSummary();
                 
+                // Setup event listeners untuk cart events
+                this.setupCartEventListeners();
+                
                 // Refresh data keranjang setiap 5 menit untuk memastikan harga selalu up-to-date
                 setInterval(async () => {
                     await this.loadCartFromDatabase();
@@ -626,17 +782,26 @@
                 }, 300000); // 5 menit
             }
 
-            // Perbaiki method getCurrentUserId
+            // Perbaiki method getCurrentUserId untuk menggunakan API session
             async getCurrentUserId() {
                 try {
-                    // Since there's no authentication system, return default user ID
-                    // In a production app, this would get the actual logged-in user
-                    console.log('Using default user ID for cart operations');
-                    return 1; // Default user ID
+                    const response = await fetch('/user/current');
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success && result.data) {
+                            console.log('Current user from API:', result.data.email, 'ID:', result.data.id);
+                            return result.data.id;
+                        }
+                    } else {
+                        console.warn('Failed to get current user, HTTP status:', response.status);
+                    }
                 } catch (error) {
                     console.error('Error getting current user:', error);
                 }
-                return 1; // Fallback to default user ID
+                
+                // Fallback untuk development - menggunakan user ID 1
+                console.log('Using fallback user ID: 1');
+                return 1;
             }
 
             // Perbaiki method loadCartFromDatabase agar async
@@ -935,7 +1100,6 @@
                 }
             }
 
-            // ... existing code ...
             proceedToCheckout() {
                 if (this.cart.length === 0) {
                     this.showNotification('Keranjang belanja kosong', 'warning');
@@ -963,7 +1127,6 @@
                 // Redirect ke halaman checkout
                 window.location.href = '/user/checkout';
             }
-            // ... existing code ...
 
             updateBadges() {
                 const cartBadge = document.getElementById('cartBadge');
@@ -1070,6 +1233,96 @@
                 }
             }
 
+            // Setup event listeners untuk cart events
+            setupCartEventListeners() {
+                console.log('CartManager: Setting up cart event listeners...');
+
+                // Listen untuk custom cart events dari checkout atau halaman lain
+                window.addEventListener('cartUpdated', async (event) => {
+                    console.log('CartManager: Cart updated event received', event.detail);
+                    await this.loadCartFromDatabase();
+                    this.renderCart();
+                    this.updateSummary();
+                    this.updateBadges();
+                });
+
+                // Listen untuk cart cleared event dari checkout setelah pembayaran sukses
+                window.addEventListener('storage', (event) => {
+                    if (event.key === 'cartCleared') {
+                        console.log('CartManager: Cart cleared event detected from checkout');
+                        this.handleCartCleared();
+                    } else if (event.key === 'cartChanged') {
+                        console.log('CartManager: General cart change detected');
+                        this.handleCartChanged();
+                    }
+                });
+
+                // Listen untuk visibility change - refresh saat user kembali ke tab
+                document.addEventListener('visibilitychange', async () => {
+                    if (!document.hidden) {
+                        console.log('CartManager: Page became visible, refreshing cart');
+                        await this.loadCartFromDatabase();
+                        this.renderCart();
+                        this.updateSummary();
+                        this.updateBadges();
+                    }
+                });
+
+                // Listen untuk focus events
+                window.addEventListener('focus', async () => {
+                    console.log('CartManager: Window focused, refreshing cart');
+                    await this.loadCartFromDatabase();
+                    this.renderCart();
+                    this.updateSummary();
+                    this.updateBadges();
+                });
+
+                console.log('CartManager: Event listeners setup completed');
+            }
+
+            // Handle cart cleared event
+            async handleCartCleared() {
+                console.log('CartManager: Handling cart cleared event...');
+                try {
+                    // Clear local cart
+                    this.cart = [];
+                    this.totalItems = 0;
+
+                    // Clear localStorage
+                    localStorage.removeItem('cart');
+                    localStorage.removeItem('checkoutData');
+
+                    // Force refresh from database
+                    await this.loadCartFromDatabase();
+
+                    // Update UI
+                    this.renderCart();
+                    this.updateSummary();
+                    this.updateBadges();
+
+                    // Show notification
+                    this.showNotification('Keranjang telah dikosongkan setelah pembayaran berhasil', 'success');
+
+                    console.log('CartManager: Cart cleared event handled successfully');
+                } catch (error) {
+                    console.error('CartManager: Error handling cart cleared event:', error);
+                }
+            }
+
+            // Handle cart changed event
+            async handleCartChanged() {
+                console.log('CartManager: Handling cart changed event...');
+                try {
+                    await this.loadCartFromDatabase();
+                    this.renderCart();
+                    this.updateSummary();
+                    this.updateBadges();
+                    console.log('CartManager: Cart changed event handled successfully');
+                } catch (error) {
+                    console.error('CartManager: Error handling cart changed event:', error);
+                }
+            }
+
             updateCartBadge() {
                 // Use CartBadgeManager for consistent badge updates
                 if (window.cartBadgeManager) {
@@ -1126,8 +1379,123 @@
         `;
         document.head.appendChild(style);
 
+        class ScrollAnimations {
+            constructor() {
+                this.init();
+            }
+
+            init() {
+                this.createScrollProgress();
+                this.setupIntersectionObserver();
+                this.addScrollListeners();
+            }
+
+            createScrollProgress() {
+                window.addEventListener('scroll', () => {
+                    const scrollProgress = document.getElementById('scrollProgress');
+                    if (scrollProgress) {
+                        const scrollTop = window.pageYOffset;
+                        const docHeight = document.body.scrollHeight - window.innerHeight;
+                        const scrollPercent = (scrollTop / docHeight) * 100;
+                        scrollProgress.style.width = scrollPercent + '%';
+                    }
+                });
+            }
+
+            setupIntersectionObserver() {
+                const observerOptions = {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -50px 0px'
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('animate-in', 'visible');
+                        }
+                    });
+                }, observerOptions);
+
+                // Observe elements with scroll animation classes
+                document.querySelectorAll('.scroll-animate, .fade-in-up, .slide-in-left, .slide-in-right, .scale-in').forEach(el => {
+                    observer.observe(el);
+                });
+            }
+
+            addScrollListeners() {
+                // Smooth scrolling for anchor links
+                document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                    anchor.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const target = document.querySelector(this.getAttribute('href'));
+                        if (target) {
+                            target.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
+                        }
+                    });
+                });
+
+                window.addEventListener('scroll', () => {
+                    // Header transform removed to fix sticky positioning bug
+                    // const scrolled = window.pageYOffset;
+                    // const header = document.querySelector('.header');
+                    // if (header) {
+                    //     header.style.transform = `translateY(${scrolled * 0.1}px)`;
+                    // }
+                });
+            }
+
+            // Method to animate new cart items when they're added
+            animateNewCartItem(element) {
+                element.style.opacity = '0';
+                element.style.transform = 'translateX(-20px) scale(0.9)';
+                
+                setTimeout(() => {
+                    element.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateX(0) scale(1)';
+                }, 100);
+            }
+        }
+
         let cartManager;
         document.addEventListener('DOMContentLoaded', () => {
+            new ScrollAnimations();
+            
+            // Override CartManager's showNotification to use enhanced animation
+            if (typeof CartManager !== 'undefined') {
+                const originalShowNotification = CartManager.prototype.showNotification;
+                CartManager.prototype.showNotification = function(message, type = 'info') {
+                    const notification = document.createElement('div');
+                    notification.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : type === 'warning' ? '#f59e0b' : '#3b82f6'};
+                        color: white;
+                        padding: 15px 20px;
+                        border-radius: 10px;
+                        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                        z-index: 10000;
+                        font-weight: 500;
+                        max-width: 300px;
+                        animation: slideInBounce 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                    `;
+                    notification.textContent = message;
+                    document.body.appendChild(notification);
+
+                    setTimeout(() => {
+                        notification.style.animation = 'slideOutBounce 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                        setTimeout(() => {
+                            if (notification.parentNode) {
+                                notification.parentNode.removeChild(notification);
+                            }
+                        }, 400);
+                    }, 3000);
+                };
+            }
             cartManager = new CartManager();
         });
     </script>

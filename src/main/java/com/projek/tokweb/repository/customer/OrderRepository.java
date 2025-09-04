@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -54,4 +55,73 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     
     @Query("SELECT COUNT(o) FROM Order o WHERE o.status IN :statuses")
     Long countByStatusIn(@Param("statuses") List<OrderStatus> statuses);
+    
+    /**
+     * Find orders by date range and status list
+     */
+    @Query("SELECT o FROM Order o WHERE o.createdAt BETWEEN :startDate AND :endDate AND o.status IN :statuses ORDER BY o.createdAt DESC")
+    List<Order> findByCreatedAtBetweenAndStatusIn(
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate,
+        @Param("statuses") List<OrderStatus> statuses
+    );
+    
+    /**
+     * Find top 10 most recent orders
+     */
+    List<Order> findTop10ByOrderByCreatedAtDesc();
+    
+    /**
+     * Find top 20 most recent orders for dashboard activities
+     */
+    List<Order> findTop20ByOrderByCreatedAtDesc();
+    
+    /**
+     * Find orders created today
+     */
+    @Query("SELECT o FROM Order o WHERE DATE(o.createdAt) = CURRENT_DATE AND o.status IN :statuses")
+    List<Order> findTodayOrdersByStatus(@Param("statuses") List<OrderStatus> statuses);
+    
+    /**
+     * Find orders created this month
+     */
+    @Query("SELECT o FROM Order o WHERE MONTH(o.createdAt) = MONTH(CURRENT_DATE) AND YEAR(o.createdAt) = YEAR(CURRENT_DATE) AND o.status IN :statuses")
+    List<Order> findThisMonthOrdersByStatus(@Param("statuses") List<OrderStatus> statuses);
+    
+    // Methods with EntityGraph to eagerly load bukti pembayaran
+    
+    /**
+     * Find order by ID with bukti pembayaran eagerly loaded
+     */
+    @EntityGraph(attributePaths = {"bukti"})
+    @Query("SELECT o FROM Order o WHERE o.id = :id")
+    Optional<Order> findByIdWithBukti(@Param("id") Long id);
+    
+    /**
+     * Find order by order number with bukti pembayaran eagerly loaded
+     */
+    @EntityGraph(attributePaths = {"bukti"})
+    @Query("SELECT o FROM Order o WHERE o.orderNumber = :orderNumber")
+    Optional<Order> findByOrderNumberWithBukti(@Param("orderNumber") String orderNumber);
+    
+    /**
+     * Find all orders with bukti pembayaran eagerly loaded (for admin)
+     */
+    @EntityGraph(attributePaths = {"bukti"})
+    @Query("SELECT o FROM Order o ORDER BY o.createdAt DESC")
+    List<Order> findAllWithBukti();
+    
+    /**
+     * Find orders by status with bukti pembayaran eagerly loaded (for admin)
+     */
+    @EntityGraph(attributePaths = {"bukti"})
+    @Query("SELECT o FROM Order o WHERE o.status IN :statuses ORDER BY o.createdAt DESC")
+    List<Order> findByStatusInWithBukti(@Param("statuses") List<OrderStatus> statuses);
+    
+    /**
+     * Find orders by user with bukti pembayaran eagerly loaded
+     */
+    @EntityGraph(attributePaths = {"bukti"})
+    @Query("SELECT o FROM Order o WHERE o.userId = :userId ORDER BY o.createdAt DESC")
+    List<Order> findByUserIdWithBukti(@Param("userId") Long userId);
 }

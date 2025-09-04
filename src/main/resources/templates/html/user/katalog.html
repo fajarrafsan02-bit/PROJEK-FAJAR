@@ -48,7 +48,167 @@
             color: var(--black-luxury);
             line-height: 1.6;
             overflow-x: hidden;
-            /* Prevent horizontal scroll */
+        }
+
+        /* ===== SCROLL ANIMATIONS ===== */
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .fade-in-up.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .fade-in-left {
+            opacity: 0;
+            transform: translateX(-50px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .fade-in-left.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .fade-in-right {
+            opacity: 0;
+            transform: translateX(50px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .fade-in-right.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .scale-in {
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .scale-in.animate {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .slide-in-bottom {
+            opacity: 0;
+            transform: translateY(100px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .slide-in-bottom.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stagger-animation {
+            transition-delay: 0s;
+        }
+
+        .stagger-animation:nth-child(1) { transition-delay: 0.1s; }
+        .stagger-animation:nth-child(2) { transition-delay: 0.2s; }
+        .stagger-animation:nth-child(3) { transition-delay: 0.3s; }
+        .stagger-animation:nth-child(4) { transition-delay: 0.4s; }
+        .stagger-animation:nth-child(5) { transition-delay: 0.5s; }
+        .stagger-animation:nth-child(6) { transition-delay: 0.6s; }
+        .stagger-animation:nth-child(7) { transition-delay: 0.7s; }
+        .stagger-animation:nth-child(8) { transition-delay: 0.8s; }
+
+        /* ===== PAGE LOADING ANIMATION ===== */
+        .page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--white-pure);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .page-loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-content {
+            text-align: center;
+        }
+
+        .loader-logo {
+            font-family: "Playfair Display", serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--gold-primary);
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--gray-medium);
+            border-top: 4px solid var(--gold-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        .loader-text {
+            margin-top: 20px;
+            color: var(--gray-elegant);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Category card specific stagger animation */
+        .category-grid .stagger-animation {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .category-grid .stagger-animation.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Enhanced product card hover animations */
+        .product-card:hover {
+            transform: translateY(-8px) scale(1.02) !important;
+        }
+
+        /* Enhanced empty state animation */
+        .no-products-message i {
+            animation: float 3s ease-in-out infinite;
         }
 
         .header {
@@ -459,12 +619,42 @@
             justify-content: center;
             font-size: 16px;
             box-shadow: var(--shadow-soft);
+            color: #6b7280; /* Default gray color */
         }
 
         .wishlist-btn:hover {
             background: var(--gold-primary);
             color: var(--black-luxury);
             transform: scale(1.1);
+        }
+
+        /* Active state untuk wishlist button */
+        .wishlist-btn.active {
+            background: #ef4444;
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .wishlist-btn.active:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+        }
+
+        /* Animasi untuk ikon hati */
+        .wishlist-btn i {
+            transition: all 0.2s ease;
+        }
+
+        .wishlist-btn.active i {
+            animation: heartBeat 0.6s ease-in-out;
+        }
+
+        @keyframes heartBeat {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.2); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
 
         .product-info {
@@ -875,22 +1065,61 @@
             object-fit: contain;
             padding: 20px;
         }
+
+        /* Added smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Enhanced hover effects with better transitions */
+        .product-card {
+            will-change: transform;
+        }
+
+        .filter-section {
+            will-change: transform;
+        }
+
+        /* Added loading state animations */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 
 <body>
-    <header class="header">
+    <!-- Page Loader -->
+    <div class="page-loader" id="pageLoader">
+        <div class="loader-content">
+            <div class="loader-logo">Fajar Gold</div>
+            <div class="loader-spinner"></div>
+            <div class="loader-text">Memuat katalog produk...</div>
+        </div>
+    </div>
+
+    <header class="header fade-in-up">
 
         <nav class="navbar">
             <div class="nav-container">
-                <a href="index.html" class="logo">Fajar Gold</a>
+                <a href="/user/home" class="logo">Fajar Gold</a>
 
                 <ul class="nav-menu">
                     <li><a href="/user/home" class="nav-link">Beranda</a></li>
                     <li><a href="/user/katalog" class="nav-link active">Katalog</a></li>
                     <li><a href="/user/my-orders" class="nav-link">Pesanan</a></li>
-                    <li><a href="#" class="nav-link">Tentang Kami</a></li>
-                    <li><a href="#" class="nav-link">Kontak</a></li>
+                    <li><a href="/user/about" class="nav-link">Tentang Kami</a></li>
+                    <li><a href="/user/contact" class="nav-link">Kontak</a></li>
                 </ul>
 
                 <div class="search-bar">
@@ -901,7 +1130,7 @@
                 </div>
 
                 <div class="nav-icons">
-                    <a href="#" class="nav-icon" title="Wishlist">
+                    <a href="/user/wishlist" class="nav-icon" title="Wishlist">
                         <i class="fas fa-heart"></i>
                         <span class="cart-badge" id="wishlistBadge">0</span>
                     </a>
@@ -915,8 +1144,9 @@
     </header>
 
     <div class="catalog-container">
-        <aside class="filters-sidebar">
-            <div class="filter-section">
+        <!-- Filters Sidebar with Animation -->
+        <aside class="filters-sidebar fade-in-left">
+            <div class="filter-section fade-in-up stagger-animation">
                 <h3 class="filter-title">
                     <i class="fas fa-layer-group"></i>
                     Kategori
@@ -925,7 +1155,7 @@
                 </div>
             </div>
 
-            <div class="filter-section">
+            <div class="filter-section fade-in-up stagger-animation">
                 <h3 class="filter-title">
                     <i class="fas fa-certificate"></i>
                     Kadar Emas
@@ -934,7 +1164,7 @@
                 </div>
             </div>
 
-            <div class="filter-section">
+            <div class="filter-section fade-in-up stagger-animation">
                 <h3 class="filter-title">
                     <i class="fas fa-dollar-sign"></i>
                     Range Harga
@@ -949,7 +1179,7 @@
                 </div>
             </div>
 
-            <div class="filter-section">
+            <div class="filter-section fade-in-up stagger-animation">
                 <h3 class="filter-title">
                     <i class="fas fa-weight"></i>
                     Berat (gram)
@@ -958,14 +1188,15 @@
                 </div>
             </div>
 
-            <button class="filter-btn" id="applyFilters">
+            <button class="filter-btn fade-in-up stagger-animation" id="applyFilters">
                 <i class="fas fa-filter"></i>
                 Terapkan Filter
             </button>
         </aside>
 
-        <main class="products-section">
-            <div class="catalog-header">
+        <!-- Main Products Section with Animation -->
+        <main class="products-section fade-in-right">
+            <div class="catalog-header fade-in-up">
                 <h1 class="catalog-title">Katalog Produk</h1>
                 <div class="catalog-controls">
                     <!-- Tombol toggle filter untuk mobile -->
@@ -993,18 +1224,180 @@
                 </div>
             </div>
 
-            <div class="products-grid" id="productsGrid">
+            <!-- Products Grid with Animation -->
+            <div class="products-grid fade-in-up" id="productsGrid">
             </div>
 
-            <div class="pagination" id="pagination">
+            <!-- Pagination with Animation -->
+            <div class="pagination fade-in-up" id="pagination">
             </div>
         </main>
     </div>
+
+    <!-- Footer -->
+    <footer class="footer fade-in-up" style="background: var(--black-luxury); color: var(--white-pearl); padding: 50px 0 30px;">
+        <div class="footer-container" style="max-width: 1400px; margin: 0 auto; padding: 0 30px;">
+            <div class="footer-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px;">
+                <!-- Company Info -->
+                <div class="footer-section fade-in-up stagger-animation">
+                    <h3 style="font-family: 'Playfair Display', serif; font-size: 28px; color: var(--gold-primary); margin-bottom: 20px;">Fajar Gold</h3>
+                    <p style="color: var(--white-pearl); margin-bottom: 20px; line-height: 1.6;">Toko emas terpercaya dengan pengalaman puluhan tahun. Menyediakan perhiasan emas berkualitas tinggi dengan harga terbaik.</p>
+                    <div class="social-links" style="display: flex; gap: 15px;">
+                        <a href="https://facebook.com/fajargold" target="_blank" style="color: var(--gold-primary); font-size: 20px; transition: color 0.3s ease;">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="https://instagram.com/fajargold" target="_blank" style="color: var(--gold-primary); font-size: 20px; transition: color 0.3s ease;">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://wa.me/628123456789" target="_blank" style="color: var(--gold-primary); font-size: 20px; transition: color 0.3s ease;">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="footer-section fade-in-up stagger-animation">
+                    <h4 style="color: var(--gold-primary); margin-bottom: 20px; font-size: 18px; font-weight: 600;">Tautan Cepat</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 10px;"><a href="/user/home" style="color: var(--white-pearl); text-decoration: none; transition: color 0.3s ease;">Beranda</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/user/katalog" style="color: var(--gold-primary); text-decoration: none; transition: color 0.3s ease;">Katalog</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/user/about" style="color: var(--white-pearl); text-decoration: none; transition: color 0.3s ease;">Tentang Kami</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/user/contact" style="color: var(--white-pearl); text-decoration: none; transition: color 0.3s ease;">Kontak</a></li>
+                    </ul>
+                </div>
+
+                <!-- Services -->
+                <div class="footer-section scroll-animate stagger-animation" style="--delay: 0.3s">
+                    <h4 style="color: var(--gold-primary); margin-bottom: 20px; font-size: 18px; font-weight: 600;">Layanan</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 10px;"><a href="/user/contact" style="color: var(--white-pearl); text-decoration: none; transition: color 0.3s ease;">Pembelian Emas</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/user/contact" style="color: var(--white-pearl); text-decoration: none; transition: color 0.3s ease;">Investasi Emas</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/user/contact" style="color: var(--white-pearl); text-decoration: none; transition: color 0.3s ease;">Custom Perhiasan</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/user/contact" style="color: var(--white-pearl); text-decoration: none; transition: color 0.3s ease;">Konsultasi</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="footer-section scroll-animate stagger-animation" style="--delay: 0.4s">
+                    <h4 style="color: var(--gold-primary); margin-bottom: 20px; font-size: 18px; font-weight: 600;">Kontak</h4>
+                    <div style="margin-bottom: 15px;">
+                        <i class="fas fa-phone" style="color: var(--gold-primary); margin-right: 10px; width: 16px;"></i>
+                        <a href="tel:+628123456789" style="color: var(--white-pearl); text-decoration: none;">+62 812-3456-789</a>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <i class="fas fa-envelope" style="color: var(--gold-primary); margin-right: 10px; width: 16px;"></i>
+                        <a href="mailto:info@fajargold.com" style="color: var(--white-pearl); text-decoration: none;">info@fajargold.com</a>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <i class="fas fa-map-marker-alt" style="color: var(--gold-primary); margin-right: 10px; width: 16px;"></i>
+                        <a href="https://maps.google.com/?q=Jl. Pahlawan No. 123, Jakarta" target="_blank" style="color: var(--white-pearl); text-decoration: none; line-height: 1.4;">Jl. Pahlawan No. 123<br>Jakarta, Indonesia</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom fade-in-up stagger-animation" style="border-top: 1px solid #333; margin-top: 40px; padding-top: 20px; text-align: center;">
+                <p style="color: var(--white-pearl); margin: 0;">&copy; 2024 Fajar Gold. Semua hak dilindungi.</p>
+            </div>
+        </div>
+    </footer>
 
     <!-- Cart Badge Utility Script -->
     <script src="/js/cart-badge-utility.js"></script>
     
     <script>
+        // Animation Observer untuk scroll animations
+        class AnimationObserver {
+            constructor() {
+                this.observer = new IntersectionObserver(
+                    (entries) => this.handleIntersection(entries),
+                    {
+                        threshold: 0.1,
+                        rootMargin: '0px 0px -50px 0px'
+                    }
+                );
+                this.init();
+            }
+
+            init() {
+                // Observe semua elemen dengan class animation
+                const animatedElements = document.querySelectorAll(
+                    '.fade-in-up, .fade-in-left, .fade-in-right, .scale-in, .slide-in-bottom'
+                );
+                animatedElements.forEach(el => this.observer.observe(el));
+            }
+
+            handleIntersection(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate');
+                        // Unobserve setelah animasi untuk performa
+                        this.observer.unobserve(entry.target);
+                    }
+                });
+            }
+            
+            // Method untuk observe elemen baru yang ditambahkan dinamis
+            observeNewElements(container) {
+                const newElements = container.querySelectorAll(
+                    '.fade-in-up, .fade-in-left, .fade-in-right, .scale-in, .slide-in-bottom'
+                );
+                newElements.forEach(el => {
+                    if (!el.classList.contains('animate')) {
+                        this.observer.observe(el);
+                    }
+                });
+            }
+        }
+
+        // Page Loader
+        class PageLoader {
+            constructor() {
+                this.loader = document.getElementById('pageLoader');
+                this.init();
+            }
+
+            init() {
+                // Hide loader setelah semua content dimuat
+                window.addEventListener('load', () => {
+                    setTimeout(() => {
+                        this.hideLoader();
+                        this.triggerInitialAnimations();
+                    }, 800);
+                });
+            }
+
+            hideLoader() {
+                if (this.loader) {
+                    this.loader.classList.add('hidden');
+                    setTimeout(() => {
+                        this.loader.style.display = 'none';
+                    }, 500);
+                }
+            }
+
+            triggerInitialAnimations() {
+                // Trigger animasi untuk elemen yang sudah terlihat
+                const visibleElements = document.querySelectorAll(
+                    '.header.fade-in-up, .catalog-header.fade-in-up, .filters-sidebar.fade-in-left'
+                );
+                visibleElements.forEach((el, index) => {
+                    setTimeout(() => {
+                        el.classList.add('animate');
+                        
+                        // Trigger stagger animations untuk filter sections
+                        if (el.classList.contains('filters-sidebar')) {
+                            const filterSections = el.querySelectorAll('.stagger-animation');
+                            filterSections.forEach((section, sectionIndex) => {
+                                setTimeout(() => {
+                                    section.classList.add('animate');
+                                }, sectionIndex * 150);
+                            });
+                        }
+                    }, index * 200);
+                });
+            }
+        }
+
         class CatalogManager {
             constructor() {
                 this.products = [];
@@ -1013,7 +1406,7 @@
                 this.productsPerPage = 12;
                 this.currentView = 'grid';
                 this.cart = []; // Akan diisi dari database
-                this.wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+                this.wishlist = []; // Akan diisi dari database
                 this.loading = false;
                 this.totalPages = 0;
                 this.totalItems = 0;
@@ -1024,35 +1417,30 @@
 
             async init() {
                 this.setupEventListeners();
+                // Render default filters first untuk tampilan awal
+                this.renderDefaultFilters();
                 await this.loadProducts();
-                await this.loadFilterStats(); // Load filter stats
+                // Generate real stats SETELAH produk dimuat
+                await this.loadFilterStats(); 
                 await this.loadCartFromDatabase(); // Load cart dari database
+                await this.loadWishlistFromDatabase(); // Load wishlist dari database
                 // updateBadges sudah dipanggil di loadCartFromDatabase
                 this.handleURLParams();
                 console.log('CatalogManager initialized successfully');
             }
 
             async loadFilterStats() {
-                try {
-                    console.log('Loading filter stats...');
-                    const response = await fetch(`/admin/products/filter-stats`);
-                    const result = await response.json();
-
-                    console.log('Filter stats response:', result);
-
-                    if (result.success && result.data) {
-                        this.filterStats = result.data;
-                        console.log('Filter stats loaded:', this.filterStats);
-                        this.renderFilters();
-                    } else {
-                        console.error('Failed to load filter stats:', result.message);
-                        console.log('Falling back to default filters...');
-                        this.renderDefaultFilters();
-                    }
-                } catch (error) {
-                    console.error('Error loading filter stats: ', error);
-                    console.log('Falling back to default filters due to error...');
-                    this.renderDefaultFilters();
+                console.log('Loading filter stats...');
+                
+                // Langsung gunakan default filters untuk user catalog
+                // karena endpoint admin tidak accessible dari user page
+                console.log('Using default filters for user catalog...');
+                this.renderDefaultFilters();
+                
+                // Alternatif: generate stats dari data produk yang sudah dimuat
+                if (this.products && this.products.length > 0) {
+                    console.log('Generating filter stats from loaded products...');
+                    this.generateFilterStatsFromProducts();
                 }
             }
 
@@ -1114,6 +1502,130 @@
                 return `${range} gram`;
             }
 
+            // Method untuk generate filter stats dari data produk yang sudah dimuat
+            generateFilterStatsFromProducts() {
+                if (!this.products || this.products.length === 0) {
+                    console.log('No products available to generate stats');
+                    return;
+                }
+
+                console.log('=== GENERATING FILTER STATS FROM PRODUCTS ===');
+                console.log('Total products to analyze:', this.products.length);
+
+                // Initialize counters
+                const categoryStats = {};
+                const purityStats = {};
+                const weightStats = { '0-2': 0, '2-5': 0, '5-10': 0, '10+': 0 };
+                let minPrice = Infinity;
+                let maxPrice = -Infinity;
+
+                // Debug: Log pertama beberapa produk untuk analisis
+                console.log('Sample products for weight analysis:');
+                this.products.slice(0, 5).forEach((product, index) => {
+                    console.log(`Sample Product ${index + 1}:`);
+                    console.log(`  - Name: ${product.name}`);
+                    console.log(`  - Raw weight: '${product.weight}' (type: ${typeof product.weight})`);
+                    console.log(`  - Parsed weight: ${parseFloat(product.weight)}`);
+                    console.log(`  - Is NaN: ${isNaN(parseFloat(product.weight))}`);
+                    console.log(`  - Category: '${product.category}'`);
+                    console.log(`  - Purity: '${product.purity}'`);
+                    console.log('  ---');
+                });
+
+                this.products.forEach((product, index) => {
+                    // Count categories
+                    const category = product.category ? product.category.toLowerCase() : 'lainnya';
+                    categoryStats[category] = (categoryStats[category] || 0) + 1;
+
+                    // Count purities
+                    const purity = product.purity + 'K';
+                    purityStats[purity] = (purityStats[purity] || 0) + 1;
+
+            // PERBAIKAN: Count weights dengan debugging lengkap dan data yang akurat
+// Ambil weight dari beberapa kemungkinan field
+                    const rawWeight = product.weight !== undefined && product.weight !== null ? product.weight : (product.formattedWeight || product.weightString || '');
+                    let weight = 0;
+                    
+                    // PERBAIKAN: Parse weight dengan berbagai format yang mungkin
+                    if (rawWeight !== null && rawWeight !== undefined) {
+                        if (typeof rawWeight === 'number') {
+                            weight = rawWeight;
+                        } else if (typeof rawWeight === 'string') {
+                            // Hapus semua non-digit kecuali titik dan koma untuk desimal
+                            const cleanWeight = String(rawWeight).replace(/[^\d.,]/g, '').replace(',', '.');
+                            weight = parseFloat(cleanWeight);
+                        } else {
+                            weight = parseFloat(rawWeight);
+                        }
+                    }
+                    
+                    // Debug untuk setiap produk (hanya untuk 10 pertama untuk analisis)
+                    if (index < 10) {
+                        console.log(`Processing product ${index + 1}: ${product.name}`);
+                        console.log(`  Raw weight: '${rawWeight}' (type: ${typeof rawWeight})`);
+                        console.log(`  Cleaned weight: ${weight}`);
+                        console.log(`  Is valid: ${!isNaN(weight) && weight > 0}`);
+                    }
+                    
+                    // Skip jika weight tidak valid, tapi tetap hitung produk lain
+                    if (isNaN(weight) || weight <= 0) {
+                        if (index < 10) {
+                            console.log(`  -> SKIPPED: Invalid weight (${weight})`);
+                        }
+                        // Jangan return, lanjut ke tracking price
+                    } else {
+                        // PERBAIKAN: Logika weight range yang benar
+                        if (weight > 0 && weight <= 2) {
+                            weightStats['0-2']++;
+                            if (index < 10) console.log(`  -> Added to 0-2 gram range (weight: ${weight})`);
+                        } else if (weight > 2 && weight <= 5) {
+                            weightStats['2-5']++;
+                            if (index < 10) console.log(`  -> Added to 2-5 gram range (weight: ${weight})`);
+                        } else if (weight > 5 && weight <= 10) {
+                            weightStats['5-10']++;
+                            if (index < 10) console.log(`  -> Added to 5-10 gram range (weight: ${weight})`);
+                        } else if (weight > 10) {
+                            weightStats['10+']++;
+                            if (index < 10) console.log(`  -> Added to 10+ gram range (weight: ${weight})`);
+                        }
+                    }
+
+                    // Track price range
+                    let productPrice = 0;
+                    if (product.finalPrice !== null && product.finalPrice !== undefined) {
+                        productPrice = parseFloat(product.finalPrice);
+                    } else if (product.price !== null && product.price !== undefined) {
+                        productPrice = parseFloat(product.price);
+                    } else if (product.formattedFinalPrice) {
+                        const priceStr = String(product.formattedFinalPrice).replace(/[^\d]/g, '');
+                        productPrice = priceStr ? parseFloat(priceStr) : 0;
+                    }
+
+                    if (productPrice > 0) {
+                        minPrice = Math.min(minPrice, productPrice);
+                        maxPrice = Math.max(maxPrice, productPrice);
+                    }
+                });
+
+                // Update filter stats
+                this.filterStats = {
+                    categories: categoryStats,
+                    purities: purityStats,
+                    weights: weightStats,
+                    priceRange: minPrice !== Infinity ? { min: minPrice, max: maxPrice } : null
+                };
+
+                console.log('=== FINAL FILTER STATS ===');
+                console.log('Categories:', categoryStats);
+                console.log('Purities:', purityStats);
+                console.log('Weights:', weightStats);
+                console.log('Price Range:', this.filterStats.priceRange);
+                console.log('=== END FILTER STATS GENERATION ===');
+
+                // Re-render filters with new stats
+                this.renderFilters();
+            }
+
             async loadProducts(page = 0, searchKeyword = null) {
                 if (this.loading) return;
 
@@ -1121,7 +1633,8 @@
                 this.showLoadingState();
 
                 try {
-                    let url = '/admin/products/active';
+                    // Gunakan endpoint yang benar untuk user katalog
+                    let url = '/user/products/active';
                     const params = new URLSearchParams({
                         page: page.toString(),
                         size: this.productsPerPage.toString(),
@@ -1130,12 +1643,25 @@
                     });
 
                     if (searchKeyword && searchKeyword.trim()) {
-                        url = '/admin/products/search';
+                        url = '/user/products/search';
                         params.set('keyword', searchKeyword.trim());
                     }
 
                     console.log('Fetching URL:', `${url}?${params}`);
                     const response = await fetch(`${url}?${params}`);
+                    
+                    // Periksa apakah response sukses
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        const text = await response.text();
+                        console.error('Response is not JSON:', text);
+                        throw new Error('Server returned non-JSON response');
+                    }
+                    
                     const result = await response.json();
 
                     console.log('API Response:', result);
@@ -1150,10 +1676,36 @@
 
                         console.log('Products loaded:', this.products.length);
                         console.log('Filtered products:', this.filteredProducts.length);
+                        
+                        // DEBUGGING: Log struktur data produk yang sebenarnya
+                        console.log('=== PRODUCT DATA STRUCTURE DEBUG ===');
+                        if (this.products.length > 0) {
+                            const firstProduct = this.products[0];
+                            console.log('First product complete structure:', firstProduct);
+                            console.log('Product fields:', {
+                                id: firstProduct.id,
+                                name: firstProduct.name,
+                                category: firstProduct.category,
+                                purity: firstProduct.purity,
+                                weight: firstProduct.weight,
+                                price: firstProduct.price,
+                                finalPrice: firstProduct.finalPrice,
+                                formattedFinalPrice: firstProduct.formattedFinalPrice,
+                                imageUrl: firstProduct.imageUrl
+                            });
+                            console.log('Category type:', typeof firstProduct.category, 'Value:', firstProduct.category);
+                            console.log('Purity type:', typeof firstProduct.purity, 'Value:', firstProduct.purity);
+                            console.log('Weight type:', typeof firstProduct.weight, 'Value:', firstProduct.weight);
+                        }
+                        console.log('=== END PRODUCT DEBUG ===');
 
                         // Tampilkan semua produk di awal (tanpa filter)
                         this.renderProducts();
                         this.renderPagination();
+                        
+                        // PERBAIKAN: Generate filter stats dari data produk yang baru dimuat
+                        console.log('Auto-generating filter stats after products loaded...');
+                        this.generateFilterStatsFromProducts();
                     } else {
                         console.error('Failed to load products:', result.message);
                         this.showNotification('Gagal memuat produk: ' + result.message, 'error');
@@ -1482,7 +2034,16 @@
                     .map(cb => cb.value);
 
                 const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
-                const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+                const maxPrice = parseFloat(document.getElementById('maxPrice').value) || null;
+
+                // UPDATE currentFilters untuk debugging
+                this.currentFilters = {
+                    categories: selectedCategories,
+                    purities: selectedKarats, 
+                    weights: selectedWeights,
+                    minPrice: minPrice,
+                    maxPrice: maxPrice
+                };
 
                 console.log('Selected filters:', {
                     categories: selectedCategories,
@@ -1491,6 +2052,7 @@
                     minPrice,
                     maxPrice
                 });
+                console.log('Updated currentFilters:', this.currentFilters);
 
                 // Mulai dengan semua produk
                 let filtered = [...this.products];
@@ -1510,17 +2072,35 @@
                     });
                 });
 
-                // Apply category filter
+                // PERBAIKAN: Category filter dengan multiple matching strategies
                 if (selectedCategories.length > 0) {
-                    console.log('Applying category filter:', selectedCategories);
+                    console.log('=== APPLYING CATEGORY FILTER ===');
+                    console.log('Selected categories:', selectedCategories);
+                    
                     filtered = filtered.filter(product => {
-                        const matches = selectedCategories.includes(product.category);
-                        if (matches) {
-                            console.log(`Product ${product.name} matches category filter: ${product.category}`);
+                        if (!product.category) {
+                            console.log(`Product '${product.name}' has no category`);
+                            return false;
                         }
+                        
+                        const productCategory = String(product.category).trim();
+                        
+                        // Multiple matching strategies
+                        const exactMatch = selectedCategories.includes(productCategory);
+                        const lowerMatch = selectedCategories.map(c => c.toLowerCase())
+                            .includes(productCategory.toLowerCase());
+                        const capitalizedMatch = selectedCategories.map(c => c.toLowerCase())
+                            .includes(productCategory.charAt(0).toUpperCase() + productCategory.slice(1).toLowerCase());
+                        
+                        const matches = exactMatch || lowerMatch || capitalizedMatch;
+                        
+                        if (matches) {
+                            console.log(`✓ Product '${product.name}' matches category '${productCategory}'`);
+                        }
+                        
                         return matches;
                     });
-                    console.log('After category filter:', filtered.length, 'products');
+                    console.log(`Category filter applied: ${filtered.length} products remaining`);
                 }
 
                 // Apply karat filter
@@ -1536,36 +2116,88 @@
                     console.log('After karat filter:', filtered.length, 'products');
                 }
 
-                // Apply weight filter
+                // Apply weight filter dengan debugging komprehensif
                 if (selectedWeights.length > 0) {
-                    console.log('Applying weight filter:', selectedWeights);
-                    filtered = filtered.filter(product => {
-                        const productWeight = parseFloat(product.weight);
-                        console.log(`Checking product ${product.name} with weight ${productWeight}`);
-
-                        const matches = selectedWeights.some(range => {
+                    console.log('=== WEIGHT FILTER DEBUG ===');
+                    console.log('Selected weight ranges:', selectedWeights);
+                    
+                    // Debug setiap produk terlebih dahulu
+                    console.log('Checking all products weight data:');
+                    filtered.forEach((product, index) => {
+                        console.log(`Product ${index + 1}:`);
+                        console.log(`  - Name: ${product.name}`);
+                        console.log(`  - Raw weight: '${product.weight}' (type: ${typeof product.weight})`);
+                        console.log(`  - Parsed weight: ${parseFloat(product.weight)}`);
+                        console.log(`  - Is valid weight: ${!isNaN(parseFloat(product.weight))}`);
+                        
+                        // Test untuk setiap range yang dipilih
+                        selectedWeights.forEach(range => {
+                            console.log(`    Testing range '${range}':`);
+                            const productWeight = parseFloat(product.weight);
+                            
                             if (range === '10+') {
                                 const result = productWeight > 10;
-                                console.log(`Weight ${productWeight} > 10: ${result}`);
+                                console.log(`      ${productWeight} > 10 = ${result}`);
+                            } else {
+                                const [min, max] = range.split('-').map(v => parseFloat(v));
+                                const result = productWeight >= min && productWeight <= max;
+                                console.log(`      ${productWeight} >= ${min} && ${productWeight} <= ${max} = ${result}`);
+                            }
+                        });
+                        console.log('  ---');
+                    });
+                    
+                    filtered = filtered.filter(product => {
+                        // Ambil weight dari berbagai kemungkinan field
+                        const rawWeight = product.weight !== undefined && product.weight !== null ? product.weight : (product.formattedWeight || product.weightString || '');
+                        let productWeight = 0;
+                        if (typeof rawWeight === 'number') {
+                            productWeight = rawWeight;
+                        } else if (typeof rawWeight === 'string') {
+                            const cleaned = String(rawWeight).replace(/[^\d.,]/g, '').replace(',', '.');
+                            productWeight = parseFloat(cleaned);
+                        } else {
+                            productWeight = parseFloat(rawWeight);
+                        }
+                        
+                        console.log(`\nFiltering product '${product.name}':`);
+                        console.log(`  - Raw weight: '${rawWeight}'`);
+                        console.log(`  - Parsed weight: ${productWeight}`);
+                        console.log(`  - Is valid number: ${!isNaN(productWeight)}`);
+                        
+                        // Skip produk dengan weight tidak valid
+                        if (isNaN(productWeight) || productWeight <= 0) {
+                            console.log(`  - SKIP: Invalid weight`);
+                            return false;
+                        }
+
+                        const matches = selectedWeights.some(range => {
+                            console.log(`  - Testing range '${range}':`);
+                            
+                            if (range === '10+') {
+                                const result = productWeight > 10;
+                                console.log(`    ${productWeight} > 10 = ${result}`);
                                 return result;
                             }
 
                             const [min, max] = range.split('-').map(v => parseFloat(v));
+                            console.log(`    Range parsed: ${min} - ${max}`);
+                            
                             const result = productWeight >= min && productWeight <= max;
-                            console.log(`Weight ${productWeight} in range ${min}-${max}: ${result}`);
+                            console.log(`    ${productWeight} >= ${min} && ${productWeight} <= ${max} = ${result}`);
                             return result;
                         });
                         
-                        if (matches) {
-                            console.log(`Product ${product.name} matches weight filter: ${productWeight}g`);
-                        }
+                        console.log(`  - Final match result: ${matches}`);
+                        
                         return matches;
                     });
                     console.log('After weight filter:', filtered.length, 'products');
+                    console.log('=== END WEIGHT FILTER DEBUG ===');
                 }
 
                 // PERBAIKAN UTAMA: Price filter yang benar dengan debugging lengkap
-                if (minPrice > 0 || maxPrice !== Infinity) {
+                if (minPrice > 0 || (maxPrice !== null && maxPrice !== Infinity)) {
                     console.log('=== APPLYING PRICE FILTER ===');
                     console.log(`Price range: ${minPrice} - ${maxPrice}`);
 
@@ -1707,32 +2339,36 @@
 
                 if (this.filteredProducts.length === 0) {
                     grid.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 50px;">
-                        <i class="fas fa-search" style="font-size: 48px; color: var(--gray-medium); margin-bottom: 20px;"></i>
-                        <h3 style="color: var(--gray-elegant); margin-bottom: 10px;">Tidak ada produk ditemukan</h3>
-                        <p style="color: var(--gray-elegant);">Coba ubah filter atau kata kunci pencarian Anda.</p>
-                        <div style="margin-top: 20px; padding: 15px; background: var(--gray-light); border-radius: 8px; max-width: 400px; margin-left: auto; margin-right: auto;">
-                            <h4 style="margin-bottom: 10px; color: var(--gray-dark);">Debug Info:</h4>
-                            <p style="font-size: 12px; color: var(--gray-elegant); margin-bottom: 5px;">Total produk: ${this.products.length}</p>
-                            <p style="font-size: 12px; color: var(--gray-elegant); margin-bottom: 5px;">Filter aktif: ${JSON.stringify(this.currentFilters)}</p>
-                            <p style="font-size: 12px; color: var(--gray-elegant);">Buka Console (F12) untuk detail lebih lanjut</p>
+                    <div class="no-products-message" style="grid-column: 1 / -1; text-align: center; padding: 80px 20px;">
+                        <i class="fas fa-search" style="font-size: 64px; color: var(--gold-primary); margin-bottom: 30px; opacity: 0.7;"></i>
+                        <h3 style="color: var(--gray-elegant); margin-bottom: 15px; font-size: 24px;">Tidak ada produk ditemukan</h3>
+                        <p style="color: var(--gray-elegant); margin-bottom: 30px; font-size: 16px;">Coba ubah filter atau kata kunci pencarian Anda.</p>
+                        <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, var(--gray-light) 0%, var(--white-pure) 100%); border-radius: 15px; max-width: 500px; margin-left: auto; margin-right: auto; border: 1px solid var(--gray-medium);">
+                            <h4 style="margin-bottom: 15px; color: var(--gray-dark); font-size: 18px;">💡 Tips Pencarian:</h4>
+                            <ul style="text-align: left; color: var(--gray-elegant); font-size: 14px; line-height: 1.6;">
+                                <li style="margin-bottom: 8px;">• Coba kata kunci yang lebih umum</li>
+                                <li style="margin-bottom: 8px;">• Periksa ejaan kata kunci</li>
+                                <li style="margin-bottom: 8px;">• Kurangi filter yang dipilih</li>
+                                <li style="margin-bottom: 8px;">• Gunakan kategori yang berbeda</li>
+                            </ul>
                         </div>
-                        <button onclick="catalog.resetFilters()" style="margin-top: 20px; padding: 10px 20px; background: var(--gold-primary); color: white; border: none; border-radius: 8px; cursor: pointer;">
-                            Reset Filter
+                        <button onclick="catalog.resetFilters()" style="margin-top: 25px; padding: 12px 30px; background: var(--gradient-gold); color: var(--black-luxury); border: none; border-radius: 25px; cursor: pointer; font-weight: 600; font-size: 16px; transition: all 0.3s ease;">
+                            <i class="fas fa-refresh"></i> Reset Semua Filter
                         </button>
                     </div>
                 `;
                     return;
                 }
 
-                grid.innerHTML = this.filteredProducts.map(product => `
-                <div class="product-card ${this.currentView === 'list' ? 'list-view' : ''}" data-product-id="${product.id}">
+                grid.innerHTML = this.filteredProducts.map((product, index) => `
+                <div class="product-card fade-in-up stagger-animation ${this.currentView === 'list' ? 'list-view' : ''}" data-product-id="${product.id}" style="transition-delay: ${index * 0.1}s">
                     <div class="product-image">
                         <img src="${this.getProductImageUrl(product)}" 
                             alt="${product.name}"
                             onerror="this.src='/placeholder.svg'"
-                            loading="lazy">
-                        <button class="wishlist-btn" onclick="catalog.toggleWishlist(${product.id})">
+                            loading="lazy"
+                            onload="this.classList.add('loaded')">
+                        <button class="wishlist-btn ${this.isInWishlist(product.id) ? 'active' : ''}" onclick="catalog.toggleWishlist(${product.id})">
                             <i class="${this.isInWishlist(product.id) ? 'fas' : 'far'} fa-heart"></i>
                         </button>
                     </div>
@@ -1752,10 +2388,16 @@
                     </div>
                 </div>
             `).join('');
+
+                // Setup animation observer untuk product cards baru
+                if (window.animationObserver) {
+                    setTimeout(() => {
+                        window.animationObserver.observeNewElements(grid);
+                    }, 100);
+                }
             }
 
             formatProductPrice(product) {
-                // Prioritas: finalPrice > price > formattedFinalPrice
                 let priceNum = null;
 
                 if (product.finalPrice !== null && product.finalPrice !== undefined) {
@@ -1763,9 +2405,8 @@
                 } else if (product.price !== null && product.price !== undefined) {
                     priceNum = Number(product.price);
                 } else if (product.formattedFinalPrice) {
-                    // Hapus 'Rp' (case-insensitive) lalu semua karakter non-digit
                     let s = String(product.formattedFinalPrice).trim().replace(/Rp\s*/i, '');
-                    s = s.replace(/[^\d-]/g, ''); // hapus koma, titik, spasi, huruf, kecuali minus kalau ada
+                    s = s.replace(/[^\d-]/g, '');
                     priceNum = s ? Number(s) : NaN;
                 }
 
@@ -1773,33 +2414,26 @@
                     return 'Harga tidak tersedia';
                 }
 
-                // Format tanpa desimal, locale id-ID -> pemisah ribuan titik
                 const formatted = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(priceNum);
 
                 return 'Rp ' + formatted;
             }
 
-            // Tambahkan method baru untuk handling gambar
             getProductImageUrl(product) {
                 if (product.imageUrl && product.imageUrl.trim() !== '') {
-                    // Validasi URL Cloudinary
                     if (product.imageUrl.includes('cloudinary.com')) {
                         return product.imageUrl;
                     }
-                    // Jika bukan Cloudinary, gunakan URL relatif
                     if (product.imageUrl.startsWith('/')) {
                         return product.imageUrl;
                     }
-                    // Jika URL lengkap
                     if (product.imageUrl.startsWith('http')) {
                         return product.imageUrl;
                     }
                 }
-                // Fallback ke placeholder
                 return '/placeholder.svg';
             }
 
-            // Tambahkan method untuk mendapatkan harga produk yang valid
             getProductPrice(product) {
                 if (product.finalPrice !== null && product.finalPrice !== undefined) {
                     return Number(product.finalPrice);
@@ -1812,9 +2446,7 @@
                 return 0;
             }
 
-
-            // ... rest of existing methods ...
-
+            // ... rest of existing code ...
 
             resetFilters() {
                 // Reset all filters
@@ -1948,35 +2580,52 @@
                     if (response.ok) {
                         const result = await response.json();
                         if (result.success) {
-                            // Update badge immediately untuk feedback cepat
-                            this.updateCartBadgeImmediately(productId);
+                            console.log('Add to cart success, server response:', result);
+                            
+                            // Cek apakah produk sudah ada di cart sebelumnya untuk notifikasi
+                            const existingItem = this.cart.find(item => item.productId === productId);
+                            const wasNewItem = !existingItem;
 
-                            // Reload cart dari database untuk mendapatkan data terbaru
+                            // PERBAIKAN UTAMA: Reload cart data terlebih dahulu untuk mendapatkan data terbaru
+                            console.log('Reloading cart data after add...');
                             await this.loadCartFromDatabase();
 
-                            // Trigger cart update event untuk real-time updates
+                            // PERBAIKAN: Update badge menggunakan data cart yang baru
+                            console.log('Updating cart badge with fresh data...');
+                            this.forceUpdateCartBadge();
+
+                            // Trigger CartBadgeManager untuk update real-time
                             if (typeof CartBadgeManager !== 'undefined' && CartBadgeManager.triggerCartUpdate) {
+                                console.log('Triggering CartBadgeManager update...');
                                 CartBadgeManager.triggerCartUpdate({
                                     action: 'add',
                                     productId: productId,
                                     productName: product.name,
-                                    source: 'catalog'
+                                    source: 'catalog',
+                                    timestamp: new Date().toISOString()
                                 });
                             }
 
-                            // Cek apakah produk sudah ada di cart untuk menentukan pesan notifikasi
-                            const existingItem = this.cart.find(item => item.productId === productId);
-                            const isNewItem = !existingItem;
+                            // Trigger cart badge manager instance jika tersedia
+                            if (typeof window.cartBadgeManager !== 'undefined' && window.cartBadgeManager.refreshCart) {
+                                console.log('Triggering cartBadgeManager instance refresh...');
+                                await window.cartBadgeManager.refreshCart();
+                            }
 
-                            if (isNewItem) {
-                                // Produk baru ditambahkan
+                            // Force refresh static method
+                            if (typeof CartBadgeManager !== 'undefined' && CartBadgeManager.forceRefresh) {
+                                console.log('Triggering CartBadgeManager.forceRefresh...');
+                                await CartBadgeManager.forceRefresh();
+                            }
+
+                            // Notifikasi sesuai konteks
+                            if (wasNewItem) {
                                 this.showNotification('Produk berhasil ditambahkan ke keranjang!', 'success');
                             } else {
-                                // Quantity produk yang sudah ada ditambah
                                 this.showNotification(`Quantity produk ${product.name} berhasil ditambah!`, 'success');
                             }
 
-                            console.log('Product added to cart successfully, new cart count:', this.cart.length);
+                            console.log('Cart update complete. Current cart items:', this.cart.length);
                         } else {
                             this.showNotification('Gagal menambahkan ke keranjang: ' + (result.message || 'Unknown error'), 'error');
                         }
@@ -2002,27 +2651,37 @@
                 }
             }
 
-            toggleWishlist(productId) {
+            async toggleWishlist(productId) {
                 const product = this.products.find(p => p.id === productId);
                 if (!product) return;
 
                 if (this.isInWishlist(productId)) {
-                    this.wishlist = this.wishlist.filter(item => item.id !== productId);
-                    this.showNotification('Produk dihapus dari wishlist', 'info');
+                    const success = await this.removeFromWishlist(productId);
+                    if (success) {
+                        // Update badges dan render products
+                        this.updateBadges();
+                        this.renderProducts();
+                    }
                 } else {
-                    this.wishlist.push(product);
-                    this.showNotification('Produk ditambahkan ke wishlist!', 'success');
+                    const success = await this.addToWishlist(product);
+                    if (success) {
+                        // Update badges dan render products
+                        this.updateBadges();
+                        this.renderProducts();
+                    }
                 }
-
-                localStorage.setItem('wishlist', JSON.stringify(this.wishlist));
-                // Update badges dan render products
-                this.updateBadges();
-                this.renderProducts();
                 console.log('Wishlist updated, new count:', this.wishlist.length);
             }
 
             isInWishlist(productId) {
-                return this.wishlist.some(item => item.id === productId);
+                // Debug logging untuk troubleshooting
+                const isInList = this.wishlist.some(item => item.id === productId);
+                if (productId <= 5) { // Debug hanya untuk beberapa produk pertama
+                    console.log(`🔍 Checking wishlist for product ${productId}:`);
+                    console.log(`  - Wishlist items:`, this.wishlist.map(item => ({id: item.id, name: item.name})));
+                    console.log(`  - Is in wishlist: ${isInList}`);
+                }
+                return isInList;
             }
 
             quickView(productId) {
@@ -2176,8 +2835,17 @@
                         return;
                     }
                     
-                    badge.textContent = this.wishlist.length;
-                    console.log('Wishlist badge updated:', this.wishlist.length, 'items');
+                    const wishlistCount = this.wishlist.length;
+                    badge.textContent = wishlistCount;
+                    
+                    // Show/hide badge berdasarkan jumlah
+                    if (wishlistCount === 0) {
+                        badge.style.display = 'none';
+                    } else {
+                        badge.style.display = 'inline-block';
+                    }
+                    
+                    console.log('💖 Wishlist badge updated:', wishlistCount, 'items');
                 } catch (error) {
                     console.error('Error updating wishlist badge:', error);
                 }
@@ -2274,14 +2942,224 @@
             // Perbaiki method getCurrentUserId agar async dan menggunakan endpoint
             async getCurrentUserId() {
                 try {
-                    // Since there's no authentication system, return default user ID
-                    // In a production app, this would get the actual logged-in user
-                    console.log('Using default user ID for cart operations');
-                    return 1; // Default user ID
+                    const response = await fetch('/user/current');
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success && result.data) {
+                            console.log('Current user from API:', result.data.email, 'ID:', result.data.id);
+                            return result.data.id;
+                        }
+                    } else {
+                        console.warn('Failed to get current user, HTTP status:', response.status);
+                    }
                 } catch (error) {
                     console.error('Error getting current user:', error);
                 }
-                return 1; // Fallback to default user ID
+                
+                // Fallback untuk development - menggunakan user ID 1
+                console.log('Using fallback user ID: 1');
+                return 1;
+            }
+
+            // PERBAIKAN: Method untuk force update cart badge dengan data terbaru
+            forceUpdateCartBadge() {
+                try {
+                    const badge = document.querySelector('.nav-icon[title="Keranjang"] .cart-badge');
+                    if (!badge) {
+                        console.warn('Cart badge not found for force update');
+                        return;
+                    }
+
+                    // Hitung total quantity dari cart data terbaru
+                    const totalQuantity = this.cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+                    console.log('Force updating cart badge with quantity:', totalQuantity);
+                    
+                    badge.textContent = totalQuantity;
+                    
+                    // Show/hide badge berdasarkan jumlah
+                    if (totalQuantity === 0) {
+                        badge.style.display = 'none';
+                    } else {
+                        badge.style.display = 'inline-block';
+                    }
+
+                    // Tambahkan animasi untuk feedback visual
+                    badge.style.transform = 'scale(1.2)';
+                    setTimeout(() => {
+                        badge.style.transform = 'scale(1)';
+                    }, 200);
+
+                    console.log('Cart badge force updated successfully');
+                } catch (error) {
+                    console.error('Error in forceUpdateCartBadge:', error);
+                }
+            }
+
+            // PERBAIKAN: Method untuk broadcast cart update ke window lain
+            broadcastCartUpdate(updateData) {
+                try {
+                    // Trigger storage event untuk sinkronisasi lintas tab/window
+                    const cartUpdateEvent = {
+                        type: 'cartUpdate',
+                        data: updateData,
+                        timestamp: Date.now()
+                    };
+                    
+                    localStorage.setItem('cartUpdateBroadcast', JSON.stringify(cartUpdateEvent));
+                    
+                    // Remove after short delay to allow other windows to catch it
+                    setTimeout(() => {
+                        localStorage.removeItem('cartUpdateBroadcast');
+                    }, 1000);
+
+                    console.log('Cart update broadcasted:', updateData);
+                } catch (error) {
+                    console.error('Error broadcasting cart update:', error);
+                }
+            }
+
+            // Wishlist API methods
+            async addToWishlist(product) {
+                try {
+                    console.log('💝 Adding product to wishlist:', product.id);
+                    
+                    const response = await fetch('/user/api/wishlist/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            productId: product.id,
+                            notes: null
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        console.log('✅ Added to wishlist:', result.data);
+                        // Update local wishlist untuk UI consistency
+                        if (!this.isInWishlist(product.id)) {
+                            this.wishlist.push(product);
+                        }
+                        this.updateWishlistBadge();
+                        this.showNotification('Produk ditambahkan ke wishlist!', 'success');
+                        return true;
+                    } else {
+                        console.warn('⚠️ Failed to add to wishlist:', result.message);
+                        this.showNotification(result.message, 'error');
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('❌ Error adding to wishlist:', error);
+                    this.showNotification('Gagal menambahkan ke wishlist', 'error');
+                    return false;
+                }
+            }
+
+            async removeFromWishlist(productId) {
+                try {
+                    console.log('🗑️ Removing product from wishlist:', productId);
+                    
+                    const response = await fetch(`/user/api/wishlist/remove/${productId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include'
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        console.log('✅ Removed from wishlist:', result.data);
+                        // Update local wishlist untuk UI consistency
+                        this.wishlist = this.wishlist.filter(item => item.id !== productId);
+                        this.updateWishlistBadge();
+                        this.showNotification('Produk dihapus dari wishlist', 'info');
+                        return true;
+                    } else {
+                        console.warn('⚠️ Failed to remove from wishlist:', result.message);
+                        this.showNotification(result.message, 'error');
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('❌ Error removing from wishlist:', error);
+                    this.showNotification('Gagal menghapus dari wishlist', 'error');
+                    return false;
+                }
+            }
+
+            // Load wishlist dari database
+            async loadWishlistFromDatabase() {
+                try {
+                    console.log('🔄 Loading wishlist from database...');
+                    
+                    const response = await fetch('/user/api/wishlist', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include'
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log('📥 Raw wishlist response:', result);
+                        
+                        if (result.success && result.data) {
+                            // Extract items from wishlist data
+                            const items = result.data.items || [];
+                            console.log('📋 Wishlist items from server:', items);
+                            
+                            // Convert wishlist items to local format
+                            this.wishlist = items.map(item => {
+                                console.log('🔄 Processing wishlist item:', item);
+                                const convertedItem = {
+                                    id: item.product?.id || item.productId,
+                                    name: item.product?.name || 'Produk',
+                                    imageUrl: item.product?.imageUrl || '/placeholder.svg',
+                                    price: item.product?.finalPrice || 0,
+                                    weight: item.product?.weight || 0,
+                                    purity: item.product?.purity ? `${item.product.purity}K` : '24K'
+                                };
+                                console.log('✨ Converted item:', convertedItem);
+                                return convertedItem;
+                            }).filter(item => {
+                                const hasId = !!item.id;
+                                if (!hasId) {
+                                    console.warn('⚠️ Filtering out item without ID:', item);
+                                }
+                                return hasId;
+                            });
+                            
+                            console.log('✅ Final wishlist array:', this.wishlist);
+                            console.log('📊 Wishlist summary:', {
+                                total: this.wishlist.length,
+                                ids: this.wishlist.map(item => item.id)
+                            });
+                            
+                            // Update badge setelah load
+                            this.updateWishlistBadge();
+                            
+                            // Re-render products untuk update ikon wishlist
+                            if (this.filteredProducts && this.filteredProducts.length > 0) {
+                                console.log('🔄 Re-rendering products to update wishlist icons...');
+                                this.renderProducts();
+                            }
+                        } else {
+                            console.log('⚠️ No wishlist data or failed:', result.message);
+                            this.wishlist = [];
+                        }
+                    } else {
+                        console.error('❌ HTTP error loading wishlist:', response.status);
+                        this.wishlist = [];
+                    }
+                } catch (error) {
+                    console.error('❌ Error loading wishlist from database:', error);
+                    this.wishlist = [];
+                }
             }
 
             // Helper method untuk decode JWT token (jika menggunakan JWT)
@@ -2338,7 +3216,14 @@
 
         let catalog;
         document.addEventListener('DOMContentLoaded', () => {
+            // Initialize animation systems
+            window.animationObserver = new AnimationObserver();
+            window.pageLoader = new PageLoader();
+            
+            // Initialize catalog manager
             catalog = new CatalogManager();
+            
+            console.log('Katalog: All systems with animations initialized! ✨🎭');
         });
     </script>
 </body>
