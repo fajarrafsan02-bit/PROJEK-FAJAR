@@ -394,6 +394,10 @@
             transition: all 0.4s ease;
             position: relative;
             border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            height: auto;
+            min-height: 550px;
         }
 
         .wishlist-item:hover {
@@ -419,6 +423,7 @@
             background: var(--gray-medium);
             position: relative;
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         .product-image img {
@@ -448,6 +453,7 @@
             align-items: center;
             justify-content: center;
             font-size: 16px;
+            z-index: 2;
         }
 
         .remove-btn:hover {
@@ -469,6 +475,9 @@
 
         .product-info {
             padding: 25px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .product-name {
@@ -480,82 +489,122 @@
         }
 
         .product-specs {
-            font-size: 15px;
-            color: var(--gray-elegant);
-            margin-bottom: 15px;
-            font-weight: 500;
-        }
-
-        .price-section {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
         }
 
-        .current-price {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--gold-primary);
-        }
-
-        .price-change {
-            font-size: 14px;
-            font-weight: 600;
+        .spec-item {
             display: flex;
             align-items: center;
             gap: 5px;
+            font-size: 14px;
+            color: var(--gray-elegant);
+            font-weight: 500;
+            background: var(--gray-light);
+            padding: 5px 10px;
+            border-radius: 10px;
         }
 
-        .price-change.positive {
+        .spec-item i {
+            color: var(--gold-primary);
+        }
+
+        .product-price {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gold-primary);
+            margin-bottom: 10px;
+        }
+
+        .product-availability {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+
+        .product-availability.available {
             color: var(--success-color);
+            background: rgba(16, 185, 129, 0.1);
         }
 
-        .price-change.negative {
+        .product-availability.unavailable {
             color: var(--error-color);
+            background: rgba(239, 68, 68, 0.1);
         }
 
-        .product-actions {
+        .item-actions {
             display: flex;
             gap: 10px;
+            margin-top: auto;
         }
 
-        .add-to-cart {
-            flex: 1;
-            background: var(--gradient-gold);
-            color: var(--black-luxury);
+        .action-btn {
+            padding: 12px 16px;
             border: none;
-            padding: 12px;
             border-radius: 10px;
-            font-weight: 600;
-            font-size: 14px;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            text-align: center;
         }
 
-        .add-to-cart:hover {
+        .action-btn.primary {
+            flex: 1;
+            background: var(--gradient-gold);
+            color: var(--black-luxury);
+        }
+
+        .action-btn.primary:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: var(--shadow-soft);
         }
 
-        .view-product {
+        .action-btn.primary:disabled {
             background: var(--gray-medium);
-            color: var(--black-luxury);
-            border: none;
-            padding: 12px 15px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
+            color: var(--gray-elegant);
+            cursor: not-allowed;
+            opacity: 0.6;
         }
 
-        .view-product:hover {
+        .action-btn.secondary {
+            background: var(--gray-medium);
+            color: var(--black-luxury);
+            padding: 12px 15px;
+        }
+
+        .action-btn.secondary:hover {
             background: var(--gray-elegant);
             color: var(--white-pure);
+        }
+
+        .product-notes {
+            margin-top: 15px;
+            padding: 12px;
+            background: var(--gray-light);
+            border-radius: 10px;
+            font-size: 14px;
+            color: var(--gray-elegant);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .product-notes i {
+            color: var(--gold-primary);
+            margin-top: 2px;
         }
 
         .wishlist-summary {
@@ -845,7 +894,7 @@
                 </div>
                 <h2 class="empty-title">Wishlist Anda Masih Kosong</h2>
                 <p class="empty-subtitle">Mulai jelajahi koleksi emas berkualitas kami dan simpan produk favorit Anda di sini</p>
-                <a href="catalog.html" class="browse-btn">
+                <a href="/user/katalog" class="browse-btn">
                     <i class="fas fa-gem"></i>
                     Jelajahi Produk
                 </a>
@@ -862,7 +911,7 @@
                         <i class="fas fa-cart-plus"></i>
                         Tambah Semua ke Keranjang
                     </button>
-                    <a href="catalog.html" class="summary-btn">
+                    <a href="/user/katalog" class="summary-btn">
                         <i class="fas fa-plus"></i>
                         Tambah Produk Lain
                     </a>

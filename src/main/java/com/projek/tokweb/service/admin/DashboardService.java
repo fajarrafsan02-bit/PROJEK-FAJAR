@@ -17,6 +17,7 @@ import com.projek.tokweb.models.customer.Order;
 import com.projek.tokweb.models.customer.OrderStatus;
 import com.projek.tokweb.repository.customer.OrderRepository;
 
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -75,7 +76,8 @@ public class DashboardService {
             // Return default data jika error
             Map<String, Object> defaultData = new HashMap<>();
             defaultData.put("labels", List.of("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"));
-            defaultData.put("values", List.of(0, 0, 0, 0, 0, 0, 0)); // Use 'values' to match frontend
+            // PERBAIKAN: Gunakan Double untuk nilai default
+            defaultData.put("values", List.of(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
             defaultData.put("period", period);
             defaultData.put("error", true);
 
@@ -120,7 +122,11 @@ public class DashboardService {
 
         Map<String, Object> result = new HashMap<>();
         result.put("labels", labels);
-        result.put("values", data);
+        // PERBAIKAN: Konversi BigDecimal ke Double untuk konsistensi JSON
+        List<Double> numericValues = data.stream()
+                .map(bd -> bd != null ? bd.doubleValue() : 0.0)
+                .collect(Collectors.toList());
+        result.put("values", numericValues);
         result.put("period", "7days");
         result.put("title", "Penjualan 7 Hari Terakhir");
         result.put("startDate", realStartDate.toString());
@@ -130,6 +136,7 @@ public class DashboardService {
         BigDecimal totalWeek = data.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         log.info("✅ 7-day chart total: {} (7 hari dari {} s/d {})", 
                 formatCurrency(totalWeek), realStartDate, realEndDate);
+        log.info("📊 Sending numeric values to frontend: {}", numericValues);
 
         return result;
     }
@@ -192,12 +199,17 @@ public class DashboardService {
 
         Map<String, Object> result = new HashMap<>();
         result.put("labels", labels);
-        result.put("values", data);
+        // PERBAIKAN: Konversi BigDecimal ke Double untuk konsistensi JSON
+        List<Double> numericValues = data.stream()
+                .map(bd -> bd != null ? bd.doubleValue() : 0.0)
+                .collect(Collectors.toList());
+        result.put("values", numericValues);
         result.put("period", "30days");
         result.put("title", "Penjualan 30 Hari Terakhir");
 
         log.info("✅ Generated 30-day chart with {} weeks. Today ({}) is in Minggu 1",
                 labels.size(), LocalDate.now());
+        log.info("📊 Sending 30-day numeric values: {}", numericValues);
         return result;
     }
 
@@ -236,11 +248,16 @@ public class DashboardService {
 
         Map<String, Object> result = new HashMap<>();
         result.put("labels", labels);
-        result.put("values", data);
+        // PERBAIKAN: Konversi BigDecimal ke Double untuk konsistensi JSON
+        List<Double> numericValues = data.stream()
+                .map(bd -> bd != null ? bd.doubleValue() : 0.0)
+                .collect(Collectors.toList());
+        result.put("values", numericValues);
         result.put("period", "90days");
         result.put("title", "Penjualan 90 Hari Terakhir");
 
         log.info("✅ Generated 90-day chart with {} periods: {}", labels.size(), labels);
+        log.info("📊 Sending 90-day numeric values: {}", numericValues);
         return result;
     }
 

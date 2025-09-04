@@ -309,52 +309,63 @@ class WishlistManager {
     createWishlistItemElement(item) {
         const div = document.createElement('div');
         div.className = 'wishlist-item';
+        
+        // Prepare product data with safe fallbacks
+        const product = item.product || {};
+        const productName = product.name || 'Produk Tidak Diketahui';
+        const productImage = product.imageUrl || '/images/default-product.jpg';
+        const productWeight = product.weight || 0;
+        const productPurity = product.purity || 0;
+        const productPrice = product.formattedFinalPrice || product.formattedPrice || 'Rp 0';
+        const isAvailable = product.stock > 0 && product.isActive;
+        const formattedDate = item.formattedDate || new Date(item.createdAt).toLocaleDateString('id-ID');
+        
         div.innerHTML = `
             <input type="checkbox" class="item-checkbox" data-id="${item.id}" ${this.selectedItems.has(item.id) ? 'checked' : ''}>
             
             <div class="product-image">
-                <img src="${item.product.imageUrl || '/images/default-product.jpg'}" alt="${item.product.name}" onerror="this.src='/images/default-product.jpg'">
-                <div class="date-added">${item.formattedDate}</div>
+                <img src="${productImage}" alt="${productName}" onerror="this.src='/images/default-product.jpg'">
+                <div class="date-added">${formattedDate}</div>
             </div>
             
-            <button class="remove-btn" onclick="wishlistManager.removeFromWishlist(${item.product.id})">
+            <button class="remove-btn" onclick="wishlistManager.removeFromWishlist(${product.id})">
                 <i class="fas fa-times"></i>
             </button>
             
             <div class="product-info">
-                <h3 class="product-name">${item.product.name}</h3>
+                <h3 class="product-name">${productName}</h3>
                 <div class="product-specs">
                     <span class="spec-item">
                         <i class="fas fa-weight"></i>
-                        ${item.product.weight}g
+                        ${productWeight}g
                     </span>
                     <span class="spec-item">
                         <i class="fas fa-certificate"></i>
-                        ${item.product.purity}%
+                        ${productPurity}K
                     </span>
                 </div>
-                <div class="product-price">${item.product.formattedPrice}</div>
-                <div class="product-availability ${item.product.isAvailable ? 'available' : 'unavailable'}">
-                    <i class="fas ${item.product.isAvailable ? 'fa-check-circle' : 'fa-times-circle'}"></i>
-                    ${item.product.isAvailable ? 'Tersedia' : 'Stok Habis'}
+                <div class="product-price">${productPrice}</div>
+                <div class="product-availability ${isAvailable ? 'available' : 'unavailable'}">
+                    <i class="fas ${isAvailable ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                    ${isAvailable ? 'Tersedia' : 'Stok Habis'}
                 </div>
+                
+                <div class="item-actions">
+                    <button class="action-btn primary" onclick="wishlistManager.addToCart(${product.id})" ${!isAvailable ? 'disabled' : ''}>
+                        <i class="fas fa-cart-plus"></i>
+                        Tambah ke Keranjang
+                    </button>
+                    <a href="/user/katalog/${product.id}" class="action-btn secondary">
+                        <i class="fas fa-eye"></i>
+                        Lihat
+                    </a>
+                </div>
+                
+                ${item.notes ? `<div class="product-notes">
+                    <i class="fas fa-sticky-note"></i>
+                    <span>${item.notes}</span>
+                </div>` : ''}
             </div>
-            
-            <div class="item-actions">
-                <button class="action-btn primary" onclick="wishlistManager.addToCart(${item.product.id})" ${!item.product.isAvailable ? 'disabled' : ''}>
-                    <i class="fas fa-cart-plus"></i>
-                    Tambah ke Keranjang
-                </button>
-                <a href="/product/${item.product.id}" class="action-btn secondary">
-                    <i class="fas fa-eye"></i>
-                    Lihat Detail
-                </a>
-            </div>
-            
-            ${item.notes ? `<div class="product-notes">
-                <i class="fas fa-sticky-note"></i>
-                ${item.notes}
-            </div>` : ''}
         `;
 
         // Add event listener for checkbox
@@ -377,15 +388,23 @@ class WishlistManager {
             const wishlistItem = this.wishlist.find(item => item.product.id === productId);
             if (!wishlistItem) {
                 this.showNotification('Produk tidak ditemukan', 'error');
-                return;
+                throw new Error('Product not found in wishlist');
             }
 
             const product = wishlistItem.product;
             
             // Check if product is available
-            if (!product.isAvailable) {
+            const isAvailable = (product.stock > 0 && product.isActive !== false);
+            if (!isAvailable) {
                 this.showNotification('Produk tidak tersedia', 'warning');
-                return;
+                throw new Error('Product not available');
+            }
+
+            // Get current user ID
+            const userId = await this.getCurrentUserId();
+            if (!userId) {
+                this.showNotification('Silakan login terlebih dahulu', 'error');
+                throw new Error('User not authenticated');
             }
 
             // Add to cart API call
@@ -398,10 +417,17 @@ class WishlistManager {
                 },
                 credentials: 'include',
                 body: JSON.stringify({
+                    userId: userId,
                     productId: productId,
                     quantity: 1
                 })
             });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('HTTP error response:', errorText);
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
 
             const result = await response.json();
             
@@ -409,13 +435,18 @@ class WishlistManager {
                 console.log('✅ Added to cart:', result.data);
                 this.showNotification(`${product.name} berhasil ditambahkan ke keranjang`, 'success');
                 this.updateCartBadge();
+                return true;
             } else {
                 console.warn('⚠️ Failed to add to cart:', result.message);
-                this.showNotification(result.message, 'error');
+                this.showNotification(result.message || 'Gagal menambahkan ke keranjang', 'error');
+                throw new Error(result.message || 'Failed to add to cart');
             }
         } catch (error) {
             console.error('❌ Error adding to cart:', error);
-            this.showNotification('Gagal menambahkan ke keranjang', 'error');
+            if (!error.message.includes('berhasil ditambahkan')) {
+                this.showNotification('Gagal menambahkan ke keranjang: ' + error.message, 'error');
+            }
+            throw error;
         }
     }
 
@@ -465,10 +496,21 @@ class WishlistManager {
 
         for (const wishlistId of selectedItems) {
             const wishlistItem = this.wishlist.find(item => item.id === wishlistId);
-            if (wishlistItem && wishlistItem.product.isAvailable) {
-                const success = await this.addToCart(wishlistItem.product.id);
-                if (success !== false) successCount++;
-                else failCount++;
+            if (wishlistItem && wishlistItem.product) {
+                const product = wishlistItem.product;
+                const isAvailable = (product.stock > 0 && product.isActive !== false);
+                
+                if (isAvailable) {
+                    try {
+                        await this.addToCart(product.id);
+                        successCount++;
+                    } catch (error) {
+                        console.error('Error adding to cart:', error);
+                        failCount++;
+                    }
+                } else {
+                    failCount++;
+                }
             } else {
                 failCount++;
             }
@@ -491,7 +533,11 @@ class WishlistManager {
     }
 
     async addAllToCart() {
-        const availableItems = this.wishlist.filter(item => item.product.isAvailable);
+        const availableItems = this.wishlist.filter(item => {
+            if (!item.product) return false;
+            const product = item.product;
+            return (product.stock > 0 && product.isActive !== false);
+        });
         
         if (availableItems.length === 0) {
             this.showNotification('Tidak ada produk yang tersedia untuk ditambahkan ke keranjang', 'warning');
@@ -502,9 +548,13 @@ class WishlistManager {
         let failCount = 0;
 
         for (const item of availableItems) {
-            const success = await this.addToCart(item.product.id);
-            if (success !== false) successCount++;
-            else failCount++;
+            try {
+                await this.addToCart(item.product.id);
+                successCount++;
+            } catch (error) {
+                console.error('Error adding to cart:', error);
+                failCount++;
+            }
         }
 
         if (successCount > 0) {
@@ -539,10 +589,18 @@ class WishlistManager {
 
     updateStats() {
         const totalItems = this.wishlist.length;
-        const availableItems = this.wishlist.filter(item => item.product.isAvailable).length;
+        const availableItems = this.wishlist.filter(item => {
+            const product = item.product || {};
+            return (product.stock > 0 && product.isActive !== false);
+        }).length;
+        
         const totalValue = this.wishlist.reduce((sum, item) => {
-            return sum + (item.product.isAvailable ? item.product.finalPrice : 0);
+            const product = item.product || {};
+            const isAvailable = (product.stock > 0 && product.isActive !== false);
+            const price = product.finalPrice || 0;
+            return sum + (isAvailable ? price : 0);
         }, 0);
+        
         const avgPrice = availableItems > 0 ? totalValue / availableItems : 0;
 
         // Update stats display
@@ -601,11 +659,33 @@ class WishlistManager {
     handleSearch() {
         const query = document.getElementById('searchInput')?.value.trim();
         if (query) {
-            window.location.href = `/katalog?search=${encodeURIComponent(query)}`;
+            window.location.href = `/user/katalog?search=${encodeURIComponent(query)}`;
         }
     }
 
     // Utility methods
+    async getCurrentUserId() {
+        try {
+            const response = await fetch('/user/current', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.data && result.data.id) {
+                    return result.data.id;
+                }
+            }
+        } catch (error) {
+            console.error('Error getting current user ID:', error);
+        }
+        
+        // Fallback untuk development - menggunakan user ID 1
+        console.log('Using fallback user ID: 1');
+        return 1;
+    }
+
     updateElement(id, content) {
         const element = document.getElementById(id);
         if (element) {

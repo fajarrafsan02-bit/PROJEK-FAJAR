@@ -1666,10 +1666,13 @@
                                 weight: weight,
                                 purity: data.data.purity,
                                 stock: data.data.stock,
+                                minStock: data.data.minStock || 0,
                                 price: data.data.formattedFinalPrice,
                                 description: data.data.description,
                                 image: imageUrl,
-                                updatedAt: new Date(data.data.updatedAt)
+                                isActive: data.data.active !== undefined ? data.data.active : true,
+                                markup: data.data.formattedMarkup ? parseFloat(data.data.formattedMarkup.replace(/[^\d.,]/g, '').replace(',', '.')) : 0,
+                                updatedAt: new Date(data.data.updateAt || new Date())
                             };
                             this.products.push(newProduct);
                             this.applyFilters();

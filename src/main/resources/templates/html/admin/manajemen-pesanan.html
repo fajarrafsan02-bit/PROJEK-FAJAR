@@ -239,7 +239,7 @@
             height: 100vh;
             overflow-y: auto;
             z-index: 1000;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             animation: slideInFromLeft 0.6s ease-out;
         }
 
@@ -252,6 +252,20 @@
             text-align: center;
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             position: relative;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            backdrop-filter: blur(10px);
+        }
+
+        .sidebar-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--white-pure), transparent);
+            border-radius: 2px;
         }
 
         .sidebar-toggle {
@@ -269,6 +283,7 @@
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
+            z-index: 1001;
         }
 
         .sidebar-toggle:hover {
@@ -283,6 +298,7 @@
             color: var(--black-luxury);
             margin-bottom: 8px;
             letter-spacing: 2px;
+            transition: all 0.3s ease;
         }
 
         .logo-subtitle {
@@ -291,6 +307,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             font-weight: 600;
+            transition: all 0.3s ease;
         }
 
         .sidebar-nav {
@@ -307,19 +324,45 @@
             padding: 15px 25px;
             color: var(--black-luxury);
             text-decoration: none;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             font-weight: 500;
+            border-radius: 0;
+            overflow: hidden;
         }
 
-        .nav-link:hover,
-        .nav-link.active {
+        .nav-link::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
+        }
+
+        .nav-link:hover::before {
+            width: 100%;
+        }
+
+        .nav-link:hover {
             background: rgba(0, 0, 0, 0.1);
             color: var(--black-luxury);
-            transform: translateX(5px);
+            transform: translateX(8px);
+            box-shadow: inset 4px 0 0 var(--white-pure);
         }
 
-        .nav-link.active::before {
+        .nav-link.active {
+            background: rgba(0, 0, 0, 0.15);
+            color: var(--black-luxury);
+            transform: translateX(8px);
+            border-right: 4px solid var(--black-luxury);
+            box-shadow: inset 4px 0 0 var(--white-pure), 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link.active::after {
             content: "";
             position: absolute;
             left: 0;
@@ -333,37 +376,106 @@
             width: 20px;
             margin-right: 15px;
             text-align: center;
+            font-size: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 2;
+        }
+
+        .nav-link:hover .nav-icon {
+            transform: scale(1.1) translateX(2px);
+            color: var(--black-luxury);
+        }
+
+        .nav-link.active .nav-icon {
+            transform: scale(1.1) translateX(2px);
+            color: var(--black-luxury);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
         }
 
         .nav-text {
-            transition: opacity 0.3s ease;
+            transition: all 0.3s ease;
+            white-space: nowrap;
         }
 
         .sidebar.collapsed .nav-text,
         .sidebar.collapsed .logo-subtitle {
             opacity: 0;
             pointer-events: none;
+            transform: translateX(-10px);
         }
 
         .sidebar.collapsed .logo {
             font-size: 20px;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            letter-spacing: 3px;
         }
 
-        /* Main Content */
+        .sidebar.collapsed .nav-link {
+            padding: 15px 30px;
+            justify-content: center;
+            position: relative;
+        }
+
+        .sidebar.collapsed .nav-link:hover {
+            transform: translateX(0);
+            padding-right: 35px;
+        }
+
+        .sidebar.collapsed .nav-link:hover .nav-text {
+            opacity: 1;
+            transform: translateX(0);
+            position: absolute;
+            left: 70px;
+            background: var(--black-luxury);
+            color: var(--gold-primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            box-shadow: var(--shadow-luxury);
+            z-index: 1001;
+            pointer-events: auto;
+        }
+
+        .sidebar.collapsed .nav-link:hover .nav-text::before {
+            content: "";
+            position: absolute;
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 6px 6px 6px 0;
+            border-color: transparent var(--black-luxury) transparent transparent;
+        }
+
+        .sidebar.collapsed .nav-icon {
+            margin-right: 0;
+            font-size: 18px;
+        }
+
+        /* ===== MAIN CONTENT AREA ===== */
         .main-content {
             flex: 1;
             margin-left: 280px;
-            transition: margin-left 0.3s ease;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
-        .sidebar.collapsed+.main-content {
+        .sidebar.collapsed + .main-content {
             margin-left: 80px;
         }
 
-        /* Header */
+        /* ===== HEADER SECTION ===== */
         .header {
             background: var(--white-pure);
-            padding: 15px 30px;
+            padding: 20px 30px;
             box-shadow: var(--shadow-soft);
             display: flex;
             justify-content: space-between;
@@ -373,6 +485,7 @@
             z-index: 999;
             animation: slideInFromRight 0.6s ease-out;
             transition: all 0.3s ease;
+            border-bottom: 1px solid var(--gray-medium);
         }
 
         .header:hover {
@@ -381,9 +494,18 @@
 
         .header-title {
             font-family: "Playfair Display", serif;
-            font-size: 28px;
-            font-weight: 600;
+            font-size: 32px;
+            font-weight: 700;
             color: var(--black-luxury);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-title i {
+            color: var(--gold-primary);
+            font-size: 28px;
         }
 
         .header-actions {
@@ -392,6 +514,13 @@
             gap: 20px;
         }
 
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* ===== NOTIFICATION AND USER PROFILE ===== */
         .notification-btn {
             position: relative;
             background: none;
@@ -399,46 +528,55 @@
             color: var(--gray-elegant);
             font-size: 20px;
             cursor: pointer;
-            padding: 10px;
-            border-radius: 50%;
-            transition: all 0.3s ease;
+            padding: 12px;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .notification-btn:hover {
             background: var(--gray-medium);
             color: var(--gold-primary);
+            transform: scale(1.1);
         }
 
         .notification-badge {
             position: absolute;
-            top: 5px;
-            right: 5px;
+            top: 8px;
+            right: 8px;
             background: var(--error-color);
             color: white;
             font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 10px;
-            min-width: 18px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 12px;
+            min-width: 20px;
             text-align: center;
+            animation: pulse 2s infinite;
         }
 
         .user-profile {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 15px;
             cursor: pointer;
-            padding: 8px 15px;
-            border-radius: 25px;
-            transition: all 0.3s ease;
+            padding: 10px 20px;
+            border-radius: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
         }
 
         .user-profile:hover {
             background: var(--gray-medium);
+            border-color: var(--gold-primary);
+            transform: scale(1.02);
         }
 
         .user-avatar {
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
             background: var(--gradient-gold);
             display: flex;
@@ -446,388 +584,605 @@
             justify-content: center;
             color: var(--black-luxury);
             font-weight: 700;
+            font-size: 18px;
+            box-shadow: var(--shadow-soft);
         }
 
         .user-info h4 {
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 700;
             color: var(--black-luxury);
+            margin: 0;
+            margin-bottom: 4px;
         }
 
         .user-info p {
             font-size: 12px;
             color: var(--gray-elegant);
+            margin: 0;
+            font-weight: 500;
         }
 
-        /* Content Area */
+        /* ===== CONTENT AREA ===== */
         .content {
+            flex: 1;
             padding: 30px;
+            background: var(--gray-light);
+            min-height: calc(100vh - 120px);
         }
 
-        /* Orders Header */
+        /* ===== ORDERS HEADER SECTION ===== */
         .orders-header {
             background: var(--white-pure);
             border-radius: 20px;
-            padding: 30px;
+            padding: 40px;
             box-shadow: var(--shadow-soft);
             margin-bottom: 30px;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--gray-medium);
         }
 
         .orders-header:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border-color: var(--gold-primary);
         }
 
         .orders-title {
             font-family: "Playfair Display", serif;
-            font-size: 32px;
-            font-weight: 600;
+            font-size: 36px;
+            font-weight: 700;
             color: var(--black-luxury);
-            margin-bottom: 20px;
+            margin-bottom: 35px;
             display: flex;
             align-items: center;
             gap: 15px;
+            text-align: center;
+            justify-content: center;
         }
 
+        .orders-title i {
+            color: var(--gold-primary);
+            font-size: 32px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* ===== STATISTICS CARDS ===== */
         .orders-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin-bottom: 35px;
         }
 
         .stat-item {
             text-align: center;
-            padding: 15px;
-            background: var(--gradient-overlay);
-            border-radius: 15px;
-            transition: all 0.3s ease;
+            padding: 25px 20px;
+            background: linear-gradient(135deg, var(--white-pure) 0%, var(--gray-light) 100%);
+            border-radius: 20px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-item::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-gold);
+            transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 0;
+        }
+
+        .stat-item:hover::before {
+            left: 0;
         }
 
         .stat-item:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            background: var(--gradient-gold);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(212, 175, 55, 0.3);
+            border-color: var(--gold-primary);
+        }
+
+        .stat-item > * {
+            position: relative;
+            z-index: 1;
         }
 
         .stat-number {
-            font-size: 24px;
-            font-weight: 700;
+            font-size: 32px;
+            font-weight: 800;
             color: var(--gold-primary);
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            font-family: "Playfair Display", serif;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover .stat-number {
+            color: var(--black-luxury);
+            transform: scale(1.1);
         }
 
         .stat-label {
-            font-size: 12px;
+            font-size: 14px;
             color: var(--gray-elegant);
-            font-weight: 500;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
         }
 
-        /* Filters and Search */
+        .stat-item:hover .stat-label {
+            color: var(--black-soft);
+        }
+
+        /* ===== SEARCH AND FILTERS SECTION ===== */
         .orders-controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 25px;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: var(--white-pure);
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid var(--gray-medium);
         }
 
         .search-box {
             position: relative;
             flex: 1;
-            max-width: 400px;
+            max-width: 450px;
+            min-width: 300px;
         }
 
         .search-input {
             width: 100%;
-            padding: 12px 45px 12px 15px;
+            padding: 15px 55px 15px 20px;
             border: 2px solid var(--gray-medium);
-            border-radius: 25px;
-            font-size: 14px;
-            transition: all 0.3s ease;
+            border-radius: 30px;
+            font-size: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--white-pure);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
         }
 
         .search-input:focus {
             outline: none;
             border-color: var(--gold-primary);
-            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.2), inset 0 2px 5px rgba(0, 0, 0, 0.05);
+            transform: scale(1.02);
         }
 
         .search-btn {
             position: absolute;
-            right: 5px;
+            right: 8px;
             top: 50%;
             transform: translateY(-50%);
-            background: var(--gold-primary);
+            background: var(--gradient-gold);
             border: none;
-            width: 35px;
-            height: 35px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             color: var(--black-luxury);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-soft);
         }
 
         .search-btn:hover {
             background: var(--gold-dark);
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
         }
 
         .filter-controls {
             display: flex;
-            gap: 15px;
+            gap: 20px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .filter-select {
-            padding: 10px 15px;
+            padding: 12px 18px;
             border: 2px solid var(--gray-medium);
-            border-radius: 10px;
+            border-radius: 15px;
             background: var(--white-pure);
             font-size: 14px;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 150px;
         }
 
         .filter-select:focus {
             outline: none;
             border-color: var(--gold-primary);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+            transform: scale(1.02);
         }
 
         .export-btn {
             background: var(--gradient-gold);
             color: var(--black-luxury);
             border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: 600;
+            padding: 12px 25px;
+            border-radius: 15px;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            font-size: 14px;
+            box-shadow: var(--shadow-soft);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .export-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-soft);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
         }
 
-        /* Orders Table */
+        /* ===== ORDERS TABLE SECTION ===== */
         .orders-table-container {
             background: var(--white-pure);
             border-radius: 20px;
-            padding: 30px;
+            padding: 35px;
             box-shadow: var(--shadow-soft);
             margin-top: 30px;
-            overflow-x: auto;
-            transition: all 0.3s ease;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--gray-medium);
         }
 
         .orders-table-container:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
+            border-color: var(--gold-primary);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 15px;
+            border: 1px solid var(--gray-medium);
         }
 
         .orders-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin: 0;
+            background: var(--white-pure);
         }
 
         .orders-table th,
         .orders-table td {
-            padding: 15px;
+            padding: 18px 15px;
             text-align: left;
             border-bottom: 1px solid var(--gray-medium);
+            vertical-align: middle;
         }
 
         .orders-table th {
-            background: var(--gray-light);
-            font-weight: 600;
+            background: linear-gradient(135deg, var(--gray-light) 0%, var(--gray-medium) 100%);
+            font-weight: 700;
             color: var(--black-luxury);
-            font-size: 14px;
+            font-size: 13px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .orders-table td {
             font-size: 14px;
             color: var(--gray-elegant);
-        }
-
-        .orders-table tr:hover {
-            background: var(--gray-light);
-            transform: scale(1.01);
+            background: var(--white-pure);
             transition: all 0.3s ease;
         }
 
+        .orders-table tbody tr {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .orders-table tbody tr:hover {
+            background: linear-gradient(135deg, var(--gray-light) 0%, rgba(212, 175, 55, 0.05) 100%);
+            transform: scale(1.01);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .orders-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ===== TABLE CELL CONTENT STYLING ===== */
         .order-id {
-            font-weight: 600;
-            color: var(--black-luxury);
+            font-weight: 700;
+            color: var(--gold-primary);
+            font-family: monospace;
+            font-size: 13px;
+            background: rgba(212, 175, 55, 0.1);
+            padding: 6px 10px;
+            border-radius: 8px;
+            display: inline-block;
         }
 
         .customer-info {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .customer-avatar {
-            width: 35px;
-            height: 35px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: var(--gradient-gold);
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--black-luxury);
-            font-weight: 600;
-            font-size: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            box-shadow: var(--shadow-soft);
+            transition: all 0.3s ease;
+        }
+
+        .customer-avatar:hover {
+            transform: scale(1.1);
+        }
+
+        .customer-details {
+            flex: 1;
         }
 
         .customer-details h4 {
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 15px;
+            font-weight: 700;
             color: var(--black-luxury);
-            margin-bottom: 2px;
+            margin: 0 0 4px 0;
         }
 
         .customer-details p {
             font-size: 12px;
             color: var(--gray-elegant);
+            margin: 0;
         }
 
         .order-items {
-            max-width: 200px;
+            max-width: 220px;
         }
 
         .item-summary {
-            font-size: 12px;
+            font-size: 13px;
             color: var(--gray-elegant);
-            margin-bottom: 5px;
+            margin-bottom: 6px;
+            font-weight: 600;
         }
 
         .items-list {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--gray-elegant);
-            line-height: 1.4;
+            line-height: 1.5;
+            background: var(--gray-light);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border-left: 3px solid var(--gold-primary);
         }
 
         .order-total {
-            font-weight: 700;
+            font-weight: 800;
             color: var(--gold-primary);
             font-size: 16px;
+            font-family: "Playfair Display", serif;
         }
 
+        /* ===== STATUS BADGES AND ACTION BUTTONS ===== */
         .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
+            padding: 8px 16px;
+            border-radius: 25px;
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            display: inline-block;
+            min-width: 80px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
         }
 
         .status-pending {
-            background: rgba(249, 115, 22, 0.1);
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(249, 115, 22, 0.05) 100%);
             color: var(--warning-color);
+            border-color: rgba(249, 115, 22, 0.3);
         }
 
         .status-processing {
-            background: rgba(59, 130, 246, 0.1);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%);
             color: var(--info-color);
+            border-color: rgba(59, 130, 246, 0.3);
         }
 
         .status-shipped {
-            background: rgba(16, 185, 129, 0.1);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
             color: var(--success-color);
+            border-color: rgba(16, 185, 129, 0.3);
         }
 
         .status-delivered {
-            background: rgba(34, 197, 94, 0.1);
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%);
             color: #22c55e;
+            border-color: rgba(34, 197, 94, 0.3);
         }
 
         .status-cancelled {
-            background: rgba(239, 68, 68, 0.1);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%);
             color: var(--error-color);
+            border-color: rgba(239, 68, 68, 0.3);
         }
 
         .order-actions {
             display: flex;
-            gap: 8px;
+            gap: 10px;
+            justify-content: center;
         }
 
         .action-btn {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
             transition: all 0.3s ease;
         }
 
+        .action-btn:hover::before {
+            width: 100%;
+            height: 100%;
+        }
+
         .action-btn.view {
-            background: var(--info-color);
+            background: linear-gradient(135deg, var(--info-color) 0%, #1e40af 100%);
             color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
         }
 
         .action-btn.edit {
-            background: var(--warning-color);
+            background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%);
             color: white;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
         }
 
         .action-btn.delete {
-            background: var(--error-color);
+            background: linear-gradient(135deg, var(--error-color) 0%, #dc2626 100%);
             color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
         }
 
         .action-btn:hover {
-            transform: scale(1.1);
+            transform: translateY(-3px) scale(1.1);
         }
 
-        /* Pagination */
+        .action-btn.view:hover {
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
+        }
+
+        .action-btn.edit:hover {
+            box-shadow: 0 8px 25px rgba(249, 115, 22, 0.5);
+        }
+
+        .action-btn.delete:hover {
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5);
+        }
+
+        /* ===== PAGINATION SECTION ===== */
         .pagination {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 10px;
-            margin-top: 30px;
+            gap: 15px;
+            margin-top: 35px;
+            padding: 25px;
+            background: var(--white-pure);
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid var(--gray-medium);
         }
 
         .pagination-btn {
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             border: 2px solid var(--gray-medium);
             background: var(--white-pure);
             color: var(--gray-elegant);
-            border-radius: 10px;
+            border-radius: 15px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            font-weight: 700;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pagination-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-gold);
+            transition: left 0.3s ease;
+        }
+
+        .pagination-btn:hover::before,
+        .pagination-btn.active::before {
+            left: 0;
         }
 
         .pagination-btn:hover,
         .pagination-btn.active {
             border-color: var(--gold-primary);
-            background: var(--gold-primary);
             color: var(--black-luxury);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+        }
+
+        .pagination-btn i,
+        .pagination-btn span {
+            position: relative;
+            z-index: 1;
         }
 
         .pagination-info {
-            margin: 0 20px;
-            font-size: 14px;
+            margin: 0 25px;
+            font-size: 15px;
             color: var(--gray-elegant);
+            font-weight: 600;
+            background: var(--gray-light);
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--gray-medium);
+        }
+
+        .pagination-info span {
+            color: var(--gold-primary);
+            font-weight: 700;
         }
 
         /* Order Detail Modal */
@@ -1032,16 +1387,76 @@
             box-shadow: var(--shadow-soft);
         }
 
+        /* ===== SIDEBAR BACKDROP FOR MOBILE ===== */
+        .sidebar-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar-backdrop.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* ===== MOBILE BURGER MENU ===== */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--gradient-gold);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: var(--shadow-luxury);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .mobile-menu-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+        }
+
+        .mobile-menu-toggle i {
+            color: var(--black-luxury);
+            font-size: 18px;
+            transition: transform 0.3s ease;
+        }
+
+        .mobile-menu-toggle.active i {
+            transform: rotate(90deg);
+        }
+
         /* ===== RESPONSIVE DESIGN MODERN ===== */
         @media (max-width: 1024px) {
+            .mobile-menu-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
             .sidebar {
                 position: fixed;
                 left: 0;
                 top: 0;
-                z-index: 10000;
+                z-index: 1000;
                 transform: translateX(-100%);
                 transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-                box-shadow: 5px 0 30px rgba(0, 0, 0, 0.2);
+                box-shadow: 5px 0 30px rgba(0, 0, 0, 0.3);
+                height: 100vh;
+                overflow-y: auto;
             }
 
             .sidebar.open {
@@ -1053,6 +1468,10 @@
                 margin-left: 0;
                 width: 100%;
                 transition: all 0.3s ease;
+            }
+
+            .header {
+                padding-left: 80px;
             }
 
             .orders-controls {
@@ -1071,23 +1490,18 @@
                 flex-wrap: wrap;
                 gap: 10px;
             }
-
-            /* Mobile overlay untuk sidebar */
-            .sidebar.open::before {
-                content: '';
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: -1;
-            }
         }
 
         @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                width: 45px;
+                height: 45px;
+                top: 15px;
+                left: 15px;
+            }
+
             .header {
-                padding: 15px 20px;
+                padding: 15px 20px 15px 70px;
                 flex-direction: column;
                 gap: 15px;
                 text-align: center;
@@ -1135,10 +1549,12 @@
             .orders-table-container {
                 padding: 15px;
                 border-radius: 15px;
+                overflow-x: auto;
             }
 
             .orders-table {
                 font-size: 11px;
+                min-width: 800px;
             }
 
             .orders-table th,
@@ -1174,6 +1590,15 @@
             .order-detail-grid {
                 grid-template-columns: 1fr;
                 gap: 15px;
+            }
+
+            .sidebar {
+                width: 85vw;
+                max-width: 300px;
+            }
+
+            .sidebar.open {
+                box-shadow: 10px 0 40px rgba(0, 0, 0, 0.4);
             }
 
             .modal-content {
@@ -1236,31 +1661,41 @@
             background: var(--gold-dark);
         }
         
-        /* Refresh Button Styling */
+        /* ===== REFRESH AND ACTION BUTTONS ===== */
         .refresh-btn {
             background: var(--gradient-gold);
             color: var(--black-luxury);
             border: none;
-            padding: 10px 15px;
-            border-radius: 8px;
-            font-weight: 500;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             font-size: 14px;
+            box-shadow: var(--shadow-soft);
         }
         
         .refresh-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-soft);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
         }
         
         .refresh-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+        }
+
+        .refresh-btn.test-api {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: var(--white-pure);
+        }
+
+        .refresh-btn.test-api:hover {
+            box-shadow: 0 8px 25px rgba(23, 162, 184, 0.4);
         }
     </style>
 </head>
@@ -1276,6 +1711,14 @@
         </div>
 
         <div class="admin-container">
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <!-- Sidebar Backdrop (untuk mobile) -->
+            <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
             <!-- Sidebar -->
             <aside class="sidebar fade-in-left" id="sidebar">
             <div class="sidebar-header">
@@ -1334,33 +1777,36 @@
 
             <main class="main-content fade-in-right">
                 <header class="header">
-                <h1 class="header-title">Manajemen Pesanan</h1>
-                <div class="header-actions">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <button class="refresh-btn" onclick="ordersManager.refreshOrders()" id="refreshBtn">
-                            <i class="fas fa-sync-alt"></i>
-                            Refresh
-                        </button>
-                        <button class="refresh-btn" onclick="ordersManager.testAPIConnection()" style="background: #17a2b8;">
-                            <i class="fas fa-plug"></i>
-                            Test API
-                        </button>
-                        <button class="notification-btn">
-                            <i class="fas fa-bell"></i>
-                            <span class="notification-badge">5</span>
-                        </button>
-                    </div>
-                    <div class="user-profile">
-                        <div class="user-avatar">
-                            <i class="fas fa-user"></i>
+                    <h1 class="header-title">
+                        <i class="fas fa-shopping-cart"></i>
+                        Manajemen Pesanan
+                    </h1>
+                    <div class="header-actions">
+                        <div class="header-controls">
+                            <button class="refresh-btn" onclick="ordersManager.refreshOrders()" id="refreshBtn">
+                                <i class="fas fa-sync-alt"></i>
+                                Refresh
+                            </button>
+                            <button class="refresh-btn test-api" onclick="ordersManager.testAPIConnection()">
+                                <i class="fas fa-plug"></i>
+                                Test API
+                            </button>
+                            <button class="notification-btn">
+                                <i class="fas fa-bell"></i>
+                                <span class="notification-badge">5</span>
+                            </button>
                         </div>
-                        <div class="user-info">
-                            <h4>Admin Fajar Gold</h4>
-                            <p>Super Administrator</p>
+                        <div class="user-profile">
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="user-info">
+                                <h4>Admin Fajar Gold</h4>
+                                <p>Super Administrator</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </header>
+                </header>
 
             <div class="content">
                 <div class="orders-header fade-in-up">
@@ -1434,22 +1880,24 @@
 
             
                 <div class="orders-table-container slide-in-bottom" id="ordersContainer">
-                    <table class="orders-table" id="ordersTable">
-                        <thead>
-                            <tr>
-                                <th>ID Pesanan</th>
-                                <th>Pelanggan</th>
-                                <th>Produk</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                                <th>Bukti Pembayaran</th>
-                                <th>Tanggal</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ordersTableBody">
-                        </tbody>
-                    </table>
+                    <div class="table-wrapper">
+                        <table class="orders-table" id="ordersTable">
+                            <thead>
+                                <tr>
+                                    <th>ID Pesanan</th>
+                                    <th>Pelanggan</th>
+                                    <th>Produk</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Bukti Pembayaran</th>
+                                    <th>Tanggal</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTableBody">
+                            </tbody>
+                        </table>
+                    </div>
 
                     <div class="pagination" id="pagination">
                         <button class="pagination-btn" id="prevBtn">
@@ -1530,6 +1978,78 @@
                 this.setupEventListeners();
                 this.loadOrders();
                 this.loadStatisticsFromAPI();
+                this.setupMobileMenu();
+            }
+
+            setupMobileMenu() {
+                const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+                const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+                // Mobile menu toggle functionality
+                if (mobileMenuToggle) {
+                    mobileMenuToggle.addEventListener('click', () => {
+                        this.toggleMobileSidebar();
+                    });
+                }
+
+                // Backdrop click to close sidebar
+                if (sidebarBackdrop) {
+                    sidebarBackdrop.addEventListener('click', () => {
+                        this.closeMobileSidebar();
+                    });
+                }
+
+                // Handle escape key to close sidebar
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.sidebar.classList.contains('open')) {
+                        this.closeMobileSidebar();
+                    }
+                });
+
+                // Close sidebar when clicking outside on mobile
+                document.addEventListener('click', (e) => {
+                    if (window.innerWidth <= 1024) {
+                        const isClickInsideSidebar = this.sidebar.contains(e.target);
+                        const isToggleButton = e.target.closest('#mobileMenuToggle') || e.target.closest('#sidebarToggle');
+
+                        if (!isClickInsideSidebar && !isToggleButton && this.sidebar.classList.contains('open')) {
+                            this.closeMobileSidebar();
+                        }
+                    }
+                });
+
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth > 1024) {
+                        this.closeMobileSidebar();
+                    }
+                });
+            }
+
+            toggleMobileSidebar() {
+                const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+                const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+                this.sidebar.classList.toggle('open');
+                mobileMenuToggle.classList.toggle('active');
+                
+                if (this.sidebar.classList.contains('open')) {
+                    sidebarBackdrop.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    sidebarBackdrop.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            }
+
+            closeMobileSidebar() {
+                const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+                const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+                this.sidebar.classList.remove('open');
+                mobileMenuToggle.classList.remove('active');
+                sidebarBackdrop.classList.remove('active');
+                document.body.style.overflow = 'auto';
             }
 
             setupEventListeners() {
@@ -2433,19 +2953,81 @@
 
             async confirmOrder(orderId) {
                 try {
-                    console.log('🔄 Confirming order:', orderId);
+                    console.log('🔄 Confirming payment for order:', orderId);
+                    
+                    // First, check order details to understand current status
+                    console.log('🔍 Checking order details before confirmation...');
+                    const checkResponse = await fetch(`/admin/api/orders/${orderId}`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+                        credentials: 'include'
+                    });
+                    
+                    if (checkResponse.ok) {
+                        const orderData = await checkResponse.json();
+                        console.log('📋 Current order data:', orderData);
+                        
+                        if (orderData.success && orderData.data) {
+                            const order = orderData.data.order;
+                            console.log('📊 Order status:', order.status);
+                            console.log('📊 Order created at:', order.createdAt);
+                            console.log('📊 Order total:', order.totalAmount);
+                            
+                            // Check if order is in correct status for confirmation
+                            if (order.status !== 'PENDING_CONFIRMATION') {
+                                this.showNotification(`Order tidak dapat dikonfirmasi. Status saat ini: ${order.status}`, 'error');
+                                return;
+                            }
+                        }
+                    } else {
+                        console.warn('⚠️ Could not fetch order details for validation');
+                    }
+                    
+                    // Show confirmation dialog
+                    const confirmResult = confirm('Apakah Anda yakin ingin mengkonfirmasi pembayaran pesanan ini?');
+                    if (!confirmResult) {
+                        return;
+                    }
+                    
+                    // Show loading state
+                    this.showNotification('Memproses konfirmasi pembayaran...', 'info');
+                    
+                    console.log('🚀 Sending payment confirmation request...');
                     const response = await fetch(`/admin/api/orders/${orderId}/confirm-payment`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Accept': 'application/json'
                         },
-                        credentials: 'include', // Include cookies for authentication
+                        credentials: 'include',
                         body: JSON.stringify({
-                            notes: 'Dikonfirmasi oleh admin melalui panel'
+                            notes: 'Pembayaran dikonfirmasi oleh admin melalui panel'
                         })
                     });
 
-                    // Handle authentication error
+                    console.log('📥 Confirm payment response status:', response.status);
+                    console.log('📥 Confirm payment response headers:', Array.from(response.headers.entries()));
+                    
+                    // Try to get response body for better error information
+                    let responseData;
+                    try {
+                        const responseText = await response.text();
+                        console.log('📥 Raw response text:', responseText);
+                        
+                        if (responseText) {
+                            responseData = JSON.parse(responseText);
+                            console.log('📥 Parsed response data:', responseData);
+                        } else {
+                            responseData = { success: false, message: 'Empty response from server' };
+                        }
+                    } catch (jsonError) {
+                        console.error('❌ Failed to parse response JSON:', jsonError);
+                        responseData = { success: false, message: 'Invalid response format from server' };
+                    }
+
+                    // Handle specific HTTP status codes
                     if (response.status === 403) {
                         this.showNotification('Akses ditolak. Silakan login ulang sebagai admin.', 'error');
                         setTimeout(() => {
@@ -2453,24 +3035,75 @@
                         }, 2000);
                         return;
                     }
+                    
+                    if (response.status === 404) {
+                        this.showNotification('Pesanan tidak ditemukan.', 'error');
+                        this.loadOrders();
+                        return;
+                    }
 
                     if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        // Enhanced error message with backend response
+                        const errorMessage = responseData.message || `HTTP ${response.status}: ${response.statusText}`;
+                        console.error('❌ Confirm payment failed:', {
+                            status: response.status,
+                            statusText: response.statusText,
+                            errorMessage: errorMessage,
+                            responseData: responseData
+                        });
+                        
+                        // Show specific error messages based on common issues
+                        if (errorMessage.includes('tidak dapat dikonfirmasi dengan status')) {
+                            this.showNotification('❌ Pesanan tidak dapat dikonfirmasi. Status pesanan sudah berubah. Silakan refresh halaman.', 'error');
+                        } else if (errorMessage.includes('Stock tidak mencukupi') || errorMessage.includes('stok')) {
+                            this.showNotification('❌ Konfirmasi gagal: Stok produk tidak mencukupi.', 'error');
+                        } else if (errorMessage.includes('Order tidak ditemukan')) {
+                            this.showNotification('❌ Pesanan tidak ditemukan di sistem.', 'error');
+                        } else if (errorMessage.includes('Gagal mengurangi stok')) {
+                            this.showNotification('❌ Konfirmasi gagal: Terjadi masalah saat mengurangi stok produk.', 'error');
+                        } else {
+                            this.showNotification(`❌ Gagal mengkonfirmasi pembayaran: ${errorMessage}`, 'error');
+                        }
+                        
+                        // Refresh orders list to get latest status
+                        this.loadOrders();
+                        return;
                     }
 
-                    const result = await response.json();
-                    console.log('📥 Confirm order response:', result);
-
-                    if (result.success) {
+                    if (responseData && responseData.success) {
+                        console.log('✅ Payment confirmed successfully for order:', orderId);
+                        this.showNotification('Pembayaran berhasil dikonfirmasi!', 'success');
+                        
+                        // Refresh data
                         this.loadOrders();
                         this.loadStatisticsFromAPI();
-                        this.showNotification('Pesanan berhasil dikonfirmasi', 'success');
                     } else {
-                        this.showNotification('Gagal mengkonfirmasi pesanan: ' + (result.message || 'Unknown error'), 'error');
+                        const errorMsg = responseData.message || 'Unknown error occurred';
+                        console.error('❌ Confirm payment failed:', errorMsg);
+                        this.showNotification(`Gagal mengkonfirmasi: ${errorMsg}`, 'error');
                     }
+                    
                 } catch (error) {
-                    console.error('❌ Error confirming order:', error);
-                    this.showNotification('Gagal mengkonfirmasi pesanan: ' + error.message, 'error');
+                    console.error('❌ Error confirming payment:', {
+                        error: error,
+                        message: error.message,
+                        stack: error.stack,
+                        orderId: orderId
+                    });
+                    
+                    // Enhanced error handling for network issues
+                    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                        this.showNotification('❌ Gagal terhubung ke server. Periksa koneksi internet Anda.', 'error');
+                    } else if (error.name === 'AbortError') {
+                        this.showNotification('❌ Request timeout. Silakan coba lagi.', 'error');
+                    } else if (error.message.includes('NetworkError')) {
+                        this.showNotification('❌ Terjadi masalah jaringan. Silakan coba lagi.', 'error');
+                    } else {
+                        this.showNotification(`❌ Terjadi kesalahan sistem: ${error.message}`, 'error');
+                    }
+                    
+                    // Always refresh orders list in case of error
+                    this.loadOrders();
                 }
             }
 
@@ -2680,13 +3313,36 @@
         // Initialize orders manager when DOM is loaded
         let ordersManager;
         document.addEventListener('DOMContentLoaded', () => {
-            ordersManager = new OrdersManager();
-            // Make it globally available
-            window.ordersManager = ordersManager;
+            console.log('🚀 DOM Content Loaded - Initializing admin orders...');
+            
+            // Hide page loader immediately
+            const pageLoader = document.getElementById('pageLoader');
+            if (pageLoader) {
+                console.log('👋 Hiding page loader...');
+                setTimeout(() => {
+                    pageLoader.classList.add('hidden');
+                }, 300);
+            }
+            
+            // Initialize orders manager
+            try {
+                ordersManager = new OrdersManager();
+                // Make it globally available
+                window.ordersManager = ordersManager;
+                console.log('✅ Orders manager initialized successfully');
+            } catch (error) {
+                console.error('❌ Error initializing orders manager:', error);
+                // Still hide loader even if there's an error
+                if (pageLoader) {
+                    pageLoader.classList.add('hidden');
+                }
+            }
 
             // Show welcome message
             setTimeout(() => {
-                ordersManager.showNotification('Halaman manajemen pesanan berhasil dimuat!', 'success');
+                if (ordersManager && ordersManager.showNotification) {
+                    ordersManager.showNotification('Halaman manajemen pesanan berhasil dimuat!', 'success');
+                }
             }, 1000);
 
             // Add global error handler for action buttons
@@ -2815,23 +3471,61 @@
                 });
             }
         });
-
-        // Handle mobile menu
-        document.addEventListener('click', (e) => {
-            if (window.innerWidth <= 1024) {
-                const sidebar = document.getElementById('sidebar');
-                const isClickInsideSidebar = sidebar.contains(e.target);
-                const isToggleButton = e.target.closest('#sidebarToggle');
-
-                if (!isClickInsideSidebar && !isToggleButton && sidebar.classList.contains('open')) {
-                    sidebar.classList.remove('open');
-                }
+        
+        // Fallback: Hide loader after window loads completely
+        window.addEventListener('load', () => {
+            console.log('🏁 Window fully loaded - ensuring loader is hidden...');
+            const pageLoader = document.getElementById('pageLoader');
+            if (pageLoader && !pageLoader.classList.contains('hidden')) {
+                console.log('🚫 Emergency loader removal...');
+                pageLoader.classList.add('hidden');
             }
         });
+        
+        // Emergency fallback: Force hide loader after 5 seconds
+        setTimeout(() => {
+            const pageLoader = document.getElementById('pageLoader');
+            if (pageLoader && !pageLoader.classList.contains('hidden')) {
+                console.warn('⚠️ Force hiding loader after 5 seconds...');
+                pageLoader.classList.add('hidden');
+            }
+        }, 5000);
     </script>
     
-    <!-- Admin Animations Script -->
-    <script src="../../static/js/admin-animations.js"></script>
+    <!-- Inline Admin Animations Script -->
+    <script>
+        // Inline animation functionality to avoid MIME type issues
+        class SimplePageLoader {
+            constructor() {
+                this.hideLoader();
+            }
+            
+            hideLoader() {
+                const loader = document.getElementById('pageLoader');
+                if (loader) {
+                    setTimeout(() => {
+                        loader.classList.add('hidden');
+                        setTimeout(() => {
+                            loader.style.display = 'none';
+                        }, 500);
+                    }, 300);
+                }
+            }
+        }
+        
+        // Initialize page loader when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            new SimplePageLoader();
+            
+            // Trigger scroll animations for existing elements
+            const animatedElements = document.querySelectorAll('.fade-in-up, .fade-in-left, .fade-in-right, .scale-in, .slide-in-bottom');
+            animatedElements.forEach((element, index) => {
+                setTimeout(() => {
+                    element.classList.add('animate');
+                }, index * 100);
+            });
+        });
+    </script>
 </body>
 
 </html>

@@ -324,13 +324,10 @@ public class AdminControllerApi {
             errors.add("Stok minimum tidak boleh negatif");
         }
 
-        // Validasi minStock tidak boleh lebih besar dari stock
-        if (request.getStock() != null && request.getMinStock() != null) {
-            if (request.getMinStock() > request.getStock()) {
-                errors.add("Stok minimum tidak boleh lebih besar dari stok");
-            }
-        }
-
+        // Validasi minStock vs stock REMOVED for edit operations
+        // Edit operations should allow stock to be below minStock for inventory adjustments
+        // This allows admins to temporarily have stock below minimum during updates
+        
         return errors;
     }
 

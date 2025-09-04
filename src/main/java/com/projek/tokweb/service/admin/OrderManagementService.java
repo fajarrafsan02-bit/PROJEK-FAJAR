@@ -678,57 +678,89 @@ public class OrderManagementService {
             return;
         }
         
-        log.info("🔄 [STOCK_REDUCTION] Processing stock reduction for order: {}", order.getOrderNumber());
+        log.info("🔄 [STOCK_REDUCTION] Processing stock reduction for order: {} (ID: {})", order.getOrderNumber(), order.getId());
+        log.info("🔄 [STOCK_REDUCTION] Order status: {}, Items count: {}", order.getStatus(), order.getItems().size());
+        
+        // Log all order items first for debugging
+        for (int i = 0; i < order.getItems().size(); i++) {
+            OrderItem item = order.getItems().get(i);
+            log.info("📋 [STOCK_REDUCTION] Item {}: Product ID={}, Name='{}', Quantity={}, Unit Price={}", 
+                     i + 1, 
+                     item.getProduct() != null ? item.getProduct().getId() : "NULL",
+                     item.getProduct() != null ? item.getProduct().getName() : "NULL",
+                     item.getQuantity(),
+                     item.getUnitPrice());
+        }
         
         for (OrderItem orderItem : order.getItems()) {
             try {
                 Product product = orderItem.getProduct();
+                if (product == null) {
+                    log.error("❌ [STOCK_REDUCTION] Product is null for order item in order: {}", order.getOrderNumber());
+                    throw new IllegalStateException("Product tidak ditemukan untuk item pesanan");
+                }
+                
                 int orderedQuantity = orderItem.getQuantity();
                 
-                log.info("🔍 [STOCK_REDUCTION] Processing product: {} | Current stock: {} | Ordered qty: {}", 
-                         product.getName(), product.getStock(), orderedQuantity);
+                log.info("🔍 [STOCK_REDUCTION] Processing product: {} (ID: {}) | Current stock: {} | Ordered qty: {}", 
+                         product.getName(), product.getId(), product.getStock(), orderedQuantity);
                 
                 // Lock product untuk mencegah race condition
                 Product lockedProduct = productRepository.findByIdForUpdate(product.getId())
-                        .orElseThrow(() -> new IllegalStateException("Product tidak ditemukan: " + product.getId()));
+                        .orElseThrow(() -> {
+                            log.error("❌ [STOCK_REDUCTION] Product not found with ID: {}", product.getId());
+                            return new IllegalStateException("Product tidak ditemukan: " + product.getId());
+                        });
                 
                 int currentStock = lockedProduct.getStock();
+                log.info("🔒 [STOCK_REDUCTION] Locked product: {} | Fresh stock from DB: {}", 
+                         lockedProduct.getName(), currentStock);
                 
                 // Validasi stock masih mencukupi
                 if (currentStock < orderedQuantity) {
-                    log.error("❌ [STOCK_REDUCTION] Stock tidak mencukupi untuk: {} | Tersedia: {}, Diminta: {}", 
-                             lockedProduct.getName(), currentStock, orderedQuantity);
-                    throw new IllegalStateException(
-                        String.format("Stock tidak mencukupi untuk produk '%s'. Tersedia: %d, Diminta: %d",
-                            lockedProduct.getName(), currentStock, orderedQuantity));
+                    String errorMsg = String.format(
+                        "Stock tidak mencukupi untuk produk '%s' (ID: %d). Tersedia: %d, Diminta: %d",
+                        lockedProduct.getName(), lockedProduct.getId(), currentStock, orderedQuantity);
+                    log.error("❌ [STOCK_REDUCTION] {}", errorMsg);
+                    
+                    // Check if there are other pending orders that might have reserved stock
+                    log.info("🔍 [STOCK_REDUCTION] Checking other pending orders for product: {}", lockedProduct.getName());
+                    
+                    throw new IllegalStateException(errorMsg);
                 }
                 
                 // Kurangi stock
                 int newStock = currentStock - orderedQuantity;
                 lockedProduct.setStock(newStock);
-                productRepository.save(lockedProduct);
+                Product savedProduct = productRepository.save(lockedProduct);
                 
-                log.info("✅ [STOCK_REDUCTION] Stock updated for: {} | {} -> {}", 
-                         lockedProduct.getName(), currentStock, newStock);
+                log.info("✅ [STOCK_REDUCTION] Stock updated for: {} (ID: {}) | {} -> {} | Saved stock: {}", 
+                         lockedProduct.getName(), lockedProduct.getId(), 
+                         currentStock, newStock, savedProduct.getStock());
                 
             } catch (Exception e) {
-                log.error("❌ [STOCK_REDUCTION] Error reducing stock for product ID {}: {}", 
-                         orderItem.getProduct().getId(), e.getMessage());
+                log.error("❌ [STOCK_REDUCTION] Error reducing stock for product ID {} in order {}: {}", 
+                         orderItem.getProduct() != null ? orderItem.getProduct().getId() : "NULL", 
+                         order.getOrderNumber(), e.getMessage());
                 e.printStackTrace();
+                
+                String productName = orderItem.getProduct() != null ? orderItem.getProduct().getName() : "Unknown Product";
                 throw new IllegalStateException("Gagal mengurangi stok untuk produk '" + 
-                    orderItem.getProduct().getName() + "': " + e.getMessage(), e);
+                    productName + "': " + e.getMessage(), e);
             }
         }
         
         // Force flush untuk memastikan perubahan stock ter-commit
         try {
             entityManager.flush();
-            log.info("💾 [STOCK_REDUCTION] Stock changes flushed to database");
+            log.info("💾 [STOCK_REDUCTION] Stock changes flushed to database for order: {}", order.getOrderNumber());
         } catch (Exception e) {
-            log.error("⚠️ [STOCK_REDUCTION] Error flushing stock changes: {}", e.getMessage());
-            throw e;
+            log.error("⚠️ [STOCK_REDUCTION] Error flushing stock changes for order {}: {}", order.getOrderNumber(), e.getMessage());
+            e.printStackTrace();
+            throw new IllegalStateException("Gagal menyimpan perubahan stok: " + e.getMessage(), e);
         }
         
-        log.info("🏁 [STOCK_REDUCTION] Stock reduction completed for order: {}", order.getOrderNumber());
+        log.info("🏁 [STOCK_REDUCTION] Stock reduction completed successfully for order: {} (ID: {})", 
+                 order.getOrderNumber(), order.getId());
     }
 }

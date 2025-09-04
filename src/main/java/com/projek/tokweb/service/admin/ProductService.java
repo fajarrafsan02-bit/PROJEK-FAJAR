@@ -41,6 +41,9 @@ public class ProductService {
 
         double totalHarga = (hargaPerGram * purityDecimal) * (1 + markupDecimal) * dto.getWeight();
 
+        int finalStock = dto.getStock() != null ? dto.getStock() : 0;
+        int finalMinStock = dto.getMinStock() != null ? dto.getMinStock() : 0;
+
         Product product = Product.builder()
                 .name(dto.getName())
                 .description(dto.getDescription())
@@ -50,8 +53,8 @@ public class ProductService {
                 .imageUrl(dto.getImageUrl())
                 .markup(dto.getMarkup())
                 .finalPrice(totalHarga)
-                .stock(dto.getStock() != null ? dto.getStock() : 0)
-                .minStock(dto.getMinStock() != null ? dto.getMinStock() : 0)
+                .stock(finalStock)
+                .minStock(finalMinStock)
                 .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
                 .updateAt(LocalDateTime.now())
                 .build();
@@ -131,19 +134,9 @@ public class ProductService {
             }
         }
 
-        if (request.getStock() != null && request.getMinStock() != null) {
-            if (request.getMinStock() > request.getStock()) {
-                errors.add("Stok minimum tidak boleh lebih besar dari stok");
-            }
-        } else if (request.getMinStock() != null) {
-            if (request.getMinStock() > existingProduct.getStock()) {
-                errors.add("Stok minimum tidak boleh lebih besar dari stok saat ini");
-            }
-        } else if (request.getStock() != null) {
-            if (existingProduct.getMinStock() > request.getStock()) {
-                errors.add("Stok minimum tidak boleh lebih besar dari stok baru");
-            }
-        }
+        // REMOVED: Stock vs MinStock validation for edit operations
+        // This allows admins to set stock below minStock during inventory updates
+        // Original validation logic removed to provide more flexibility for administrators
 
         if (request.getIsActive() != null) {
             existingProduct.setIsActive(request.getIsActive());

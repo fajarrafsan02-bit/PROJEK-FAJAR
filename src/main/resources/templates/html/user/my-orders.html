@@ -3133,8 +3133,60 @@
         document.head.appendChild(style);
 
         // Initialize badge system for wishlist and cart
-        function initializeBadges() {
-            // Initialize wishlist badge from localStorage
+        async function initializeBadges() {
+            try {
+                // Get wishlist count from backend API
+                const response = await fetch('/user/api/wishlist/count', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include'
+                });
+
+                const wishlistBadge = document.getElementById('wishlistBadge');
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        const wishlistCount = result.data.count || 0;
+                        
+                        if (wishlistBadge) {
+                            wishlistBadge.textContent = wishlistCount;
+                            if (wishlistCount === 0) {
+                                wishlistBadge.style.display = 'none';
+                            } else {
+                                wishlistBadge.style.display = 'inline-block';
+                            }
+                        }
+                        
+                        console.log('Badges initialized - Wishlist:', wishlistCount, 'items (from API)');
+                    } else {
+                        console.warn('Failed to get wishlist count:', result.message);
+                        // Fallback to localStorage if API fails
+                        initializeBadgesFromLocalStorage();
+                    }
+                } else if (response.status === 401) {
+                    // User not authenticated, hide badge
+                    if (wishlistBadge) {
+                        wishlistBadge.textContent = '0';
+                        wishlistBadge.style.display = 'none';
+                    }
+                    console.log('User not authenticated, hiding wishlist badge');
+                } else {
+                    console.error('Error getting wishlist count:', response.status);
+                    // Fallback to localStorage if API fails
+                    initializeBadgesFromLocalStorage();
+                }
+            } catch (error) {
+                console.error('Error initializing wishlist badge:', error);
+                // Fallback to localStorage if API fails
+                initializeBadgesFromLocalStorage();
+            }
+        }
+        
+        // Fallback function to use localStorage (for offline scenarios)
+        function initializeBadgesFromLocalStorage() {
             const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
             const wishlistBadge = document.getElementById('wishlistBadge');
             
@@ -3147,8 +3199,7 @@
                 }
             }
             
-            // Cart badge will be handled by CartBadgeManager
-            console.log('Badges initialized - Wishlist:', wishlist.length, 'items');
+            console.log('Badges initialized from localStorage - Wishlist:', wishlist.length, 'items (fallback)');
         }
 
         // Setup real-time badge updates
@@ -3246,9 +3297,9 @@
         });
 
         // Global function to trigger immediate badge refresh (can be called from other scripts)
-        window.refreshAllBadges = function() {
+        window.refreshAllBadges = async function() {
             console.log('My Orders: Manual badge refresh triggered');
-            initializeBadges();
+            await initializeBadges();
             if (window.cartBadgeManager) {
                 window.cartBadgeManager.refreshCart();
             }
