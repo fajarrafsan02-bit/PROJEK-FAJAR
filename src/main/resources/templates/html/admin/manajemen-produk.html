@@ -53,10 +53,41 @@
             overflow-y: auto;
             z-index: 1000;
             transition: all 0.3s ease;
+            top: 0;
+            left: 0;
         }
 
-        .sidebar.collapsed {
-            width: 80px;
+        /* Desktop sidebar behavior - always full width, no collapse */
+        @media (min-width: 1025px) {
+            .sidebar {
+                width: 280px; /* Always full width */
+            }
+        }
+
+        /* Mobile sidebar behavior */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 1002;
+                width: min(85vw, 300px);
+                max-width: 300px;
+                will-change: transform;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            /* Prevent desktop collapse behavior on mobile */
+            .sidebar.collapsed {
+                width: min(85vw, 300px);
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.collapsed.mobile-open {
+                transform: translateX(0);
+            }
         }
 
         .sidebar-header {
@@ -77,7 +108,7 @@
             height: 35px;
             border-radius: 50%;
             cursor: pointer;
-            display: flex;
+            display: none; /* Hidden by default */
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
@@ -86,6 +117,20 @@
         .sidebar-toggle:hover {
             background: rgba(0, 0, 0, 0.2);
             transform: scale(1.1);
+        }
+
+        /* Hide sidebar toggle button on mobile - use mobile menu button instead */
+        @media (max-width: 1024px) {
+            .sidebar-toggle {
+                display: none !important;
+            }
+        }
+
+        /* Hide sidebar toggle button on desktop too - no collapse functionality */
+        @media (min-width: 1025px) {
+            .sidebar-toggle {
+                display: none !important;
+            }
         }
 
         .logo {
@@ -151,36 +196,80 @@
             transition: opacity 0.3s ease;
         }
 
-        .sidebar.collapsed .nav-text,
-        .sidebar.collapsed .logo-subtitle {
-            opacity: 0;
-            pointer-events: none;
+        /* Desktop text visibility - always visible */
+        @media (min-width: 1025px) {
+            .sidebar .nav-text,
+            .sidebar .logo-subtitle {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            
+            .sidebar .logo {
+                font-size: 28px; /* Always full size */
+            }
         }
 
-        .sidebar.collapsed .logo {
-            font-size: 20px;
+        /* Mobile text visibility */
+        @media (max-width: 1024px) {
+            .sidebar .nav-text,
+            .sidebar .logo-subtitle {
+                opacity: 1 !important;
+                pointer-events: auto !important;
+            }
         }
 
         .main-content {
             flex: 1;
-            margin-left: 280px;
             transition: margin-left 0.3s ease;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            max-width: 100vw;
         }
 
-        .sidebar.collapsed+.main-content {
-            margin-left: 80px;
+        /* Desktop layout - sidebar always full width */
+        @media (min-width: 1025px) {
+            .main-content {
+                margin-left: 280px; /* Always full sidebar width */
+            }
+        }
+
+        /* Mobile layout */
+        @media (max-width: 1024px) {
+            .main-content {
+                margin-left: 0 !important;
+            }
         }
 
         body {
             font-family: "Inter", sans-serif;
             background: var(--gray-light);
             color: var(--black-luxury);
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            position: relative;
+        }
+
+        /* Prevent horizontal scrolling on mobile */
+        body.mobile-menu-open {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            position: relative;
+            width: 100%;
+            max-width: 100vw;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
             padding: 30px;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            max-width: 100%;
         }
 
         /* Header Section */
@@ -603,6 +692,70 @@
             margin-bottom: 15px;
         }
 
+        /* Mobile menu button */
+        .mobile-menu-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1003;
+            background: var(--gradient-gold);
+            border: none;
+            color: var(--black-luxury);
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: var(--shadow-luxury);
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-btn:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .mobile-menu-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Show mobile menu button on small screens */
+        @media (max-width: 1024px) {
+            .mobile-menu-btn {
+                display: flex !important;
+            }
+        }
+
+        /* Hide mobile menu button on large screens */
+        @media (min-width: 1025px) {
+            .mobile-menu-btn {
+                display: none !important;
+            }
+        }
+
+        /* Mobile backdrop */
+        .mobile-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-backdrop.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
         .modal-actions {
             display: flex;
             gap: 15px;
@@ -612,8 +765,8 @@
             border-top: 2px solid var(--gray-medium);
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
+        /* Enhanced Responsive Design */
+        @media (max-width: 1024px) {
             .main-content {
                 margin-left: 0 !important;
             }
@@ -624,31 +777,27 @@
                 top: 0;
                 bottom: 0;
                 height: 100vh;
-                width: 280px;
+                width: min(85vw, 300px);
                 transform: translateX(-100%);
-                transition: transform .25s ease;
-                z-index: 1001;
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .sidebar-toggle {
-                position: fixed;
-                top: 16px;
-                left: 16px;
+                transition: transform .3s ease;
                 z-index: 1002;
+                will-change: transform;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
             }
 
             .sidebar-backdrop {
                 position: fixed;
                 inset: 0;
-                background: rgba(0, 0, 0, .4);
+                background: rgba(0, 0, 0, .5);
+                backdrop-filter: blur(4px);
                 opacity: 0;
                 pointer-events: none;
-                transition: opacity .2s;
-                z-index: 1000;
+                transition: opacity .3s ease;
+                z-index: 1001;
             }
 
             .sidebar-backdrop.visible {
@@ -664,6 +813,7 @@
                 flex-direction: column;
                 gap: 20px;
                 text-align: center;
+                padding-top: 80px; /* Space for mobile menu button */
             }
 
             .filters-grid {
@@ -681,6 +831,8 @@
             .modal-content {
                 padding: 20px;
                 margin: 20px;
+                max-height: 90vh;
+                overflow-y: auto;
             }
         }
 
@@ -994,6 +1146,14 @@
 
 <body>
     <div class="admin-container">
+        <!-- Mobile Menu Button -->
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <!-- Mobile Backdrop -->
+        <div class="mobile-backdrop" id="mobileBackdrop"></div>
+        
         <!-- Sidebar Backdrop (untuk mobile) -->
         <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
         
@@ -1033,21 +1193,9 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-users nav-icon"></i>
-                        <span class="nav-text">Pelanggan</span>
-                    </a>
-                </div>
-                <div class="nav-item">
                     <a href="laporan.html" class="nav-link">
                         <i class="fas fa-chart-bar nav-icon"></i>
                         <span class="nav-text">Laporan</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-cog nav-icon"></i>
-                        <span class="nav-text">Pengaturan</span>
                     </a>
                 </div>
             </nav>
@@ -2330,36 +2478,157 @@
         `;
         document.head.appendChild(style);
 
-        // Sidebar toggle functionality
+        // Enhanced Sidebar toggle functionality with comprehensive mobile support
         const sidebar = document.getElementById('sidebar');
         const sidebarToggle = document.getElementById('sidebarToggle');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileBackdrop = document.getElementById('mobileBackdrop');
         const sidebarBackdrop = document.getElementById('sidebarBackdrop');
         
-        // Fungsi untuk menangani toggle sidebar
-        function toggleSidebar() {
-            // Pada layar kecil (mobile)
-            if (window.innerWidth <= 768) {
-                sidebar.classList.toggle('open');
-                sidebarBackdrop.classList.toggle('visible');
-            } 
-            // Pada layar besar (desktop)
-            else {
-                sidebar.classList.toggle('collapsed');
-            }
+        // Check if device is mobile
+        function isMobile() {
+            return window.innerWidth <= 1024;
         }
         
-        // Event listener untuk tombol toggle
-        sidebarToggle.addEventListener('click', toggleSidebar);
+        // Reset sidebar state
+        function resetSidebarState() {
+            sidebar.classList.remove('mobile-open');
+            sidebar.classList.remove('collapsed'); // Remove any collapsed state
+            mobileBackdrop.classList.remove('show');
+            sidebarBackdrop.classList.remove('visible');
+            document.body.classList.remove('mobile-menu-open');
+        }
         
-        // Event listener untuk backdrop (tutup sidebar saat klik di luar)
-        sidebarBackdrop.addEventListener('click', toggleSidebar);
+        // Open mobile menu
+        function openMobileMenu() {
+            resetSidebarState();
+            
+            // Remove desktop collapsed class to prevent conflicts
+            sidebar.classList.remove('collapsed');
+            sidebar.classList.add('mobile-open');
+            mobileBackdrop.classList.add('show');
+            sidebarBackdrop.classList.add('visible');
+            document.body.classList.add('mobile-menu-open');
+            
+            // Force visibility of nav text and icons on mobile
+            const navTexts = sidebar.querySelectorAll('.nav-text, .logo-subtitle');
+            navTexts.forEach(element => {
+                element.style.opacity = '1';
+                element.style.pointerEvents = 'auto';
+            });
+        }
         
-        // Periksa ukuran layar saat resize
+        // Close mobile menu
+        function closeMobileMenu() {
+            sidebar.classList.remove('mobile-open');
+            mobileBackdrop.classList.remove('show');
+            sidebarBackdrop.classList.remove('visible');
+            document.body.classList.remove('mobile-menu-open');
+        }
+        
+        // Toggle desktop sidebar - disabled, sidebar always stays full width
+        function toggleDesktopSidebar() {
+            // No collapse functionality on desktop
+            return;
+        }
+        
+        // Main toggle function
+        function toggleSidebar(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            if (isMobile()) {
+                if (sidebar.classList.contains('mobile-open')) {
+                    closeMobileMenu();
+                } else {
+                    openMobileMenu();
+                }
+            }
+            // No desktop toggle functionality
+        }
+        
+        // Event listeners
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', toggleSidebar);
+        }
+        
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', toggleSidebar);
+        }
+        
+        // Close mobile menu when clicking backdrop
+        if (mobileBackdrop) {
+            mobileBackdrop.addEventListener('click', (e) => {
+                if (e.target === mobileBackdrop) {
+                    closeMobileMenu();
+                }
+            });
+        }
+        
+        if (sidebarBackdrop) {
+            sidebarBackdrop.addEventListener('click', (e) => {
+                if (e.target === sidebarBackdrop) {
+                    closeMobileMenu();
+                }
+            });
+        }
+        
+        // Handle window resize
         window.addEventListener('resize', () => {
-            // Jika layar berubah dari mobile ke desktop saat sidebar terbuka
-            if (window.innerWidth > 768 && sidebar.classList.contains('open')) {
-                sidebar.classList.remove('open');
-                sidebarBackdrop.classList.remove('visible');
+            if (!isMobile()) {
+                // Switching to desktop - close mobile menu and ensure full sidebar
+                resetSidebarState();
+            } else {
+                // Switching to mobile - remove any collapsed state
+                sidebar.classList.remove('collapsed');
+            }
+        });
+        
+        // Touch events for better mobile interaction
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (!isMobile() || !sidebar.classList.contains('mobile-open')) return;
+            
+            const touchX = e.touches[0].clientX;
+            const touchY = e.touches[0].clientY;
+            const deltaX = touchX - touchStartX;
+            const deltaY = touchY - touchStartY;
+            
+            // If swiping left and horizontal swipe is more significant than vertical
+            if (deltaX < -50 && Math.abs(deltaX) > Math.abs(deltaY)) {
+                closeMobileMenu();
+            }
+        }, { passive: true });
+        
+        // Prevent body scroll when mobile menu is open
+        document.addEventListener('touchmove', (e) => {
+            if (document.body.classList.contains('mobile-menu-open')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // Initialize proper state on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            resetSidebarState();
+            
+            // Ensure proper initial state based on screen size
+            if (isMobile()) {
+                sidebar.classList.remove('collapsed');
+                // Force visibility of nav text on mobile
+                const navTexts = sidebar.querySelectorAll('.nav-text, .logo-subtitle');
+                navTexts.forEach(element => {
+                    element.style.opacity = '1';
+                    element.style.pointerEvents = 'auto';
+                });
             }
         });
     </script>
