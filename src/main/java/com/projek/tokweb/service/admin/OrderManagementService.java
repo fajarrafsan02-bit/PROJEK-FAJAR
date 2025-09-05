@@ -52,6 +52,9 @@ public class OrderManagementService {
     @Autowired
     private RevenueService revenueService;
     
+    @Autowired
+    private BestSellingProductService bestSellingProductService;
+    
     /**
      * Get all orders with pagination
      */
@@ -165,6 +168,15 @@ public class OrderManagementService {
         }
         
         log.info("🏆 [ORDER_CONFIRM] Order {} dikonfirmasi oleh admin dengan status: {}", orderId, confirmedOrder.getStatus());
+        
+        // Update best selling products data
+        try {
+            updateBestSellingProducts(confirmedOrder);
+            log.info("📈 [ORDER_CONFIRM] Best selling products updated for order: {}", orderId);
+        } catch (Exception e) {
+            log.error("❌ [ORDER_CONFIRM] Error updating best selling products for order {}: {}", orderId, e.getMessage(), e);
+            // Continue even if updating best selling products fails
+        }
         
         // Record revenue when order is confirmed (non-blocking)
         try {
@@ -393,6 +405,15 @@ public class OrderManagementService {
             
             Order savedOrder = orderRepository.save(order);
             log.info("✅ [ADMIN_CONFIRM] Order saved with PAID status: {}", orderId);
+            
+            // Update best selling products data
+            try {
+                updateBestSellingProducts(savedOrder);
+                log.info("📈 [ADMIN_CONFIRM] Best selling products updated for order: {}", orderId);
+            } catch (Exception e) {
+                log.error("❌ [ADMIN_CONFIRM] Error updating best selling products for order {}: {}", orderId, e.getMessage(), e);
+                // Continue even if updating best selling products fails
+            }
             
             // Log aktivitas: pembayaran dikonfirmasi (async to avoid transaction issues)
             try {
@@ -761,6 +782,48 @@ public class OrderManagementService {
         }
         
         log.info("🏁 [STOCK_REDUCTION] Stock reduction completed successfully for order: {} (ID: {})", 
+                 order.getOrderNumber(), order.getId());
+    }
+    
+    /**
+     * Update best selling products data based on confirmed order
+     */
+    private void updateBestSellingProducts(Order order) {
+        if (order == null || order.getItems() == null || order.getItems().isEmpty()) {
+            log.warn("⚠️ [BEST_SELLING] Order or order items is null/empty");
+            return;
+        }
+        
+        log.info("🔄 [BEST_SELLING] Updating best selling products for order: {} (ID: {})", order.getOrderNumber(), order.getId());
+        
+        for (OrderItem orderItem : order.getItems()) {
+            try {
+                Product product = orderItem.getProduct();
+                if (product == null) {
+                    log.error("❌ [BEST_SELLING] Product is null for order item in order: {}", order.getOrderNumber());
+                    continue;
+                }
+                
+                int orderedQuantity = orderItem.getQuantity();
+                
+                log.info("🔍 [BEST_SELLING] Updating sales count for product: {} (ID: {}) | Ordered qty: {}", 
+                         product.getName(), product.getId(), orderedQuantity);
+                
+                // Update best selling product data
+                bestSellingProductService.updateBestSellingProduct(product.getId(), orderedQuantity);
+                
+                log.info("✅ [BEST_SELLING] Sales count updated for: {} (ID: {}) | Quantity: {}", 
+                         product.getName(), product.getId(), orderedQuantity);
+                
+            } catch (Exception e) {
+                log.error("❌ [BEST_SELLING] Error updating best selling product for product ID {} in order {}: {}", 
+                         orderItem.getProduct() != null ? orderItem.getProduct().getId() : "NULL", 
+                         order.getOrderNumber(), e.getMessage());
+                // Continue with other items even if one fails
+            }
+        }
+        
+        log.info("🏁 [BEST_SELLING] Best selling products update completed for order: {} (ID: {})", 
                  order.getOrderNumber(), order.getId());
     }
 }

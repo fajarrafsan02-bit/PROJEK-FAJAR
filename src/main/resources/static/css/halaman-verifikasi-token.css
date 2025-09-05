@@ -674,6 +674,39 @@
          animation: shake 0.5s ease-in-out;
      }
 
+     /* Token Length Feedback */
+     .token-length-feedback {
+         position: absolute;
+         bottom: -25px;
+         left: 0;
+         right: 0;
+         font-size: 11px;
+         text-align: center;
+         padding: 4px 8px;
+         border-radius: 6px;
+         font-weight: 500;
+         transition: all 0.3s ease;
+         z-index: 10;
+     }
+
+     .token-length-feedback.success {
+         color: var(--success-color);
+         background: rgba(16, 185, 129, 0.1);
+         border: 1px solid rgba(16, 185, 129, 0.2);
+     }
+
+     .token-length-feedback.error {
+         color: var(--error-color);
+         background: rgba(239, 68, 68, 0.1);
+         border: 1px solid rgba(239, 68, 68, 0.2);
+     }
+
+     .token-length-feedback.info {
+         color: var(--info-color);
+         background: rgba(59, 130, 246, 0.1);
+         border: 1px solid rgba(59, 130, 246, 0.2);
+     }
+
      /* JWT Info Section */
      .jwt-info {
          padding: 20px;
@@ -783,6 +816,25 @@
          opacity: 0.5;
          cursor: not-allowed;
          transform: none;
+         filter: grayscale(50%);
+     }
+
+     .jwt-action-btn:disabled:hover {
+         background: var(--white-pure);
+         color: var(--gold-primary);
+         transform: none;
+         box-shadow: none;
+     }
+
+     .jwt-action-btn:active {
+         transform: translateY(0px);
+         box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
+     }
+
+     .jwt-action-btn.loading {
+         opacity: 0.7;
+         cursor: wait;
+         animation: pulse 1.5s infinite;
      }
 
      .jwt-action-btn i,

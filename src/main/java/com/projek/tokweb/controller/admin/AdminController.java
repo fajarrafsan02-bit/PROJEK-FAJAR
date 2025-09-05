@@ -43,7 +43,7 @@ public class AdminController {
             model.addAttribute("userRole", "Administrator");
         }
         
-        return "html/admin/home-admin2";
+        return "html/admin/home-admin";
     }
 
     @GetMapping("/produk")

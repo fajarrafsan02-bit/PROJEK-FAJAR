@@ -1070,13 +1070,13 @@
             <!-- ... existing code ... -->
             <nav class="sidebar-nav">
                 <div class="nav-item">
-                    <a href="home-admin.html" class="nav-link active" data-page="dashboard">
+                    <a href="/admin/home" class="nav-link active" data-page="dashboard">
                         <i class="fas fa-tachometer-alt nav-icon"></i>
                         <span class="nav-text">Dashboard</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="manajemen-produk.html" class="nav-link" data-page="products">
+                    <a href="/admin/produk" class="nav-link" data-page="products">
                         <i class="fas fa-gem nav-icon"></i>
                         <span class="nav-text">Produk Emas</span>
                     </a>
@@ -1491,7 +1491,7 @@
                 const actions = {
                     'add-product': () => {
                         // Navigate to add product page
-                        window.location.href = 'manajemen-produk.html';
+                        window.location.href = '/admin/produk';
                     },
                     'update-price': () => {
                         // Navigate to price update page

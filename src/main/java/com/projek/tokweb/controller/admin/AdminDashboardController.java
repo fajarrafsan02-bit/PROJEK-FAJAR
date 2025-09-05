@@ -3,6 +3,7 @@ package com.projek.tokweb.controller.admin;
 import com.projek.tokweb.dto.admin.RevenueStatisticsDto;
 import com.projek.tokweb.service.admin.RevenueService;
 import com.projek.tokweb.service.admin.DashboardService;
+import com.projek.tokweb.service.admin.BestSellingProductService;
 import com.projek.tokweb.utils.AuthUtils;
 import com.projek.tokweb.models.Role;
 import com.projek.tokweb.models.User;
@@ -11,9 +12,14 @@ import com.projek.tokweb.models.customer.OrderStatus;
 import com.projek.tokweb.repository.UserRespository;
 import com.projek.tokweb.repository.admin.ProductRepository;
 import com.projek.tokweb.repository.customer.OrderRepository;
+import com.projek.tokweb.service.admin.AdminNotificationService;
+import com.projek.tokweb.dto.admin.NotificationDto;
+import com.projek.tokweb.dto.admin.BestSellingProductDto;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,7 +50,13 @@ public class AdminDashboardController {
     private ProductRepository productRepository;
     
     @Autowired
+    private AdminNotificationService notificationService;
+    
+    @Autowired
     private OrderRepository orderRepository;
+    
+    @Autowired
+    private BestSellingProductService bestSellingProductService;
     
     // REST API endpoints untuk dashboard
     @GetMapping("/revenue")
@@ -303,6 +315,157 @@ public class AdminDashboardController {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", "Gagal mengambil pesanan terbaru: " + e.getMessage());
+            
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+    
+    /**
+     * Endpoint untuk mengambil notifikasi admin
+     */
+    @GetMapping("/notifications")
+    public ResponseEntity<Map<String, Object>> getNotifications(
+            @RequestParam(defaultValue = "10") int limit) {
+        try {
+            // Check authentication
+            if (!AuthUtils.isAuthenticated() || !AuthUtils.isAdmin()) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "Akses ditolak");
+                return ResponseEntity.status(403).body(errorResponse);
+            }
+            
+            System.out.println("🔔 Getting notifications with limit: " + limit);
+            List<NotificationDto> notifications = notificationService.getAdminNotifications(limit);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", notifications);
+            response.put("total", notifications.size());
+            response.put("message", "Notifikasi berhasil diambil");
+            
+            System.out.println("✅ Notifications retrieved: " + notifications.size() + " items");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.out.println("❌ Error getting notifications: " + e.getMessage());
+            e.printStackTrace();
+            
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Gagal mengambil notifikasi: " + e.getMessage());
+            
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+    
+    /**
+     * Endpoint untuk mengambil jumlah notifikasi yang belum dibaca
+     */
+    @GetMapping("/notifications/unread-count")
+    public ResponseEntity<Map<String, Object>> getUnreadNotificationsCount() {
+        try {
+            // Check authentication
+            if (!AuthUtils.isAuthenticated() || !AuthUtils.isAdmin()) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "Akses ditolak");
+                return ResponseEntity.status(403).body(errorResponse);
+            }
+            
+            System.out.println("🔢 Getting unread notifications count");
+            long unreadCount = notificationService.getUnreadNotificationsCount();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("unreadCount", unreadCount);
+            response.put("message", "Jumlah notifikasi belum dibaca berhasil diambil");
+            
+            System.out.println("✅ Unread notifications count: " + unreadCount);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.out.println("❌ Error getting unread notifications count: " + e.getMessage());
+            e.printStackTrace();
+            
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Gagal mengambil jumlah notifikasi belum dibaca: " + e.getMessage());
+            
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+    
+    /**
+     * Endpoint untuk mengambil produk terlaris
+     */
+    @GetMapping("/best-selling-products")
+    public ResponseEntity<Map<String, Object>> getBestSellingProducts(
+            @RequestParam(defaultValue = "5") int limit) {
+        try {
+            // Check authentication
+            if (!AuthUtils.isAuthenticated() || !AuthUtils.isAdmin()) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "Akses ditolak");
+                return ResponseEntity.status(403).body(errorResponse);
+            }
+            
+            System.out.println("📈 Getting best selling products with limit: " + limit);
+            
+            // Get best selling products
+            List<BestSellingProductDto> bestSellingProducts = bestSellingProductService.getTopBestSellingProducts(limit);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", bestSellingProducts);
+            response.put("message", "Produk terlaris berhasil diambil");
+            response.put("totalCount", bestSellingProducts.size());
+            
+            System.out.println("✅ Best selling products retrieved: " + bestSellingProducts.size() + " products");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.out.println("❌ Error getting best selling products: " + e.getMessage());
+            e.printStackTrace();
+            
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Gagal mengambil produk terlaris: " + e.getMessage());
+            
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+    
+    /**
+     * Endpoint untuk menginisialisasi produk terlaris
+     */
+    @PostMapping("/best-selling-products/initialize")
+    public ResponseEntity<Map<String, Object>> initializeBestSellingProducts() {
+        try {
+            // Check authentication
+            if (!AuthUtils.isAuthenticated() || !AuthUtils.isAdmin()) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "Akses ditolak");
+                return ResponseEntity.status(403).body(errorResponse);
+            }
+            
+            System.out.println("🔄 Initializing best selling products");
+            
+            // Initialize best selling products
+            bestSellingProductService.initializeBestSellingProducts();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Produk terlaris berhasil diinisialisasi");
+            
+            System.out.println("✅ Best selling products initialized");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.out.println("❌ Error initializing best selling products: " + e.getMessage());
+            e.printStackTrace();
+            
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Gagal menginisialisasi produk terlaris: " + e.getMessage());
             
             return ResponseEntity.status(500).body(errorResponse);
         }

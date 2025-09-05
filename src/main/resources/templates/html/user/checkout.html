@@ -12,6 +12,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="/js/cart-badge-utility.js"></script>
+    <script src="/js/notification-manager.js"></script>
     <style>
         * {
             margin: 0;
@@ -133,6 +134,178 @@
             min-width: 20px;
             text-align: center;
             font-weight: 600;
+        }
+
+        /* Notification Styles */
+        .notification-icon {
+            cursor: pointer;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--error-color);
+            color: white;
+            font-size: 11px;
+            padding: 3px 7px;
+            border-radius: 12px;
+            min-width: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 350px;
+            background: var(--white-pure);
+            border-radius: 15px;
+            box-shadow: var(--shadow-luxury);
+            z-index: 1000;
+            display: none;
+            margin-top: 10px;
+            max-height: 400px;
+            overflow: hidden;
+        }
+
+        .notification-dropdown.show {
+            display: block;
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-medium);
+        }
+
+        .notification-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--black-luxury);
+        }
+
+        .notification-clear {
+            background: none;
+            border: none;
+            color: var(--error-color);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .notification-clear:hover {
+            text-decoration: underline;
+        }
+
+        .notification-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--gray-medium);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-item:hover {
+            background-color: var(--gray-light);
+        }
+
+        .notification-item.unread {
+            background-color: rgba(212, 175, 55, 0.05);
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .notification-message {
+            font-size: 13px;
+            color: var(--gray-elegant);
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+
+        .notification-time {
+            font-size: 11px;
+            color: var(--gray-dark);
+        }
+
+        .notification-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray-elegant);
+        }
+
+        .notification-empty i {
+            font-size: 32px;
+            margin-bottom: 15px;
+            color: var(--gray-medium);
+        }
+
+        .notification-empty p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        /* Toast Notification */
+        .notification-toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: var(--white-pure);
+            border-radius: 10px;
+            box-shadow: var(--shadow-luxury);
+            padding: 15px;
+            display: flex;
+            gap: 15px;
+            z-index: 10000;
+            transform: translateX(0);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+        }
+
+        .notification-toast.hide {
+            transform: translateX(120%);
+        }
+
+        .toast-icon {
+            color: var(--gold-primary);
+            font-size: 24px;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .toast-message {
+            font-size: 13px;
+            color: var(--gray-elegant);
+            line-height: 1.4;
         }
 
         .checkout-container {
@@ -731,6 +904,10 @@
                 </ul>
 
                 <div class="nav-icons">
+                    <div class="nav-icon notification-icon" id="notificationIcon" title="Notifikasi">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationBadge">0</span>
+                    </div>
                     <a href="/user/wishlist" class="nav-icon" title="Wishlist">
                         <i class="fas fa-heart"></i>
                         <span class="cart-badge" id="wishlistBadge">0</span>
@@ -739,6 +916,20 @@
                         <i class="fas fa-shopping-cart"></i>
                         <span class="cart-badge" id="cartBadge">0</span>
                     </a>
+                </div>
+                
+                <!-- Notification Dropdown -->
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <h3>Notifikasi</h3>
+                        <button class="notification-clear" id="clearNotifications">Hapus Semua</button>
+                    </div>
+                    <ul class="notification-list" id="notificationList">
+                        <li class="notification-empty">
+                            <i class="fas fa-bell-slash"></i>
+                            <p>Tidak ada notifikasi</p>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </nav>
@@ -937,6 +1128,7 @@
                 this.renderOrderSummary();
                 this.setupEventListeners();
                 this.updateBadges();
+                this.setupWishlistBadgeListeners();
                 
                 console.log('✅ CheckoutManager initialized successfully');
             }
@@ -1268,6 +1460,16 @@
                     if (result.success) {
                         console.log('✅ Checkout successful');
                         this.showNotification('Pesanan berhasil dibuat!', 'success');
+
+                        // Add notification to notification manager
+                        if (window.notificationManager) {
+                            const orderNumber = result.data?.orderNumber || result.data?.externalId || 'ID-' + Date.now();
+                            window.notificationManager.addNotification(
+                                'Pesanan Berhasil Dibuat',
+                                `Pesanan Anda dengan nomor ${orderNumber} telah berhasil dibuat dan sedang diproses oleh admin.`,
+                                orderNumber
+                            );
+                        }
 
                         // Handle payment instruction
                         if (result.data && result.data.externalId) {
@@ -1711,12 +1913,81 @@
                         console.log('CheckoutManager: Cart cleared, badge set to 0 and hidden');
                     }
 
-                    if (wishlistBadge) {
-                        wishlistBadge.textContent = '0';
-                    }
+                    // Update wishlist badge with real data
+                    this.refreshWishlistBadge();
                 }
 
                 console.log('CheckoutManager: Badge update completed');
+            }
+
+            // Method to refresh wishlist badge with real data from API
+            async refreshWishlistBadge() {
+                try {
+                    const wishlistBadge = document.getElementById('wishlistBadge');
+                    if (!wishlistBadge) return;
+
+                    // Fetch wishlist count from API
+                    const response = await fetch('/user/api/wishlist/count', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include'
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success && result.data) {
+                            const wishlistCount = result.data.count || 0;
+                            wishlistBadge.textContent = wishlistCount;
+                            
+                            // Hide badge if empty
+                            if (wishlistCount === 0) {
+                                wishlistBadge.style.display = 'none';
+                            } else {
+                                wishlistBadge.style.display = 'inline-block';
+                            }
+                            
+                            console.log('CheckoutManager: Wishlist badge updated with', wishlistCount, 'items');
+                        } else {
+                            console.log('CheckoutManager: Failed to get wishlist count, hiding badge');
+                            wishlistBadge.textContent = '0';
+                            wishlistBadge.style.display = 'none';
+                        }
+                    } else if (response.status === 401) {
+                        // User not authenticated, hide badge
+                        console.log('CheckoutManager: User not authenticated, hiding wishlist badge');
+                        wishlistBadge.textContent = '0';
+                        wishlistBadge.style.display = 'none';
+                    } else {
+                        console.log('CheckoutManager: Error fetching wishlist count, hiding badge');
+                        wishlistBadge.textContent = '0';
+                        wishlistBadge.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('CheckoutManager: Error refreshing wishlist badge:', error);
+                    // Fallback to hiding badge on error
+                    const wishlistBadge = document.getElementById('wishlistBadge');
+                    if (wishlistBadge) {
+                        wishlistBadge.textContent = '0';
+                        wishlistBadge.style.display = 'none';
+                    }
+                }
+            }
+
+            // Method to setup event listeners for wishlist badge updates
+            setupWishlistBadgeListeners() {
+                // Update wishlist badge when page becomes visible
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden) {
+                        this.refreshWishlistBadge();
+                    }
+                });
+
+                // Update wishlist badge when window gains focus
+                window.addEventListener('focus', () => {
+                    this.refreshWishlistBadge();
+                });
             }
 
             async fetchExternalPrice() {
@@ -2193,6 +2464,59 @@
                 }
                 return null;
             }
+            
+            // Method to fetch current user data and pre-fill form fields
+            async prefillUserData() {
+                try {
+                    console.log('🔍 Fetching current user data...');
+                    const response = await fetch('/user/current');
+                    
+                    // Check if user is authenticated
+                    if (response.status === 401) {
+                        console.log('❌ User not authenticated');
+                        this.showNotification('Anda perlu login untuk melanjutkan checkout', 'error');
+                        // Optionally redirect to login page
+                        // window.location.href = '/login';
+                        return;
+                    }
+                    
+                    const result = await response.json();
+                    console.log('📥 User data response:', result);
+                    
+                    if (result.success && result.data) {
+                        const user = result.data;
+                        console.log('✅ Current user data:', user);
+                        
+                        // Pre-fill email field
+                        const emailField = document.getElementById('email');
+                        if (emailField && user.email) {
+                            emailField.value = user.email;
+                            emailField.disabled = true; // Lock the email field for authenticated users
+                            console.log('📧 Email pre-filled and locked:', user.email);
+                        }
+                        
+                        // Pre-fill name field
+                        const nameField = document.getElementById('fullName');
+                        if (nameField && user.namaLengkap) {
+                            nameField.value = user.namaLengkap;
+                            console.log('👤 Name pre-filled:', user.namaLengkap);
+                        }
+                        
+                        // Pre-fill phone field if available in user data
+                        const phoneField = document.getElementById('phone');
+                        if (phoneField && user.nomorHp) {
+                            phoneField.value = user.nomorHp;
+                            console.log('📱 Phone pre-filled:', user.nomorHp);
+                        }
+                    } else {
+                        console.log('❌ Failed to fetch user data:', result.message);
+                        this.showNotification('Gagal memuat data pengguna: ' + result.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('❌ Error fetching current user data:', error);
+                    this.showNotification('Error saat memuat data pengguna: ' + error.message, 'error');
+                }
+            }
         }
 
         const style = document.createElement('style');
@@ -2245,9 +2569,76 @@
             checkoutManager.refreshData();
         }
 
+        // Function to fetch current user data and pre-fill form fields
+        async function prefillUserData() {
+            try {
+                console.log('🔍 Fetching current user data...');
+                const response = await fetch('/user/current');
+                
+                // Check if user is authenticated
+                if (response.status === 401) {
+                    console.log('❌ User not authenticated, redirecting to login...');
+                    // Optionally redirect to login page
+                    // window.location.href = '/login';
+                    return;
+                }
+                
+                const result = await response.json();
+                console.log('📥 User data response:', result);
+                
+                if (result.success && result.data) {
+                    const user = result.data;
+                    console.log('✅ Current user data:', user);
+                    
+                    // Pre-fill email field
+                    const emailField = document.getElementById('email');
+                    if (emailField && user.email) {
+                        emailField.value = user.email;
+                        emailField.disabled = true; // Lock the email field for authenticated users
+                        console.log('📧 Email pre-filled and locked:', user.email);
+                    }
+                    
+                    // Pre-fill name field
+                    const nameField = document.getElementById('fullName');
+                    if (nameField && user.namaLengkap) {
+                        nameField.value = user.namaLengkap;
+                        console.log('👤 Name pre-filled:', user.namaLengkap);
+                    }
+                    
+                    // Pre-fill phone field if available in user data
+                    const phoneField = document.getElementById('phone');
+                    if (phoneField && user.nomorHp) {
+                        phoneField.value = user.nomorHp;
+                        console.log('📱 Phone pre-filled:', user.nomorHp);
+                    }
+                } else {
+                    console.log('❌ Failed to fetch user data:', result.message);
+                }
+                
+                // Update wishlist badge with real data after user data is loaded
+                if (window.checkoutManager) {
+                    window.checkoutManager.refreshWishlistBadge();
+                }
+            } catch (error) {
+                console.error('❌ Error fetching current user data:', error);
+            }
+        }
+        
         let checkoutManager;
         document.addEventListener('DOMContentLoaded', () => {
             checkoutManager = new CheckoutManager();
+            // Pre-fill user data when page loads
+            checkoutManager.prefillUserData();
+            
+            // Initialize notification manager
+            if (typeof NotificationManager !== 'undefined') {
+                window.notificationManager = new NotificationManager();
+            }
+            
+            // Update wishlist badge with real data
+            if (checkoutManager) {
+                checkoutManager.refreshWishlistBadge();
+            }
         });
 
         // Close modal when clicking outside (only if modal exists)

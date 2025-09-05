@@ -325,6 +325,127 @@
             z-index: 1001;
         }
 
+        /* Notification Dropdown */
+        .notification-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 350px;
+            background: var(--white-pure);
+            border-radius: 15px;
+            box-shadow: var(--shadow-luxury);
+            z-index: 1002;
+            display: none;
+            margin-top: 10px;
+            border: 1px solid var(--gray-medium);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-dropdown.show {
+            display: block;
+        }
+
+        .notification-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-medium);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-header h3 {
+            margin: 0;
+            color: var(--black-luxury);
+            font-size: 18px;
+        }
+
+        .notification-clear {
+            background: none;
+            border: none;
+            color: var(--gold-primary);
+            cursor: pointer;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .notification-clear:hover {
+            color: var(--gold-dark);
+            text-decoration: underline;
+        }
+
+        .notification-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .notification-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--gray-medium);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            position: relative;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-item:hover {
+            background-color: var(--gray-light);
+        }
+
+        .notification-item.unread {
+            background-color: rgba(212, 175, 55, 0.05);
+        }
+
+        .notification-item.unread::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--gold-primary);
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+
+        .notification-message {
+            color: var(--gray-elegant);
+            font-size: 14px;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: var(--gray-elegant);
+        }
+
+        .notification-empty {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--gray-elegant);
+        }
+
+        .notification-empty i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: var(--gray-medium);
+        }
+
+        .notification-empty p {
+            margin: 0;
+            font-size: 16px;
+        }
+
         .mobile-menu-toggle {
             display: none;
             background: none;
@@ -1032,6 +1153,369 @@
             background: var(--gold-dark);
         }
 
+        /* Toast Notification */
+        .notification-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--white-pure);
+            border-radius: 10px;
+            box-shadow: var(--shadow-luxury);
+            padding: 15px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            z-index: 10000;
+            border-left: 4px solid var(--gold-primary);
+            transform: translateX(0);
+            transition: transform 0.3s ease;
+            max-width: 350px;
+        }
+
+        .notification-toast.hide {
+            transform: translateX(120%);
+        }
+
+        .toast-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gold-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--black-luxury);
+            font-size: 18px;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 5px;
+        }
+
+        .toast-message {
+            font-size: 14px;
+            color: var(--gray-elegant);
+            line-height: 1.4;
+        }
+
+        /* Notification Icon Styles */
+        .notification-icon {
+            position: relative;
+            color: var(--black-luxury);
+            font-size: 22px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .notification-icon:hover {
+            color: var(--gold-primary);
+            background: rgba(212, 175, 55, 0.1);
+            transform: scale(1.1);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--error-color);
+            color: white;
+            font-size: 11px;
+            padding: 3px 7px;
+            border-radius: 12px;
+            min-width: 20px;
+            text-align: center;
+            font-weight: 600;
+            z-index: 1001;
+        }
+
+        /* Notification Dropdown */
+        .notification-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 350px;
+            background: var(--white-pure);
+            border-radius: 15px;
+            box-shadow: var(--shadow-luxury);
+            z-index: 1002;
+            display: none;
+            margin-top: 10px;
+            border: 1px solid var(--gray-medium);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-dropdown.show {
+            display: block;
+        }
+
+        .notification-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-medium);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-header h3 {
+            margin: 0;
+            color: var(--black-luxury);
+            font-size: 18px;
+        }
+
+        .notification-clear {
+            background: none;
+            border: none;
+            color: var(--gold-primary);
+            cursor: pointer;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .notification-clear:hover {
+            color: var(--gold-dark);
+            text-decoration: underline;
+        }
+
+        .notification-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--gray-medium);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            position: relative;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-item:hover {
+            background-color: var(--gray-light);
+        }
+
+        .notification-item.unread {
+            background-color: rgba(212, 175, 55, 0.05);
+        }
+
+        .notification-item.unread::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--gold-primary);
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+
+        .notification-message {
+            color: var(--gray-elegant);
+            font-size: 14px;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: var(--gray-elegant);
+        }
+
+        .notification-empty {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--gray-elegant);
+        }
+
+        .notification-empty i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: var(--gray-medium);
+        }
+
+        .notification-empty p {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        /* Notification Icon Styles */
+        .notification-icon {
+            position: relative;
+            color: var(--black-luxury);
+            font-size: 22px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .notification-icon:hover {
+            color: var(--gold-primary);
+            background: rgba(212, 175, 55, 0.1);
+            transform: scale(1.1);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--error-color);
+            color: white;
+            font-size: 11px;
+            padding: 3px 7px;
+            border-radius: 12px;
+            min-width: 20px;
+            text-align: center;
+            font-weight: 600;
+            z-index: 1001;
+        }
+
+        /* Notification Dropdown */
+        .notification-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 350px;
+            background: var(--white-pure);
+            border-radius: 15px;
+            box-shadow: var(--shadow-luxury);
+            z-index: 1002;
+            display: none;
+            margin-top: 10px;
+            border: 1px solid var(--gray-medium);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-dropdown.show {
+            display: block;
+        }
+
+        .notification-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-medium);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-header h3 {
+            margin: 0;
+            color: var(--black-luxury);
+            font-size: 18px;
+        }
+
+        .notification-clear {
+            background: none;
+            border: none;
+            color: var(--gold-primary);
+            cursor: pointer;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .notification-clear:hover {
+            color: var(--gold-dark);
+            text-decoration: underline;
+        }
+
+        .notification-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--gray-medium);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            position: relative;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-item:hover {
+            background-color: var(--gray-light);
+        }
+
+        .notification-item.unread {
+            background-color: rgba(212, 175, 55, 0.05);
+        }
+
+        .notification-item.unread::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--gold-primary);
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: var(--black-luxury);
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+
+        .notification-message {
+            color: var(--gray-elegant);
+            font-size: 14px;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: var(--gray-elegant);
+        }
+
+        .notification-empty {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--gray-elegant);
+        }
+
+        .notification-empty i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: var(--gray-medium);
+        }
+
+        .notification-empty p {
+            margin: 0;
+            font-size: 16px;
+        }
+
         /* Smooth scroll behavior */
         html {
             scroll-behavior: smooth;
@@ -1084,6 +1568,10 @@
                     </button>
                 </div>
                 <div class="nav-icons">
+                    <div class="nav-icon notification-icon" id="notificationIcon" title="Notifikasi">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationBadge">0</span>
+                    </div>
                     <a href="/user/wishlist" class="nav-icon" title="Wishlist">
                         <i class="fas fa-heart"></i>
                         <span class="cart-badge" id="wishlistBadge">0</span>
@@ -1092,6 +1580,20 @@
                         <i class="fas fa-shopping-cart"></i>
                         <span class="cart-badge" id="cartBadge">0</span>
                     </a>
+                </div>
+                
+                <!-- Notification Dropdown -->
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <h3>Notifikasi</h3>
+                        <button class="notification-clear" id="clearNotifications">Hapus Semua</button>
+                    </div>
+                    <ul class="notification-list" id="notificationList">
+                        <li class="notification-empty">
+                            <i class="fas fa-bell-slash"></i>
+                            <p>Tidak ada notifikasi</p>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </nav>
@@ -1348,6 +1850,8 @@
             }
         }
 
+        // Notification Manager (dipindahkan ke file eksternal)
+
         // Kelas HomepageManager yang sudah ada (tidak diubah)
         class HomepageManager {
             constructor() {
@@ -1367,6 +1871,7 @@
                 this.startPriceUpdates();
                 this.loadCategories();
                 this.loadFeaturedProducts();
+                this.startOrderStatusCheck();
                 
                 setInterval(async () => {
                     await this.loadCartFromDatabase();
@@ -1383,6 +1888,8 @@
                         await this.loadCartFromDatabase();
                         this.updateCartBadge();
                         await this.fetchPriceChange();
+                        // Check for order updates when tab becomes visible
+                        await this.checkOrderStatusUpdates();
                     }
                 });
             }
@@ -2479,6 +2986,85 @@
                 }
             }
 
+            // Start periodic order status checking
+            startOrderStatusCheck() {
+                // Check for order updates every 60 seconds
+                setInterval(async () => {
+                    await this.checkOrderStatusUpdates();
+                }, 60000);
+            }
+
+            // Check for order status updates
+            async checkOrderStatusUpdates() {
+                try {
+                    console.log('🔍 Checking for order status updates...');
+                    
+                    // Get user ID first
+                    const userId = await this.getCurrentUserId();
+                    if (!userId) {
+                        console.log('User not logged in, skipping order status check');
+                        return;
+                    }
+                    
+                    // Fetch user's recent orders
+                    const response = await fetch(`/user/api/orders/recent?userId=${userId}&limit=5`);
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success && result.data) {
+                            const orders = result.data;
+                            
+                            // Get previously stored order statuses from localStorage
+                            const storedOrders = JSON.parse(localStorage.getItem('userOrders')) || [];
+                            
+                            // Check for status changes
+                            for (const order of orders) {
+                                const storedOrder = storedOrders.find(o => o.id === order.id);
+                                
+                                // If order status has changed
+                                if (storedOrder && storedOrder.status !== order.status) {
+                                    // Add notification
+                                    let title, message;
+                                    switch(order.status) {
+                                        case 'PROCESSED':
+                                            title = 'Pesanan Diproses';
+                                            message = `Pesanan #${order.id} sedang diproses. Kami akan segera mengirimkan barang Anda.`;
+                                            break;
+                                        case 'SHIPPED':
+                                            title = 'Pesanan Dikirim';
+                                            message = `Pesanan #${order.id} telah dikirim. Perkiraan sampai dalam 2-3 hari kerja.`;
+                                            break;
+                                        case 'DELIVERED':
+                                            title = 'Pesanan Diterima';
+                                            message = `Pesanan #${order.id} telah diterima. Terima kasih atas pembelian Anda!`;
+                                            break;
+                                        case 'CANCELLED':
+                                            title = 'Pesanan Dibatalkan';
+                                            message = `Pesanan #${order.id} telah dibatalkan.`;
+                                            break;
+                                        default:
+                                            title = 'Status Pesanan Berubah';
+                                            message = `Status pesanan #${order.id} telah berubah menjadi ${order.status}.`;
+                                    }
+                                    
+                                    // Add notification using NotificationManager
+                                    if (window.notificationManager) {
+                                        window.notificationManager.addNotification(title, message, order.id);
+                                    }
+                                }
+                            }
+                            
+                            // Update stored orders
+                            localStorage.setItem('userOrders', JSON.stringify(orders));
+                        }
+                    } else {
+                        console.error('Failed to fetch orders:', response.status);
+                    }
+                } catch (error) {
+                    console.error('Error checking order status updates:', error);
+                }
+            }
+
             showError(elementId, message) {
                 const element = document.getElementById(elementId);
                 if (element) {
@@ -2493,6 +3079,9 @@
             }
         }
 
+        // Notification Manager is now loaded from external file /js/notification-manager.js
+        // The inline declaration has been removed to prevent conflicts
+        
         // Style untuk animasi
         const style = document.createElement('style');
         style.textContent = `
@@ -2511,9 +3100,14 @@
             
             // Initialize homepage manager
             window.homepageManager = new HomepageManager();
+            
+            // Initialize notification manager from external file
+            // The notification manager should be available globally after the script loads
+            console.log('Dashboard: Waiting for notification manager to be loaded from external file...');
         });
     </script>
     <script src="/js/cart-badge-utility.js"></script>
+    <script src="/js/notification-manager.js"></script>
 </body>
 
 </html>

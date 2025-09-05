@@ -206,49 +206,163 @@ class JWTTokenVerification {
 
     async handlePasteClick() {
         try {
+            // Check if clipboard API is available
+            if (!navigator.clipboard || !navigator.clipboard.readText) {
+                alertSystem.warning("Clipboard Tidak Didukung", "Browser Anda tidak mendukung fungsi clipboard. Silakan tempel manual dengan Ctrl+V")
+                this.jwtInput.focus()
+                return
+            }
+
+            // Request clipboard permission if needed
+            const permissionStatus = await navigator.permissions.query({ name: 'clipboard-read' })
+            if (permissionStatus.state === 'denied') {
+                alertSystem.warning("Izin Clipboard Ditolak", "Berikan izin akses clipboard atau gunakan Ctrl+V untuk menempel token")
+                this.jwtInput.focus()
+                return
+            }
+
+            // Show loading state
+            this.pasteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Menempel...</span>'
+            this.pasteBtn.disabled = true
+
             const text = await navigator.clipboard.readText()
-            this.jwtInput.value = text.trim()
-            this.currentToken = text.trim()
+            const cleanText = text.trim()
+            
+            if (!cleanText) {
+                alertSystem.warning("Clipboard Kosong", "Clipboard Anda kosong. Salin token JWT terlebih dahulu")
+                return
+            }
+
+            this.jwtInput.value = cleanText
+            this.currentToken = cleanText
             this.validateJWT()
             this.updateUI()
 
             if (this.isValidJWT()) {
-                alertSystem.success("Token JWT Ditempel", "Token JWT berhasil ditempel dari clipboard")
+                alertSystem.success("Token JWT Ditempel", "Token JWT berhasil ditempel dari clipboard dan tervalidasi")
+                // Auto-focus to verify button if token is valid
+                setTimeout(() => {
+                    if (this.verifyBtn && !this.verifyBtn.disabled) {
+                        this.verifyBtn.focus()
+                    }
+                }, 500)
             } else {
-                alertSystem.warning("Format Token", "Pastikan token yang ditempel adalah format JWT yang valid")
+                alertSystem.warning("Format Token Tidak Valid", "Token yang ditempel bukan format JWT yang valid. Pastikan token dimulai dengan 'eyJ' dan memiliki 3 bagian yang dipisahkan titik")
+                // Focus back to input for correction
+                this.jwtInput.focus()
             }
         } catch (error) {
-            alertSystem.error("Gagal Menempel", "Tidak dapat mengakses clipboard. Silakan tempel manual dengan Ctrl+V")
+            console.error('Paste error:', error)
+            if (error.name === 'NotAllowedError') {
+                alertSystem.error("Akses Clipboard Ditolak", "Berikan izin akses clipboard atau gunakan Ctrl+V untuk menempel token secara manual")
+            } else {
+                alertSystem.error("Gagal Menempel", "Tidak dapat mengakses clipboard. Silakan tempel manual dengan Ctrl+V atau periksa pengaturan browser")
+            }
+            this.jwtInput.focus()
+        } finally {
+            // Restore button state
+            this.pasteBtn.innerHTML = '<i class="fas fa-paste"></i> <span>Tempel dari Clipboard</span>'
+            this.pasteBtn.disabled = false
         }
     }
 
     handleClear() {
-        this.jwtInput.value = ""
-        this.currentToken = ""
-        this.jwtParts = null
-        this.updateUI()
-        this.jwtInput.focus()
-        alertSystem.info("Token Dihapus", "Token JWT telah dihapus dari form")
+        // Confirm if there's valuable content
+        if (this.currentToken && this.currentToken.length > 10) {
+            const confirmClear = confirm("Yakin ingin menghapus token yang sudah dimasukkan?")
+            if (!confirmClear) {
+                return
+            }
+        }
+
+        // Show clearing animation
+        this.clearBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Menghapus...</span>'
+        this.clearBtn.disabled = true
+        
+        // Clear with animation
+        this.jwtInput.style.transition = 'all 0.3s ease'
+        this.jwtInput.style.opacity = '0.5'
+        
+        setTimeout(() => {
+            this.jwtInput.value = ""
+            this.currentToken = ""
+            this.jwtParts = null
+            
+            // Reset input styling
+            this.jwtInput.classList.remove("valid", "invalid")
+            this.jwtInput.style.opacity = '1'
+            
+            this.updateUI()
+            this.jwtInput.focus()
+            
+            // Restore button
+            this.clearBtn.innerHTML = '<i class="fas fa-trash"></i> <span>Hapus Token</span>'
+            this.clearBtn.disabled = false
+            
+            alertSystem.info("Token Dihapus", "Token JWT telah dihapus dari form. Silakan masukkan token baru")
+        }, 300)
     }
 
     handleDecode() {
         if (!this.isValidJWT()) {
-            alertSystem.warning("Token Tidak Valid", "Masukkan token JWT yang valid terlebih dahulu")
+            alertSystem.warning("Token Tidak Valid", "Masukkan token JWT yang valid terlebih dahulu untuk melihat isinya")
+            this.jwtInput.focus()
             return
         }
 
         try {
-            const parts = this.currentToken.split(".")
-            const header = JSON.parse(this.base64UrlDecode(parts[0]))
-            const payload = JSON.parse(this.base64UrlDecode(parts[1]))
+            // Show loading state
+            this.decodeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Mendecode...</span>'
+            this.decodeBtn.disabled = true
 
+            const parts = this.currentToken.split(".")
+            
+            // Decode header
+            const headerDecoded = this.base64UrlDecode(parts[0])
+            const header = JSON.parse(headerDecoded)
+            
+            // Decode payload
+            const payloadDecoded = this.base64UrlDecode(parts[1])
+            const payload = JSON.parse(payloadDecoded)
+            
+            // Format and display decoded content
             document.getElementById("jwtHeader").textContent = JSON.stringify(header, null, 2)
             document.getElementById("jwtPayload").textContent = JSON.stringify(payload, null, 2)
-            document.getElementById("jwtSignature").textContent = "Signature verification requires server-side validation"
+            
+            // Enhanced signature info
+            const signatureInfo = `Signature: ${parts[2]}\n\nCatatan: Verifikasi signature memerlukan secret key di server.\nSignature ini digunakan untuk memastikan token tidak diubah.`
+            document.getElementById("jwtSignature").textContent = signatureInfo
+
+            // Show additional token info
+            if (payload.exp) {
+                const expDate = new Date(payload.exp * 1000)
+                const now = new Date()
+                const isExpired = expDate < now
+                const timeLeft = expDate - now
+                
+                let expiryInfo = `\n\nInformasi Kedaluwarsa:\n`
+                expiryInfo += `Berlaku hingga: ${expDate.toLocaleString('id-ID')}\n`
+                expiryInfo += `Status: ${isExpired ? 'KEDALUWARSA' : 'MASIH BERLAKU'}\n`
+                
+                if (!isExpired) {
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60))
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60))
+                    expiryInfo += `Sisa waktu: ${hours} jam ${minutes} menit`
+                }
+                
+                document.getElementById("jwtPayload").textContent += expiryInfo
+            }
 
             this.showModal()
+            alertSystem.success("Token Berhasil Didecode", "Detail token JWT berhasil ditampilkan")
+            
         } catch (error) {
-            alertSystem.error("Gagal Decode", "Tidak dapat mendecode token JWT. Pastikan format token benar")
+            console.error('Decode error:', error)
+            alertSystem.error("Gagal Decode Token", "Tidak dapat mendecode token JWT. Pastikan format token benar dan lengkap")
+        } finally {
+            // Restore button state
+            this.decodeBtn.innerHTML = '<i class="fas fa-eye"></i> <span>Lihat Isi Token</span>'
+            this.decodeBtn.disabled = false
         }
     }
 
@@ -258,36 +372,90 @@ class JWTTokenVerification {
             return false
         }
 
+        // Remove whitespace and newlines
+        this.currentToken = this.currentToken.replace(/\s/g, '')
+        this.jwtInput.value = this.currentToken
+
         const parts = this.currentToken.split(".")
 
+        // Check if we have exactly 3 parts
         if (parts.length !== 3) {
-            this.jwtParts = { valid: false, parts: parts.length }
+            this.jwtParts = { 
+                valid: false, 
+                parts: parts.length,
+                error: `JWT harus memiliki 3 bagian (header.payload.signature), ditemukan ${parts.length} bagian`
+            }
+            return false
+        }
+
+        // Check if each part is not empty
+        if (parts.some(part => !part || part.length === 0)) {
+            this.jwtParts = {
+                valid: false,
+                error: "Salah satu bagian JWT kosong"
+            }
             return false
         }
 
         try {
-            // Validate each part can be base64 decoded
-            const header = this.base64UrlDecode(parts[0])
-            const payload = this.base64UrlDecode(parts[1])
+            // Validate header
+            const headerDecoded = this.base64UrlDecode(parts[0])
+            const headerJson = JSON.parse(headerDecoded)
+            
+            // Check if header has required fields (but allow missing typ field as it's not always required)
+            if (!headerJson.alg) {
+                throw new Error("Header tidak memiliki field 'alg' yang diperlukan")
+            }
 
-            // Try to parse as JSON
-            JSON.parse(header)
-            JSON.parse(payload)
+            // Validate payload
+            const payloadDecoded = this.base64UrlDecode(parts[1])
+            const payloadJson = JSON.parse(payloadDecoded)
+
+            // Check token expiration if present
+            if (payloadJson.exp) {
+                const expDate = new Date(payloadJson.exp * 1000)
+                const now = new Date()
+                if (expDate < now) {
+                    this.jwtParts = {
+                        valid: false,
+                        header: true,
+                        payload: true,
+                        signature: true,
+                        expired: true,
+                        error: `Token telah kedaluwarsa pada ${expDate.toLocaleString('id-ID')}`
+                    }
+                    return false
+                }
+            }
+
+            // Validate signature format (base64url) - but don't fail if we can't decode it
+            // The server will handle signature validation
+            const signatureValid = this.isValidBase64Url(parts[2])
 
             this.jwtParts = {
                 valid: true,
                 header: true,
                 payload: true,
-                signature: true, // We assume signature is present if format is correct
+                signature: signatureValid, // This can be false but we still consider the token valid for submission
+                headerData: headerJson,
+                payloadData: payloadJson
             }
 
             return true
         } catch (error) {
+            console.error('JWT validation error:', error)
+            
+            // Detailed part validation for better user feedback
+            const headerValid = this.isValidJWTPart(parts[0])
+            const payloadValid = this.isValidJWTPart(parts[1])
+            const signatureValid = this.isValidBase64Url(parts[2])
+            
             this.jwtParts = {
                 valid: false,
-                header: this.isValidBase64Url(parts[0]),
-                payload: this.isValidBase64Url(parts[1]),
-                signature: parts[2] && parts[2].length > 0,
+                header: headerValid,
+                payload: payloadValid,
+                signature: signatureValid,
+                error: error.message || "Format JWT tidak valid"
             }
             return false
         }
@@ -300,6 +468,17 @@ class JWTTokenVerification {
     isValidBase64Url(str) {
         try {
             this.base64UrlDecode(str)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    // Helper function to validate individual JWT part
+    isValidJWTPart(part) {
+        try {
+            const decoded = this.base64UrlDecode(part)
+            JSON.parse(decoded)
             return true
         } catch {
             return false
@@ -321,25 +500,60 @@ class JWTTokenVerification {
     updateUI() {
         // Update input styling
         this.jwtInput.classList.remove("valid", "invalid")
+        
         if (this.currentToken) {
             if (this.isValidJWT()) {
                 this.jwtInput.classList.add("valid")
+                // Show success tooltip
+                this.jwtInput.title = "Token JWT valid dan siap untuk diverifikasi"
             } else {
                 this.jwtInput.classList.add("invalid")
+                // Show error tooltip with specific error
+                if (this.jwtParts?.error) {
+                    this.jwtInput.title = `Error: ${this.jwtParts.error}`
+                } else {
+                    this.jwtInput.title = "Format token JWT tidak valid"
+                }
             }
+        } else {
+            this.jwtInput.title = "Masukkan token JWT untuk verifikasi akun"
         }
 
-        // Update JWT parts status
+        // Update JWT parts status with animations
         this.updatePartStatus("header", this.jwtParts?.header)
         this.updatePartStatus("payload", this.jwtParts?.payload)
         this.updatePartStatus("signature", this.jwtParts?.signature)
 
-        // Update verify button
-        this.verifyBtn.disabled = !this.isValidJWT() || this.isVerifying
+        // Update verify button with enhanced feedback
+        const canVerify = this.isValidJWT() && !this.isVerifying
+        this.verifyBtn.disabled = !canVerify
+        
+        if (canVerify) {
+            this.verifyBtn.title = "Klik untuk memverifikasi token JWT"
+            this.verifyBtn.classList.add("ready")
+        } else {
+            this.verifyBtn.classList.remove("ready")
+            if (this.isVerifying) {
+                this.verifyBtn.title = "Sedang memverifikasi token..."
+            } else if (!this.currentToken) {
+                this.verifyBtn.title = "Masukkan token JWT terlebih dahulu"
+            } else {
+                this.verifyBtn.title = "Token JWT tidak valid"
+            }
+        }
 
-        // Update action buttons
+        // Update action buttons with enhanced states
         this.clearBtn.disabled = !this.currentToken
+        this.clearBtn.title = this.currentToken ? "Hapus token dari form" : "Tidak ada token untuk dihapus"
+        
         this.decodeBtn.disabled = !this.isValidJWT()
+        this.decodeBtn.title = this.isValidJWT() ? "Lihat detail isi token JWT" : "Token harus valid untuk melihat isinya"
+        
+        // Clipboard paste button is always enabled
+        this.pasteBtn.title = "Tempel token dari clipboard"
+
+        // Add visual feedback for token length
+        this.updateTokenLengthFeedback()
     }
 
     updatePartStatus(partName, isValid) {
@@ -352,6 +566,43 @@ class JWTTokenVerification {
             partElement.classList.add("valid")
         } else if (isValid === false) {
             partElement.classList.add("invalid")
+        }
+    }
+
+    updateTokenLengthFeedback() {
+        const wrapper = document.querySelector('.jwt-input-wrapper')
+        const existingFeedback = wrapper.querySelector('.token-length-feedback')
+        
+        // Remove existing feedback
+        if (existingFeedback) {
+            existingFeedback.remove()
+        }
+        
+        if (this.currentToken) {
+            const feedback = document.createElement('div')
+            feedback.className = 'token-length-feedback'
+            
+            const tokenLength = this.currentToken.length
+            const parts = this.currentToken.split('.').length
+            
+            let message = `${tokenLength} karakter, ${parts} bagian`
+            let className = 'info'
+            
+            if (this.isValidJWT()) {
+                message += ' ✓ Valid'
+                className = 'success'
+            } else if (tokenLength > 10) {
+                if (this.jwtParts?.error) {
+                    message += ` ✗ ${this.jwtParts.error}`
+                } else {
+                    message += ' ✗ Format tidak valid'
+                }
+                className = 'error'
+            }
+            
+            feedback.textContent = message
+            feedback.className += ` ${className}`
+            wrapper.appendChild(feedback)
         }
     }
 
@@ -575,6 +826,7 @@ const jwtTokenVerification = new JWTTokenVerification()
 
 // Enhanced keyboard shortcuts for JWT
 document.addEventListener("keydown", (e) => {
+    // Escape key handling
     if (e.key === "Escape") {
         // Close modal if open
         if (jwtTokenVerification.jwtModal.classList.contains("show")) {
@@ -586,35 +838,82 @@ document.addEventListener("keydown", (e) => {
         alertSystem.alerts.forEach((alert) => {
             alertSystem.hide(alert.id)
         })
+        return
     }
 
+    // Submit with Ctrl+Enter
     if (e.key === "Enter" && e.ctrlKey) {
-        // Quick submit if JWT is valid
-        if (jwtTokenVerification.isValidJWT()) {
+        e.preventDefault()
+        if (jwtTokenVerification.isValidJWT() && !jwtTokenVerification.isVerifying) {
             jwtTokenVerification.verificationForm.dispatchEvent(new Event("submit"))
+            alertSystem.info("Memverifikasi Token", "Memproses verifikasi token JWT...")
+        } else if (!jwtTokenVerification.currentToken) {
+            alertSystem.warning("Token Kosong", "Masukkan token JWT terlebih dahulu")
+            jwtTokenVerification.jwtInput.focus()
+        } else {
+            alertSystem.warning("Token Tidak Valid", "Perbaiki format token JWT sebelum memverifikasi")
         }
+        return
     }
 
+    // Quick resend with Ctrl+R
     if (e.key === "r" && e.ctrlKey) {
-        // Quick resend
         e.preventDefault()
         if (!jwtTokenVerification.resendBtn.disabled) {
             jwtTokenVerification.handleResend()
+        } else {
+            alertSystem.info("Tunggu Sebentar", "Fitur kirim ulang sedang dalam cooldown")
         }
+        return
     }
 
+    // Quick paste with Ctrl+V (when not in input)
     if (e.key === "v" && e.ctrlKey && e.target !== jwtTokenVerification.jwtInput) {
-        // Quick paste to JWT input
         e.preventDefault()
         jwtTokenVerification.handlePasteClick()
+        return
     }
 
+    // Quick decode with Ctrl+D
     if (e.key === "d" && e.ctrlKey) {
-        // Quick decode
         e.preventDefault()
         if (jwtTokenVerification.isValidJWT()) {
             jwtTokenVerification.handleDecode()
+        } else {
+            alertSystem.warning("Token Tidak Valid", "Format token JWT harus valid untuk melihat isinya")
         }
+        return
+    }
+
+    // Clear token with Ctrl+X
+    if (e.key === "x" && e.ctrlKey && e.target !== jwtTokenVerification.jwtInput) {
+        e.preventDefault()
+        if (jwtTokenVerification.currentToken) {
+            jwtTokenVerification.handleClear()
+        } else {
+            alertSystem.info("Token Kosong", "Tidak ada token untuk dihapus")
+        }
+        return
+    }
+
+    // Focus to input with Ctrl+I
+    if (e.key === "i" && e.ctrlKey) {
+        e.preventDefault()
+        jwtTokenVerification.jwtInput.focus()
+        jwtTokenVerification.jwtInput.select()
+        alertSystem.info("Input Difokuskan", "Silakan tempel atau ketik token JWT")
+        return
+    }
+
+    // Show help with Ctrl+H
+    if (e.key === "h" && e.ctrlKey) {
+        e.preventDefault()
+        alertSystem.info(
+            "Pintasan Keyboard", 
+            "Ctrl+Enter: Verifikasi • Ctrl+V: Tempel • Ctrl+D: Decode • Ctrl+X: Hapus • Ctrl+R: Kirim Ulang • Ctrl+I: Fokus Input",
+            8000
+        )
+        return
     }
 })
 

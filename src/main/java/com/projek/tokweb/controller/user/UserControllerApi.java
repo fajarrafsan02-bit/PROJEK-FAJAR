@@ -44,18 +44,13 @@ public class UserControllerApi {
             User currentUser = AuthUtils.getCurrentUser();
             
             if (currentUser == null) {
-                // Jika tidak ada user yang login, coba ambil user pertama untuk development
-                User fallbackUser = userRepository.findAll().stream().findFirst().orElse(null);
-                if (fallbackUser == null) {
-                    return ResponseEntity.badRequest()
-                            .body(ApiResponse.error("Tidak ada user tersedia"));
-                }
-                
-                System.out.println("WARNING: No authenticated user found, using fallback user: " + fallbackUser.getEmail());
-                return ResponseEntity.ok(ApiResponse.success("User berhasil diambil (fallback)", fallbackUser));
+                // Jika tidak ada user yang login, kembalikan error
+                System.out.println("❌ No authenticated user found");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.error("User tidak terautentikasi"));
             }
             
-            System.out.println("Authenticated user found: " + currentUser.getEmail() + ", ID: " + currentUser.getId());
+            System.out.println("✅ Authenticated user found: " + currentUser.getEmail() + ", ID: " + currentUser.getId());
             return ResponseEntity.ok(ApiResponse.success("User berhasil diambil", currentUser));
             
         } catch (Exception e) {

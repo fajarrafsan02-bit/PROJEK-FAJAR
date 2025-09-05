@@ -141,13 +141,40 @@ public class AuthControllerApi {
     @PostMapping("/verifikasi-token")
     public ResponseEntity<?> verifikasiToken(@RequestParam("token") String token, HttpSession session,
             HttpServletResponse httpServletResponse) {
+        System.out.println("=== DEBUG VERIFIKASI TOKEN ===");
         System.out.println("INI TOKEN SAYA : " + token);
+        System.out.println("Panjang token: " + (token != null ? token.length() : "null"));
+        
+        // Check token format
+        if (token != null) {
+            String[] parts = token.split("\\.");
+            System.out.println("Jumlah bagian token: " + parts.length);
+            for (int i = 0; i < parts.length; i++) {
+                System.out.println("Bagian " + i + " panjang: " + parts[i].length());
+            }
+        }
+        
         String emailDiSession = (String) session.getAttribute("email");
+        System.out.println("Email di session: " + emailDiSession);
+
+        if (token == null || token.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Token tidak boleh kosong."));
+        }
 
         try {
             String emailDariToken = jwtUtil.extractEmail(token);
+            System.out.println("Email dari token: " + emailDariToken);
 
             if (emailDariToken != null && emailDariToken.equals(emailDiSession)) {
+                // Validasi tambahan
+                if (!jwtUtil.validateToken(token, emailDiSession)) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                            "success", false,
+                            "message", "Token tidak valid atau sudah kedaluwarsa."));
+                }
+                
                 Cookie cookie = new Cookie("jwt", token);
                 cookie.setHttpOnly(true);
                 cookie.setMaxAge(86400);
@@ -164,17 +191,26 @@ public class AuthControllerApi {
                         "message", "Token Yang Masukkan Salah."));
             }
         } catch (ExpiredJwtException e) {
+            System.err.println("Token expired: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "success", false,
                     "message", "Token Anda sudah kedaluwarsa"));
-        } catch (MalformedJwtException | IllegalArgumentException e) {
+        } catch (MalformedJwtException e) {
+            System.err.println("Malformed token: " + e.getMessage());
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
-                    "message", "Format token tidak valid."));
+                    "message", "Format token tidak valid. Token rusak atau tidak lengkap."));
+        } catch (IllegalArgumentException e) {
+            System.err.println("Illegal argument: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Token tidak valid atau kosong."));
         } catch (Exception e) {
+            System.err.println("Unexpected error during token verification: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "success", false,
-                    "message", "Terjadi kesalahan pada token Anda"));
+                    "message", "Terjadi kesalahan pada token Anda: " + e.getMessage()));
         }
     }
 

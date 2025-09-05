@@ -1147,9 +1147,8 @@
                     console.log('CartManager (cart.html): updateBadges called, unique products:', uniqueProducts, '(from', this.totalItems, 'total items)');
                 }
 
-                if (wishlistBadge) {
-                    wishlistBadge.textContent = this.wishlist.length;
-                }
+                // Update wishlist badge
+                this.refreshWishlistBadge();
             }
 
             saveCart() {
@@ -1346,8 +1345,60 @@
                         console.log('CartManager (cart.html): updateCartBadge called, unique products:', uniqueProducts);
                     }
 
+                    // Update wishlist badge from API
+                    this.refreshWishlistBadge();
+                }
+            }
+
+            // Add method to refresh wishlist badge from API
+            async refreshWishlistBadge() {
+                try {
+                    const response = await fetch('/user/api/wishlist/count', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include'
+                    });
+
+                    const wishlistBadge = document.getElementById('wishlistBadge');
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success && result.data) {
+                            const wishlistCount = result.data.count || 0;
+                            
+                            if (wishlistBadge) {
+                                wishlistBadge.textContent = wishlistCount;
+                                if (wishlistCount === 0) {
+                                    wishlistBadge.style.display = 'none';
+                                } else {
+                                    wishlistBadge.style.display = 'inline-block';
+                                }
+                            }
+                            
+                            console.log('CartManager (cart.html): Wishlist badge updated:', wishlistCount, 'items (from API)');
+                        }
+                    } else if (response.status === 401) {
+                        // User not authenticated, hide badge
+                        if (wishlistBadge) {
+                            wishlistBadge.textContent = '0';
+                            wishlistBadge.style.display = 'none';
+                        }
+                        console.log('CartManager (cart.html): User not authenticated, hiding wishlist badge');
+                    }
+                } catch (error) {
+                    console.error('CartManager (cart.html): Error refreshing wishlist badge:', error);
+                    // Fallback to localStorage if API fails
+                    const wishlistBadge = document.getElementById('wishlistBadge');
                     if (wishlistBadge) {
-                        wishlistBadge.textContent = '0';
+                        const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+                        wishlistBadge.textContent = wishlist.length;
+                        if (wishlist.length === 0) {
+                            wishlistBadge.style.display = 'none';
+                        } else {
+                            wishlistBadge.style.display = 'inline-block';
+                        }
                     }
                 }
             }

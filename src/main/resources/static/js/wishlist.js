@@ -14,7 +14,7 @@ class WishlistManager {
     init() {
         this.setupEventListeners();
         this.loadWishlist();
-        this.updateCartBadge(); // Update cart badge from localStorage
+        this.refreshCartBadge(); // Update cart badge from database
     }
 
     setupEventListeners() {
@@ -434,7 +434,7 @@ class WishlistManager {
             if (result.success) {
                 console.log('✅ Added to cart:', result.data);
                 this.showNotification(`${product.name} berhasil ditambahkan ke keranjang`, 'success');
-                this.updateCartBadge();
+                this.refreshCartBadge(); // Refresh cart badge from database
                 return true;
             } else {
                 console.warn('⚠️ Failed to add to cart:', result.message);
@@ -518,6 +518,7 @@ class WishlistManager {
 
         if (successCount > 0) {
             this.showNotification(`${successCount} produk berhasil ditambahkan ke keranjang`, 'success');
+            this.refreshCartBadge(); // Refresh cart badge from database
         }
         if (failCount > 0) {
             this.showNotification(`${failCount} produk gagal ditambahkan`, 'warning');
@@ -559,6 +560,7 @@ class WishlistManager {
 
         if (successCount > 0) {
             this.showNotification(`${successCount} produk berhasil ditambahkan ke keranjang`, 'success');
+            this.refreshCartBadge(); // Refresh cart badge from database
         }
         if (failCount > 0) {
             this.showNotification(`${failCount} produk gagal ditambahkan`, 'warning');
@@ -615,10 +617,65 @@ class WishlistManager {
     }
 
     updateCartBadge() {
-        // Update cart badge from localStorage or API
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
-        const totalCartItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-        this.updateElement('cartBadge', totalCartItems.toString());
+        // Use CartBadgeManager if available, otherwise use local method
+        if (window.cartBadgeManager && typeof window.cartBadgeManager.refreshCart === 'function') {
+            window.cartBadgeManager.refreshCart();
+        } else {
+            this.refreshCartBadge(); // Fallback to local method
+        }
+    }
+
+    async refreshCartBadge() {
+        try {
+            const userId = await this.getCurrentUserId();
+            if (!userId) {
+                // If user is not logged in, hide the cart badge
+                this.updateElement('cartBadge', '0');
+                const cartBadge = document.getElementById('cartBadge');
+                if (cartBadge) {
+                    cartBadge.style.display = 'none';
+                }
+                return;
+            }
+
+            // Fetch cart data from API
+            const response = await fetch(`/user/api/cart?userId=${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.data) {
+                    const cartItems = result.data.items || [];
+                    // Count unique products (not total quantity)
+                    const uniqueProducts = cartItems.length;
+                    this.updateElement('cartBadge', uniqueProducts.toString());
+                    
+                    // Hide badge if cart is empty
+                    const cartBadge = document.getElementById('cartBadge');
+                    if (cartBadge) {
+                        cartBadge.style.display = uniqueProducts > 0 ? 'inline-block' : 'none';
+                    }
+                    
+                    console.log(' WishlistManager: Cart badge updated with', uniqueProducts, 'items');
+                }
+            } else {
+                // If there's an error, fallback to localStorage
+                const cart = JSON.parse(localStorage.getItem('cart')) || [];
+                const totalCartItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+                this.updateElement('cartBadge', totalCartItems.toString());
+            }
+        } catch (error) {
+            console.error('Error refreshing cart badge:', error);
+            // Fallback to localStorage
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const totalCartItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+            this.updateElement('cartBadge', totalCartItems.toString());
+        }
     }
 
     updateBulkActionsVisibility() {

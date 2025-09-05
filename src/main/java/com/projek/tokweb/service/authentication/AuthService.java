@@ -109,13 +109,19 @@ public class AuthService {
             }
 
             User user = userOpt.get();
+            
+            // Validasi tambahan
+            if (!jwtUtil.validateToken(token, email)) {
+                return Map.of("success", false, "message", "Token tidak valid atau sudah kadaluarsa");
+            }
+            
             return Map.of(
                     "success", true,
                     "message", "Token valid",
                     "user", user,
                     "role", user.getRole().name());
         } catch (Exception e) {
-            return Map.of("success", false, "message", "Token tidak valid atau sudah kadaluarsa");
+            return Map.of("success", false, "message", "Token tidak valid atau sudah kadaluarsa: " + e.getMessage());
         }
     }
 

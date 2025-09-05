@@ -62,6 +62,41 @@
             min-height: 100vh;
             color: var(--black-luxury);
             overflow-x: hidden;
+            /* Prevent horizontal scrolling */
+            position: relative;
+            width: 100%;
+            max-width: 100vw;
+        }
+
+        /* Apply overflow-x hidden at HTML level for mobile */
+        @media (max-width: 768px) {
+            html {
+                overflow-x: hidden !important;
+                max-width: 100vw !important;
+                width: 100vw !important;
+            }
+
+            body {
+                overflow-x: hidden !important;
+                max-width: 100vw !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100vw !important;
+            }
+
+            /* Force all elements to stay within viewport */
+            * {
+                max-width: 100vw !important;
+                overflow-x: hidden !important;
+            }
+        }
+
+        /* Prevent horizontal scrolling on mobile */
+        body.mobile-menu-open {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
         }
 
         /* ===== SCROLL ANIMATIONS ===== */
@@ -124,14 +159,37 @@
             transition-delay: 0s;
         }
 
-        .stagger-animation:nth-child(1) { transition-delay: 0.1s; }
-        .stagger-animation:nth-child(2) { transition-delay: 0.2s; }
-        .stagger-animation:nth-child(3) { transition-delay: 0.3s; }
-        .stagger-animation:nth-child(4) { transition-delay: 0.4s; }
-        .stagger-animation:nth-child(5) { transition-delay: 0.5s; }
-        .stagger-animation:nth-child(6) { transition-delay: 0.6s; }
-        .stagger-animation:nth-child(7) { transition-delay: 0.7s; }
-        .stagger-animation:nth-child(8) { transition-delay: 0.8s; }
+        .stagger-animation:nth-child(1) {
+            transition-delay: 0.1s;
+        }
+
+        .stagger-animation:nth-child(2) {
+            transition-delay: 0.2s;
+        }
+
+        .stagger-animation:nth-child(3) {
+            transition-delay: 0.3s;
+        }
+
+        .stagger-animation:nth-child(4) {
+            transition-delay: 0.4s;
+        }
+
+        .stagger-animation:nth-child(5) {
+            transition-delay: 0.5s;
+        }
+
+        .stagger-animation:nth-child(6) {
+            transition-delay: 0.6s;
+        }
+
+        .stagger-animation:nth-child(7) {
+            transition-delay: 0.7s;
+        }
+
+        .stagger-animation:nth-child(8) {
+            transition-delay: 0.8s;
+        }
 
         /* ===== PAGE LOADING ANIMATION ===== */
         .page-loader {
@@ -184,18 +242,39 @@
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.8; }
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.05);
+                opacity: 0.8;
+            }
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
         }
 
         @keyframes slideInFromLeft {
@@ -203,6 +282,7 @@
                 transform: translateX(-100%);
                 opacity: 0;
             }
+
             to {
                 transform: translateX(0);
                 opacity: 1;
@@ -214,6 +294,7 @@
                 transform: translateX(100%);
                 opacity: 0;
             }
+
             to {
                 transform: translateX(0);
                 opacity: 1;
@@ -228,6 +309,21 @@
         .admin-container {
             display: flex;
             min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            width: 100%;
+            max-width: 100vw;
+        }
+
+        /* Mobile admin container fix */
+        @media (max-width: 768px) {
+            .admin-container {
+                overflow-x: hidden !important;
+                max-width: 100vw !important;
+                width: 100vw !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
         }
 
         /* Sidebar */
@@ -240,20 +336,172 @@
             overflow-y: auto;
             z-index: 1000;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            animation: slideInFromLeft 0.6s ease-out;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            /* Ensure proper flexbox layout */
         }
 
-        .sidebar.collapsed {
-            width: 80px;
+        /* Desktop sidebar behavior - always full width, no collapse */
+        @media (min-width: 1025px) {
+            .sidebar {
+                width: 280px;
+                /* Always full width */
+                transform: translateX(0);
+                /* Always visible on desktop */
+            }
+        }
+
+        /* Additional fixes for sidebar text overlap issues */
+        .sidebar * {
+            box-sizing: border-box;
+        }
+
+        .sidebar .nav-link {
+            /* Prevent any text overlap */
+            contain: layout;
+            isolation: isolate;
+        }
+
+        .sidebar .nav-text,
+        .sidebar .logo-subtitle {
+            /* Ensure text is never clipped or overlapped */
+            display: block !important;
+            visibility: visible !important;
+            position: static !important;
+            opacity: 1 !important;
+            transform: none !important;
+            overflow: visible;
+            text-overflow: clip;
+            white-space: normal;
+            word-wrap: break-word;
+            max-width: 100%;
+        }
+
+        /* Prevent any absolute positioning conflicts */
+        .sidebar .nav-link * {
+            position: static !important;
+        }
+
+        .sidebar .nav-link .nav-icon {
+            position: static !important;
+            z-index: auto !important;
+        }
+
+        .sidebar .nav-link .nav-text {
+            position: static !important;
+            z-index: auto !important;
+            background: none !important;
+            color: inherit !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+        /* Clear any hover transformations that might cause overlap */
+        .sidebar .nav-link:hover .nav-text {
+            position: static !important;
+            transform: none !important;
+            left: auto !important;
+            top: auto !important;
+        }
+
+        /* Force proper flexbox behavior */
+        .sidebar .nav-link {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            gap: 0 !important;
+        }
+
+        .sidebar .nav-icon {
+            order: 1;
+        }
+
+        .sidebar .nav-text {
+            order: 2;
+        }
+
+        /* Mobile sidebar behavior - hidden by default */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%) !important;
+                /* Hidden by default on mobile */
+                z-index: 1002;
+                width: min(85vw, 300px);
+                max-width: 300px;
+                will-change: transform;
+                -webkit-overflow-scrolling: touch;
+                /* Ensure proper content layout */
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0) !important;
+                /* Show when burger menu clicked */
+            }
+
+            /* Prevent desktop collapse behavior on mobile */
+            .sidebar.collapsed {
+                width: min(85vw, 300px);
+                transform: translateX(-100%) !important;
+                /* Still hidden even if collapsed */
+            }
+
+            .sidebar.collapsed.mobile-open {
+                transform: translateX(0) !important;
+                /* Show when mobile menu opened */
+            }
+
+            /* Ensure sidebar content is properly organized on mobile */
+            .sidebar .sidebar-header {
+                flex-shrink: 0;
+            }
+
+            .sidebar .sidebar-nav {
+                flex: 1;
+                overflow-y: auto;
+                overflow-x: hidden;
+            }
+
+            /* Fix text alignment and prevent overflow */
+            .sidebar .nav-link {
+                display: flex !important;
+                align-items: center !important;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .sidebar .nav-text {
+                flex: 1;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .sidebar .nav-icon {
+                flex-shrink: 0;
+            }
         }
 
         .sidebar-header {
-            padding: 30px 20px;
+            padding: 25px 20px;
             text-align: center;
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             position: relative;
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
             backdrop-filter: blur(10px);
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         .sidebar-header::before {
@@ -268,6 +516,14 @@
             border-radius: 2px;
         }
 
+        /* Mobile responsive adjustments for sidebar header */
+        @media (max-width: 1024px) {
+            .sidebar-header {
+                padding: 20px 15px;
+                min-height: 80px;
+            }
+        }
+
         .sidebar-toggle {
             position: absolute;
             top: 20px;
@@ -279,7 +535,8 @@
             height: 35px;
             border-radius: 50%;
             cursor: pointer;
-            display: flex;
+            display: none;
+            /* Hidden by default */
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
@@ -291,6 +548,150 @@
             transform: scale(1.1);
         }
 
+        /* Hide sidebar toggle button on all screen sizes */
+        @media (max-width: 1024px) {
+            .sidebar-toggle {
+                display: none !important;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .sidebar-toggle {
+                display: none !important;
+            }
+        }
+
+        /* Mobile menu button */
+        .mobile-menu-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-gold);
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
+            cursor: pointer;
+            z-index: 9999;
+            /* Very high z-index to ensure it's always on top */
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            /* Ensure button is always interactive on mobile */
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            /* Increase touch target for better mobile usability */
+            min-width: 50px;
+            min-height: 50px;
+            /* Ensure it's above everything */
+            pointer-events: auto;
+        }
+
+        /* Show mobile menu button only on mobile */
+        @media (max-width: 1024px) {
+            .mobile-menu-btn {
+                display: flex !important;
+            }
+        }
+
+        /* Ensure button is not hidden on desktop */
+        @media (min-width: 1025px) {
+            .mobile-menu-btn {
+                display: none !important;
+            }
+        }
+
+        .mobile-menu-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(212, 175, 55, 0.4);
+            background: linear-gradient(135deg, #ffd700 0%, #d4af37 50%, #b8860b 100%);
+        }
+
+        .mobile-menu-btn:active {
+            transform: translateY(0) scale(1);
+        }
+
+        /* Improve touch responsiveness */
+        @media (hover: none) and (pointer: coarse) {
+            .mobile-menu-btn:hover {
+                transform: none;
+            }
+
+            .mobile-menu-btn:active {
+                transform: scale(0.95);
+                background: linear-gradient(135deg, #b8860b 0%, #d4af37 50%, #ffd700 100%);
+            }
+        }
+
+        .mobile-menu-btn span {
+            width: 24px;
+            height: 3px;
+            background: var(--black-luxury);
+            border-radius: 2px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center;
+        }
+
+        /* Animate hamburger to X */
+        .mobile-menu-btn.active span:nth-child(1) {
+            transform: rotate(45deg) translateY(7px);
+        }
+
+        .mobile-menu-btn.active span:nth-child(2) {
+            opacity: 0;
+            transform: scaleX(0);
+        }
+
+        .mobile-menu-btn.active span:nth-child(3) {
+            transform: rotate(-45deg) translateY(-7px);
+        }
+
+        /* Mobile backdrop overlay */
+        .mobile-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .mobile-backdrop.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Sidebar backdrop (alternative name for compatibility) */
+        .sidebar-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar-backdrop.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
         .logo {
             font-family: "Playfair Display", serif;
             font-size: 28px;
@@ -299,6 +700,9 @@
             margin-bottom: 8px;
             letter-spacing: 2px;
             transition: all 0.3s ease;
+            line-height: 1.2;
+            text-align: center;
+            width: 100%;
         }
 
         .logo-subtitle {
@@ -308,14 +712,32 @@
             letter-spacing: 1px;
             font-weight: 600;
             transition: all 0.3s ease;
+            text-align: center;
+            width: 100%;
+            margin: 0;
+        }
+
+        /* Mobile responsive adjustments for logo */
+        @media (max-width: 1024px) {
+            .logo {
+                font-size: 24px;
+                margin-bottom: 6px;
+            }
+
+            .logo-subtitle {
+                font-size: 11px;
+            }
         }
 
         .sidebar-nav {
             padding: 20px 0;
+            overflow-y: auto;
+            flex: 1;
         }
 
         .nav-item {
             margin-bottom: 5px;
+            width: 100%;
         }
 
         .nav-link {
@@ -329,6 +751,21 @@
             font-weight: 500;
             border-radius: 0;
             overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 54px;
+        }
+
+        /* Mobile responsive adjustments for navigation */
+        @media (max-width: 1024px) {
+            .sidebar-nav {
+                padding: 15px 0;
+            }
+
+            .nav-link {
+                padding: 12px 20px;
+                min-height: 48px;
+            }
         }
 
         .nav-link::before {
@@ -374,12 +811,16 @@
 
         .nav-icon {
             width: 20px;
+            min-width: 20px;
             margin-right: 15px;
             text-align: center;
             font-size: 16px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .nav-link:hover .nav-icon {
@@ -396,86 +837,169 @@
         .nav-text {
             transition: all 0.3s ease;
             white-space: nowrap;
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.4;
         }
 
-        .sidebar.collapsed .nav-text,
-        .sidebar.collapsed .logo-subtitle {
-            opacity: 0;
-            pointer-events: none;
-            transform: translateX(-10px);
+        /* Mobile responsive adjustments for navigation elements */
+        @media (max-width: 1024px) {
+            .nav-icon {
+                width: 18px;
+                min-width: 18px;
+                font-size: 14px;
+                margin-right: 12px;
+            }
+
+            .nav-text {
+                font-size: 13px;
+            }
         }
 
-        .sidebar.collapsed .logo {
-            font-size: 20px;
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            letter-spacing: 3px;
+        /* Desktop text visibility - always visible */
+        @media (min-width: 1025px) {
+
+            .sidebar .nav-text,
+            .sidebar .logo-subtitle {
+                opacity: 1;
+                pointer-events: auto;
+                display: block;
+                visibility: visible;
+            }
+
+            .sidebar .logo {
+                font-size: 28px;
+                /* Always full size */
+            }
         }
 
+        /* Mobile text visibility - ensure proper display */
+        @media (max-width: 1024px) {
+
+            .sidebar .nav-text,
+            .sidebar .logo-subtitle {
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                display: block !important;
+                visibility: visible !important;
+                position: static !important;
+                transform: none !important;
+            }
+
+            /* Ensure sidebar content doesn't overflow */
+            .sidebar {
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+
+            /* Fix sidebar layout on mobile */
+            .sidebar .nav-link {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: flex-start !important;
+                white-space: nowrap;
+                overflow: hidden;
+            }
+        }
+
+        /* Remove collapsed sidebar behavior - always show full sidebar */
         .sidebar.collapsed .nav-link {
-            padding: 15px 30px;
-            justify-content: center;
+            /* Disable collapsed behavior */
+            padding: 15px 25px;
+            justify-content: flex-start;
             position: relative;
         }
 
         .sidebar.collapsed .nav-link:hover {
-            transform: translateX(0);
-            padding-right: 35px;
+            transform: translateX(8px);
+            padding-right: 25px;
         }
 
         .sidebar.collapsed .nav-link:hover .nav-text {
             opacity: 1;
             transform: translateX(0);
-            position: absolute;
-            left: 70px;
-            background: var(--black-luxury);
-            color: var(--gold-primary);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
+            position: static;
+            background: none;
+            color: inherit;
+            padding: 0;
+            border-radius: 0;
+            font-size: inherit;
+            font-weight: inherit;
             white-space: nowrap;
-            box-shadow: var(--shadow-luxury);
-            z-index: 1001;
+            box-shadow: none;
+            z-index: auto;
             pointer-events: auto;
         }
 
         .sidebar.collapsed .nav-link:hover .nav-text::before {
-            content: "";
-            position: absolute;
-            left: -6px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 6px 6px 6px 0;
-            border-color: transparent var(--black-luxury) transparent transparent;
+            display: none;
         }
 
         .sidebar.collapsed .nav-icon {
-            margin-right: 0;
-            font-size: 18px;
+            margin-right: 15px;
+            font-size: 16px;
+        }
+
+        /* Mobile responsive adjustments for collapsed state */
+        @media (max-width: 1024px) {
+            .sidebar.collapsed .nav-link {
+                padding: 12px 20px;
+            }
+
+            .sidebar.collapsed .nav-icon {
+                margin-right: 12px;
+                font-size: 14px;
+            }
         }
 
         /* ===== MAIN CONTENT AREA ===== */
         .main-content {
             flex: 1;
-            margin-left: 280px;
             transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow-x: hidden;
+            /* Prevent horizontal scrolling */
+            max-width: 100vw;
+            box-sizing: border-box;
+            padding: 30px;
+            background: var(--gray-light);
         }
 
-        .sidebar.collapsed + .main-content {
-            margin-left: 80px;
+        /* Desktop layout - sidebar always full width */
+        @media (min-width: 1025px) {
+            .main-content {
+                margin-left: 280px;
+                /* Always full sidebar width */
+            }
+        }
+
+        /* Mobile layout */
+        @media (max-width: 1024px) {
+            .main-content {
+                margin-left: 0 !important;
+                padding: 20px 15px;
+                max-width: 100vw;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 0 !important;
+                max-width: 100vw !important;
+                width: 100vw !important;
+                margin: 0 !important;
+                box-sizing: border-box !important;
+                overflow-x: hidden !important;
+            }
         }
 
         /* ===== HEADER SECTION ===== */
         .header {
             background: var(--white-pure);
-            padding: 20px 30px;
+            padding: 25px 30px;
             box-shadow: var(--shadow-soft);
             display: flex;
             justify-content: space-between;
@@ -486,6 +1010,35 @@
             animation: slideInFromRight 0.6s ease-out;
             transition: all 0.3s ease;
             border-bottom: 1px solid var(--gray-medium);
+            min-height: 80px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        /* Mobile responsive header */
+        @media (max-width: 1024px) {
+            .header {
+                padding: 20px 25px;
+                min-height: 70px;
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px 20px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+                min-height: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 12px 15px;
+                gap: 10px;
+            }
         }
 
         .header:hover {
@@ -501,23 +1054,155 @@
             display: flex;
             align-items: center;
             gap: 15px;
+            flex-shrink: 0;
+            line-height: 1.2;
+        }
+
+        /* Mobile responsive header title */
+        @media (max-width: 1024px) {
+            .header-title {
+                font-size: 28px;
+                gap: 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-title {
+                font-size: 24px;
+                gap: 10px;
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-title {
+                font-size: 20px;
+                gap: 8px;
+            }
         }
 
         .header-title i {
             color: var(--gold-primary);
             font-size: 28px;
+            flex-shrink: 0;
+        }
+
+        /* Mobile responsive header icon */
+        @media (max-width: 1024px) {
+            .header-title i {
+                font-size: 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-title i {
+                font-size: 20px;
+            }
         }
 
         .header-actions {
             display: flex;
             align-items: center;
             gap: 20px;
+            flex-shrink: 0;
+        }
+
+        /* Mobile responsive header actions */
+        @media (max-width: 768px) {
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+                gap: 15px;
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-actions {
+                gap: 10px;
+            }
         }
 
         .header-controls {
             display: flex;
             align-items: center;
             gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* Mobile responsive header controls */
+        @media (max-width: 768px) {
+            .header-controls {
+                gap: 10px;
+                order: 2;
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-controls {
+                gap: 8px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* Refresh button improvements */
+        .refresh-btn {
+            background: var(--gradient-gold);
+            color: var(--black-luxury);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            box-shadow: var(--shadow-soft);
+            white-space: nowrap;
+        }
+
+        /* Mobile responsive refresh button */
+        @media (max-width: 768px) {
+            .refresh-btn {
+                padding: 10px 16px;
+                font-size: 13px;
+                gap: 6px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .refresh-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+        }
+
+        .refresh-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .refresh-btn.test-api {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: var(--white-pure);
+        }
+
+        .refresh-btn.test-api:hover {
+            box-shadow: 0 8px 25px rgba(23, 162, 184, 0.4);
         }
 
         /* ===== NOTIFICATION AND USER PROFILE ===== */
@@ -534,6 +1219,27 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            min-width: 44px;
+            min-height: 44px;
+        }
+
+        /* Mobile responsive notification button */
+        @media (max-width: 768px) {
+            .notification-btn {
+                padding: 10px;
+                font-size: 18px;
+                min-width: 40px;
+                min-height: 40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .notification-btn {
+                padding: 8px;
+                font-size: 16px;
+                min-width: 36px;
+                min-height: 36px;
+            }
         }
 
         .notification-btn:hover {
@@ -557,6 +1263,17 @@
             animation: pulse 2s infinite;
         }
 
+        /* Mobile responsive notification badge */
+        @media (max-width: 480px) {
+            .notification-badge {
+                top: 6px;
+                right: 6px;
+                font-size: 9px;
+                padding: 3px 6px;
+                min-width: 18px;
+            }
+        }
+
         .user-profile {
             display: flex;
             align-items: center;
@@ -566,6 +1283,27 @@
             border-radius: 20px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: 2px solid transparent;
+            flex-shrink: 0;
+            min-height: 65px;
+        }
+
+        /* Mobile responsive user profile */
+        @media (max-width: 768px) {
+            .user-profile {
+                gap: 12px;
+                padding: 8px 16px;
+                min-height: 56px;
+                order: 1;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .user-profile {
+                gap: 10px;
+                padding: 6px 12px;
+                min-height: 48px;
+                border-radius: 16px;
+            }
         }
 
         .user-profile:hover {
@@ -586,6 +1324,30 @@
             font-weight: 700;
             font-size: 18px;
             box-shadow: var(--shadow-soft);
+            flex-shrink: 0;
+        }
+
+        /* Mobile responsive user avatar */
+        @media (max-width: 768px) {
+            .user-avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .user-avatar {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+            }
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+            /* Allow text to wrap */
         }
 
         .user-info h4 {
@@ -594,6 +1356,23 @@
             color: var(--black-luxury);
             margin: 0;
             margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Mobile responsive user info */
+        @media (max-width: 768px) {
+            .user-info h4 {
+                font-size: 14px;
+                margin-bottom: 2px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .user-info h4 {
+                font-size: 12px;
+            }
         }
 
         .user-info p {
@@ -601,6 +1380,22 @@
             color: var(--gray-elegant);
             margin: 0;
             font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Mobile responsive user info paragraph */
+        @media (max-width: 768px) {
+            .user-info p {
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .user-info p {
+                font-size: 10px;
+            }
         }
 
         /* ===== CONTENT AREA ===== */
@@ -609,6 +1404,23 @@
             padding: 30px;
             background: var(--gray-light);
             min-height: calc(100vh - 120px);
+            overflow-x: hidden;
+            /* Prevent horizontal scrolling */
+            max-width: 100%;
+        }
+
+        /* Mobile responsive adjustments for content */
+        @media (max-width: 1024px) {
+            .content {
+                padding: 20px 15px;
+                min-height: calc(100vh - 100px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 15px 10px;
+            }
         }
 
         /* ===== ORDERS HEADER SECTION ===== */
@@ -620,6 +1432,26 @@
             margin-bottom: 30px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid var(--gray-medium);
+            overflow-x: hidden;
+            /* Prevent horizontal scrolling */
+            max-width: 100%;
+        }
+
+        /* Mobile responsive adjustments for orders header */
+        @media (max-width: 1024px) {
+            .orders-header {
+                padding: 25px 20px;
+                margin-bottom: 20px;
+                border-radius: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .orders-header {
+                padding: 20px 15px;
+                margin-bottom: 15px;
+                border-radius: 12px;
+            }
         }
 
         .orders-header:hover {
@@ -653,6 +1485,33 @@
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 25px;
             margin-bottom: 35px;
+            overflow-x: hidden;
+            /* Prevent horizontal scrolling */
+            max-width: 100%;
+        }
+
+        /* Mobile responsive adjustments for statistics */
+        @media (max-width: 1024px) {
+            .orders-stats {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 15px;
+                margin-bottom: 25px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .orders-stats {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .orders-stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
         }
 
         .stat-item {
@@ -665,6 +1524,28 @@
             border: 2px solid transparent;
             position: relative;
             overflow: hidden;
+            max-width: 100%;
+        }
+
+        /* Mobile responsive adjustments for stat items */
+        @media (max-width: 1024px) {
+            .stat-item {
+                padding: 20px 15px;
+                border-radius: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stat-item {
+                padding: 15px 12px;
+                border-radius: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stat-item {
+                padding: 12px 10px;
+            }
         }
 
         .stat-item::before {
@@ -689,7 +1570,7 @@
             border-color: var(--gold-primary);
         }
 
-        .stat-item > * {
+        .stat-item>* {
             position: relative;
             z-index: 1;
         }
@@ -735,6 +1616,30 @@
             border-radius: 20px;
             box-shadow: var(--shadow-soft);
             border: 1px solid var(--gray-medium);
+            overflow-x: hidden;
+            /* Prevent horizontal scrolling */
+            max-width: 100%;
+        }
+
+        /* Mobile responsive adjustments for controls */
+        @media (max-width: 1024px) {
+            .orders-controls {
+                padding: 20px 15px;
+                gap: 15px;
+                margin-bottom: 20px;
+                border-radius: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .orders-controls {
+                padding: 15px 12px;
+                gap: 12px;
+                margin-bottom: 15px;
+                border-radius: 12px;
+                flex-direction: column;
+                align-items: stretch;
+            }
         }
 
         .search-box {
@@ -742,6 +1647,17 @@
             flex: 1;
             max-width: 450px;
             min-width: 300px;
+            overflow: hidden;
+            /* Prevent overflow */
+        }
+
+        /* Mobile responsive adjustments for search box */
+        @media (max-width: 768px) {
+            .search-box {
+                max-width: 100%;
+                min-width: auto;
+                width: 100%;
+            }
         }
 
         .search-input {
@@ -792,6 +1708,25 @@
             gap: 20px;
             align-items: center;
             flex-wrap: wrap;
+            overflow: hidden;
+            /* Prevent overflow */
+            max-width: 100%;
+        }
+
+        /* Mobile responsive adjustments for filter controls */
+        @media (max-width: 768px) {
+            .filter-controls {
+                width: 100%;
+                gap: 12px;
+                justify-content: space-between;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .filter-controls {
+                flex-direction: column;
+                gap: 10px;
+            }
         }
 
         .filter-select {
@@ -804,6 +1739,26 @@
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             min-width: 150px;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        /* Mobile responsive adjustments for filter select */
+        @media (max-width: 768px) {
+            .filter-select {
+                min-width: auto;
+                flex: 1;
+                font-size: 13px;
+                padding: 10px 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .filter-select {
+                width: 100%;
+                font-size: 12px;
+                padding: 8px 12px;
+            }
         }
 
         .filter-select:focus {
@@ -846,6 +1801,33 @@
             overflow: hidden;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid var(--gray-medium);
+            max-width: 100%;
+            overflow-x: hidden;
+            /* Prevent horizontal scrolling */
+        }
+
+        /* Mobile responsive adjustments for table container */
+        @media (max-width: 1024px) {
+            .orders-table-container {
+                padding: 25px 20px;
+                margin-top: 20px;
+                border-radius: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .orders-table-container {
+                padding: 20px 15px;
+                margin-top: 15px;
+                border-radius: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .orders-table-container {
+                padding: 15px 10px;
+                margin-top: 10px;
+            }
         }
 
         .orders-table-container:hover {
@@ -858,6 +1840,58 @@
             overflow-x: auto;
             border-radius: 15px;
             border: 1px solid var(--gray-medium);
+            max-width: 100%;
+            /* Webkit scrollbar styling for better mobile experience */
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Custom scrollbar for table wrapper */
+        .table-wrapper::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-track {
+            background: var(--gray-light);
+            border-radius: 4px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: var(--gold-primary);
+            border-radius: 4px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: var(--gold-dark);
+        }
+
+        /* Remove table wrapper overflow for mobile - cleaner approach */
+        @media (max-width: 768px) {
+            .orders-table-container {
+                overflow: hidden !important;
+                overflow-x: hidden !important;
+                max-width: 100vw !important;
+                width: 100vw !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-sizing: border-box !important;
+            }
+
+            .table-wrapper {
+                overflow: hidden !important;
+                overflow-x: hidden !important;
+                width: 100vw !important;
+                max-width: 100vw !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-sizing: border-box !important;
+            }
+
+            /* Hide complex duplicate mobile CSS rules */
+            .orders-table tbody tr td[data-label] {
+                display: flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
         }
 
         .orders-table {
@@ -865,6 +1899,31 @@
             border-collapse: collapse;
             margin: 0;
             background: var(--white-pure);
+            min-width: 800px;
+            /* Ensure minimum width for proper layout */
+        }
+
+        /* Mobile responsive adjustments for table */
+        @media (max-width: 1024px) {
+            .orders-table {
+                min-width: 700px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .orders-table {
+                min-width: unset;
+                width: 100%;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .orders-table {
+                min-width: unset;
+                width: 100%;
+                font-size: 12px;
+            }
         }
 
         .orders-table th,
@@ -873,7 +1932,580 @@
             text-align: left;
             border-bottom: 1px solid var(--gray-medium);
             vertical-align: middle;
+            white-space: nowrap;
+            /* Prevent text wrapping that could cause layout issues */
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+
+        /* Mobile responsive adjustments for table cells */
+        @media (max-width: 768px) {
+
+            .orders-table th,
+            .orders-table td {
+                padding: 12px 10px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            .orders-table th,
+            .orders-table td {
+                padding: 8px 6px;
+                font-size: 11px;
+            }
+        }
+
+        /* Mobile table layout - convert to cards like in the image */
+        @media (max-width: 768px) {
+            .table-wrapper {
+                border: none;
+                border-radius: 0;
+                padding: 0;
+                overflow: visible;
+            }
+
+            .orders-table,
+            .orders-table thead,
+            .orders-table tbody,
+            .orders-table th,
+            .orders-table td,
+            .orders-table tr {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                overflow: hidden !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .orders-table thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+                visibility: hidden;
+            }
+
+            .orders-table tbody {
+                display: block !important;
+                width: 100vw !important;
+                max-width: 100vw !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-sizing: border-box !important;
+                overflow: hidden !important;
+            }
+
+            .orders-table tbody tr {
+                background: var(--white-pure);
+                border-radius: 8px;
+                margin-bottom: 12px;
+                padding: 6px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                border: 1px solid var(--gray-medium);
+                transition: all 0.3s ease;
+                position: relative;
+                display: block !important;
+                width: calc(100vw - 30px) !important;
+                max-width: calc(100vw - 30px) !important;
+                box-sizing: border-box !important;
+                margin-left: 15px;
+                margin-right: 15px;
+                overflow: hidden !important;
+            }
+
+            .orders-table tbody tr:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);
+                border-color: var(--gold-primary);
+            }
+
+            .orders-table td {
+                border: none !important;
+                position: relative !important;
+                padding: 4px 0 !important;
+                text-align: left !important;
+                font-size: 12px !important;
+                line-height: 1.2 !important;
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                box-sizing: border-box !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                overflow: hidden !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+                border-bottom: none !important;
+            }
+
+            /* Special handling for Aksi column to prevent overflow */
+            .orders-table td[data-label="Aksi"] {
+                flex-direction: column !important;
+                justify-content: flex-start !important;
+                align-items: stretch !important;
+            }
+
+            .orders-table td:before {
+                content: attr(data-label) " :";
+                font-weight: 700;
+                color: var(--black-luxury);
+                font-size: 9px;
+                text-transform: uppercase;
+                display: inline-block;
+                width: 70px;
+                text-align: left;
+                line-height: 1.2;
+                margin-right: 5px;
+                vertical-align: top;
+                flex-shrink: 0;
+            }
+
+            .orders-table td:last-child {
+                border-bottom: none;
+                padding-bottom: 6px;
+            }
+
+            /* Ensure all content inside td doesn't overflow */
+            .orders-table td * {
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+            }
+
+            /* Fix customer info layout */
+            .orders-table td .customer-info {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                max-width: 100% !important;
+                overflow: hidden !important;
+            }
+
+            /* Fix customer details text overflow */
+            .orders-table td .customer-details {
+                max-width: calc(100% - 32px) !important;
+                overflow: hidden !important;
+            }
+
+            .orders-table td .customer-details h4,
+            .orders-table td .customer-details p {
+                max-width: 100% !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                white-space: nowrap !important;
+                font-size: 11px !important;
+            }
+
+            /* Make sure all content inside cards doesn't exceed bounds */
+            .orders-table td .order-id,
+            .orders-table td .order-total,
+            .orders-table td .status-badge,
+            .orders-table td .bukti-btn {
+                max-width: 100% !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                white-space: nowrap !important;
+                box-sizing: border-box !important;
+            }
+
+            /* Mobile specific data styling to match the image */
+            .orders-table td[data-label="ID Pesanan"] .order-id {
+                background: #FFF3CD;
+                color: #856404;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-weight: 600;
+                font-size: 13px;
+            }
+
+            .orders-table td[data-label="Pelanggan"] .customer-info {
+                flex-direction: row;
+                align-items: center;
+                gap: 8px;
+                width: 100%;
+            }
+
+            .orders-table td[data-label="Pelanggan"] .customer-avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+                flex-shrink: 0;
+                background: var(--gradient-gold);
+            }
+
+            .orders-table td[data-label="Pelanggan"] .customer-details h4 {
+                font-size: 13px;
+                margin: 0 0 2px 0;
+                font-weight: 600;
+            }
+
+            .orders-table td[data-label="Pelanggan"] .customer-details p {
+                font-size: 11px;
+                margin: 0;
+                color: var(--gray-elegant);
+            }
+
+            .orders-table td[data-label="Produk"] .item-summary {
+                color: #007bff;
+                font-weight: 500;
+                cursor: pointer;
+            }
+
+            .orders-table td[data-label="Total"] .order-total {
+                font-size: 15px;
+                font-weight: 700;
+                color: #D4AF37;
+            }
+
+            .orders-table td[data-label="Status"] .status-badge {
+                padding: 4px 12px;
+                border-radius: 12px;
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+
+            .orders-table td[data-label="Bukti Pembayaran"] .bukti-btn {
+                background: #28a745;
+                color: white;
+                border: none;
+                padding: 6px 12px;
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+            .orders-table td[data-label="Tanggal"] {
+                font-size: 13px;
+                color: var(--gray-elegant);
+            }
+
+            /* Fix Aksi (Action buttons) mobile overflow issue */
+            .orders-table td[data-label="Aksi"] {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                padding: 8px 0 !important;
+                max-width: 100% !important;
+                overflow: hidden !important;
+            }
+
+            .orders-table td[data-label="Aksi"]:before {
+                margin-bottom: 8px !important;
+                width: auto !important;
+                max-width: 100% !important;
+            }
+
+            .orders-table td[data-label="Aksi"] .order-actions {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 6px !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                align-items: stretch !important;
+                overflow: hidden !important;
+            }
+
+            .orders-table td[data-label="Aksi"] .action-btn {
+                width: 100% !important;
+                max-width: 100% !important;
+                height: 32px !important;
+                font-size: 10px !important;
+                padding: 4px 6px !important;
+                border-radius: 6px !important;
+                border: none !important;
+                font-weight: 600 !important;
+                cursor: pointer !important;
+                text-align: center !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                box-sizing: border-box !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                white-space: nowrap !important;
+            }
+
+            .orders-table td[data-label="Aksi"] .action-btn.view {
+                background: #007bff !important;
+                color: white !important;
+            }
+
+            .orders-table td[data-label="Aksi"] .action-btn.edit {
+                background: #ffc107 !important;
+                color: #212529 !important;
+            }
+
+            .orders-table td[data-label="Aksi"] .action-btn.delete {
+                background: #dc3545 !important;
+                color: white !important;
+            }
+
+            /* Additional mobile fixes for action buttons visibility */
+            .orders-table td[data-label="Aksi"] {
+                max-width: none !important;
+                overflow: visible !important;
+                word-wrap: normal !important;
+            }
+
+            .orders-table td[data-label="Aksi"] .order-actions {
+                overflow: visible !important;
+                max-width: 100% !important;
+                flex-wrap: wrap !important;
+            }
+        }
+
+        .orders-table td[data-label="Total"]:after {
+            content: "";
+            position: absolute;
+            bottom: -7px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
+        }
+
+        .orders-table td[data-label="Tanggal"]:after {
+            content: "";
+            position: absolute;
+            bottom: -7px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gray-medium), transparent);
+        }
+
+        .orders-table td:before {
+            content: attr(data-label) !important;
+            font-weight: 700 !important;
+            color: var(--black-luxury) !important;
+            font-size: 12px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            min-width: 120px !important;
+            width: 120px !important;
+            flex-shrink: 0 !important;
+            margin-right: 15px !important;
+            line-height: 1.4 !important;
+            padding-top: 2px !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            background: var(--gray-light) !important;
+            padding: 6px 10px !important;
+            border-radius: 6px !important;
+            text-align: center !important;
+        }
+
+        /* Ensure data-label content is always shown */
+        .orders-table td[data-label]:before {
+            content: attr(data-label) " :" !important;
+            display: inline-block !important;
+        }
+
+        /* Force visibility for all columns specifically */
+        .orders-table td[data-label="Total"]:before {
+            content: "TOTAL HARGA" !important;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            color: white !important;
+        }
+
+        .orders-table td[data-label="Status"]:before {
+            content: "STATUS PESANAN" !important;
+            background: var(--gradient-gold) !important;
+            color: var(--black-luxury) !important;
+        }
+
+        .orders-table td[data-label="Bukti Pembayaran"]:before {
+            content: "BUKTI BAYAR" !important;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+            color: white !important;
+        }
+
+        .orders-table td[data-label="Tanggal"]:before {
+            content: "TANGGAL ORDER" !important;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+            color: white !important;
+        }
+
+        .orders-table td[data-label="Aksi"]:before {
+            content: "AKSI TERSEDIA" !important;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+            color: white !important;
+        }
+
+        /* Special styling for action buttons section */
+        .orders-table td[data-label="Aksi"] {
+            background: linear-gradient(135deg, var(--gray-light) 0%, rgba(212, 175, 55, 0.1) 100%);
+            border-radius: 12px;
+            padding: 16px 0;
+            margin-top: 8px;
+            border: 2px solid var(--gold-primary);
+            position: relative;
+        }
+
+        .orders-table td[data-label="Aksi"]:before {
+            content: "AKSI TERSEDIA";
+            background: var(--gradient-gold);
+            color: var(--black-luxury);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 11px;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 6px rgba(212, 175, 55, 0.3);
+        }
+
+        .orders-table td:first-child {
+            border-top: 4px solid var(--gold-primary);
+            padding-top: 16px;
+            margin-top: -4px;
+        }
+
+        /* Mobile responsive - simplified approach */
+        @media (max-width: 768px) {
+
+            /* Override all the complex rules with simple card layout */
+            .orders-table tbody tr td {
+                border-bottom: none !important;
+                padding: 8px 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+            }
+
+            .orders-table tbody tr td:before {
+                color: #333 !important;
+                background: none !important;
+                padding: 0 !important;
+                border-radius: 0 !important;
+                margin-right: 12px !important;
+                text-align: left !important;
+            }
+
+            /* Ensure action buttons area doesn't overflow */
+            .orders-table tbody tr td[data-label="Aksi"] {
+                overflow: visible !important;
+                flex-wrap: wrap !important;
+            }
+
+            /* Make sure action buttons container fits properly */
+            .orders-table .order-actions {
+                max-width: 100% !important;
+                overflow: visible !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 4px !important;
+            }
+
+            /* Additional mobile action buttons overflow fix */
+            .orders-table td[data-label="Aksi"] * {
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            /* Ensure action buttons are always visible */
+            .orders-table .action-btn {
+                overflow: visible !important;
+                text-overflow: clip !important;
+                white-space: nowrap !important;
+                min-width: 0 !important;
+            }
+
+            /* Global mobile overflow prevention */
+            * {
+                max-width: 100vw !important;
+                box-sizing: border-box !important;
+            }
+
+            body {
+                overflow-x: hidden !important;
+                max-width: 100vw !important;
+            }
+
+            .admin-container {
+                overflow-x: hidden !important;
+                max-width: 100vw !important;
+            }
+
+            /* Ensure orders section container doesn't overflow */
+            .orders-section {
+                max-width: 100vw !important;
+                overflow-x: hidden !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-sizing: border-box !important;
+            }
+
+            /* Fix header and controls overflow */
+            .header {
+                max-width: 100vw !important;
+                overflow-x: hidden !important;
+                box-sizing: border-box !important;
+                padding: 10px 5px !important;
+            }
+
+            .orders-controls {
+                max-width: 100vw !important;
+                overflow-x: hidden !important;
+                box-sizing: border-box !important;
+                padding: 5px !important;
+                margin: 0 !important;
+            }
+
+            .search-box,
+            .filter-controls {
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+                box-sizing: border-box !important;
+            }
+
+            /* Fix pagination overflow */
+            .pagination {
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+                box-sizing: border-box !important;
+                padding: 5px !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+            }
+
+            /* Ensure all containers are properly contained */
+            .orders-container,
+            .content-wrapper,
+            .page-content {
+                max-width: 100vw !important;
+                overflow-x: hidden !important;
+                box-sizing: border-box !important;
+            }
+
+            /* Aggressive overflow prevention for mobile */
+            * {
+                max-width: 100vw !important;
+                box-sizing: border-box !important;
+            }
+
+            /* Force viewport constraints */
+            .orders-section,
+            .orders-content,
+            .orders-wrapper {
+                max-width: 100vw !important;
+                width: 100vw !important;
+                overflow-x: hidden !important;
+                box-sizing: border-box !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+        }
+
+
+
 
         .orders-table th {
             background: linear-gradient(135deg, var(--gray-light) 0%, var(--gray-medium) 100%);
@@ -924,6 +2556,25 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            min-height: 50px;
+            padding: 5px 0;
+        }
+
+        /* Mobile responsive customer info */
+        @media (max-width: 768px) {
+            .customer-info {
+                gap: 10px;
+                min-height: 45px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .customer-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+                min-height: auto;
+            }
         }
 
         .customer-avatar {
@@ -939,6 +2590,24 @@
             font-size: 14px;
             box-shadow: var(--shadow-soft);
             transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        /* Mobile responsive customer avatar */
+        @media (max-width: 768px) {
+            .customer-avatar {
+                width: 36px;
+                height: 36px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .customer-avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 11px;
+            }
         }
 
         .customer-avatar:hover {
@@ -947,6 +2616,9 @@
 
         .customer-details {
             flex: 1;
+            min-width: 0;
+            /* Allow text to wrap */
+            overflow: hidden;
         }
 
         .customer-details h4 {
@@ -954,16 +2626,70 @@
             font-weight: 700;
             color: var(--black-luxury);
             margin: 0 0 4px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+
+        /* Mobile responsive customer details */
+        @media (max-width: 768px) {
+            .customer-details h4 {
+                font-size: 13px;
+                margin-bottom: 2px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .customer-details h4 {
+                font-size: 12px;
+                white-space: normal;
+                word-wrap: break-word;
+            }
         }
 
         .customer-details p {
             font-size: 12px;
             color: var(--gray-elegant);
             margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+
+        /* Mobile responsive customer details paragraph */
+        @media (max-width: 768px) {
+            .customer-details p {
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .customer-details p {
+                font-size: 10px;
+                white-space: normal;
+                word-wrap: break-word;
+            }
         }
 
         .order-items {
             max-width: 220px;
+            padding: 5px 0;
+        }
+
+        /* Mobile responsive order items */
+        @media (max-width: 768px) {
+            .order-items {
+                max-width: 180px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .order-items {
+                max-width: none;
+                width: 100%;
+            }
         }
 
         .item-summary {
@@ -971,6 +2697,21 @@
             color: var(--gray-elegant);
             margin-bottom: 6px;
             font-weight: 600;
+            line-height: 1.4;
+        }
+
+        /* Mobile responsive item summary */
+        @media (max-width: 768px) {
+            .item-summary {
+                font-size: 12px;
+                margin-bottom: 4px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .item-summary {
+                font-size: 11px;
+            }
         }
 
         .items-list {
@@ -981,6 +2722,24 @@
             padding: 8px 12px;
             border-radius: 8px;
             border-left: 3px solid var(--gold-primary);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Mobile responsive items list */
+        @media (max-width: 768px) {
+            .items-list {
+                font-size: 11px;
+                padding: 6px 10px;
+                line-height: 1.4;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .items-list {
+                font-size: 10px;
+                padding: 5px 8px;
+            }
         }
 
         .order-total {
@@ -988,6 +2747,23 @@
             color: var(--gold-primary);
             font-size: 16px;
             font-family: "Playfair Display", serif;
+            white-space: nowrap;
+            line-height: 1.2;
+        }
+
+        /* Mobile responsive order total */
+        @media (max-width: 768px) {
+            .order-total {
+                font-size: 15px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .order-total {
+                font-size: 14px;
+                white-space: normal;
+                word-wrap: break-word;
+            }
         }
 
         /* ===== STATUS BADGES AND ACTION BUTTONS ===== */
@@ -1039,6 +2815,29 @@
             display: flex;
             gap: 10px;
             justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            min-height: 44px;
+        }
+
+        /* Mobile responsive order actions */
+        @media (max-width: 768px) {
+            .order-actions {
+                gap: 8px;
+                min-height: 40px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .order-actions {
+                flex-direction: column;
+                justify-content: flex-start;
+                gap: 10px;
+                width: 100%;
+                min-height: auto;
+                align-items: stretch;
+                padding: 8px 0;
+            }
         }
 
         .action-btn {
@@ -1054,6 +2853,50 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        /* Mobile responsive action buttons */
+        @media (max-width: 768px) {
+            .action-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+                border-radius: 10px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .action-btn {
+                width: 100%;
+                height: 44px;
+                padding: 12px 16px;
+                font-size: 13px;
+                font-weight: 600;
+                border-radius: 12px;
+                min-width: 120px;
+                gap: 8px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+            }
+
+            .action-btn:after {
+                font-weight: 700;
+                margin-left: 0;
+            }
+
+            .action-btn.view:after {
+                content: "LIHAT DETAIL";
+            }
+
+            .action-btn.edit:after {
+                content: "EDIT DATA";
+            }
+
+            .action-btn.delete:after {
+                content: "HAPUS";
+            }
         }
 
         .action-btn::before {
@@ -1095,6 +2938,8 @@
         .action-btn:hover {
             transform: translateY(-3px) scale(1.1);
         }
+
+
 
         .action-btn.view:hover {
             box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
@@ -1614,15 +3459,39 @@
         @media (max-width: 480px) {
             .orders-stats {
                 grid-template-columns: 1fr;
+                gap: 12px;
             }
 
             .user-info {
                 display: none;
             }
 
-            .orders-table th:nth-child(n+4),
-            .orders-table td:nth-child(n+4) {
-                display: none;
+            .orders-table tbody tr {
+                padding: 12px;
+                margin-bottom: 12px;
+            }
+
+            .orders-table td {
+                padding: 6px 0;
+                padding-left: 80px;
+                font-size: 12px;
+            }
+
+            .orders-table td:before {
+                width: 75px;
+                font-size: 11px;
+            }
+
+            .customer-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .action-btn {
+                font-size: 10px;
+                padding: 4px 8px;
+                height: 28px;
             }
         }
 
@@ -1660,7 +3529,7 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--gold-dark);
         }
-        
+
         /* ===== REFRESH AND ACTION BUTTONS ===== */
         .refresh-btn {
             background: var(--gradient-gold);
@@ -1677,12 +3546,12 @@
             font-size: 14px;
             box-shadow: var(--shadow-soft);
         }
-        
+
         .refresh-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
         }
-        
+
         .refresh-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -1698,29 +3567,89 @@
             box-shadow: 0 8px 25px rgba(23, 162, 184, 0.4);
         }
     </style>
+
+    <!-- Additional Mobile Debug CSS - Force all columns visible -->
+    <style>
+        /* CRITICAL: Mobile table column visibility override */
+        @media (max-width: 640px) {
+            .orders-table tbody tr td[data-label] {
+                display: flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                height: auto !important;
+                width: 100% !important;
+                position: relative !important;
+                overflow: visible !important;
+                margin: 0 !important;
+                padding: 14px 0 !important;
+                border-bottom: 1px solid #e2e8f0 !important;
+                box-sizing: border-box !important;
+                flex-direction: row !important;
+                align-items: flex-start !important;
+                justify-content: flex-start !important;
+                min-height: 50px !important;
+            }
+
+            .orders-table tbody tr {
+                display: flex !important;
+                flex-direction: column !important;
+            }
+
+            /* Ensure data labels show */
+            .orders-table tbody tr td[data-label]:before {
+                content: attr(data-label) " :" !important;
+                display: inline-block !important;
+                font-weight: 700 !important;
+                background: #f7fafc !important;
+                padding: 6px 10px !important;
+                border-radius: 6px !important;
+                margin-right: 15px !important;
+                min-width: 120px !important;
+                text-align: center !important;
+                font-size: 12px !important;
+                text-transform: uppercase !important;
+            }
+
+            /* Force specific columns */
+            .orders-table tbody tr td[data-label="Total"],
+            .orders-table tbody tr td[data-label="Status"],
+            .orders-table tbody tr td[data-label="Bukti Pembayaran"],
+            .orders-table tbody tr td[data-label="Tanggal"],
+            .orders-table tbody tr td[data-label="Aksi"] {
+                display: flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+        }
+    </style>
 </head>
 
-    <body>
-        <!-- Page Loader -->
-        <div class="page-loader" id="pageLoader">
-            <div class="loader-content">
-                <div class="loader-logo">Fajar Gold</div>
-                <div class="loader-spinner"></div>
-                <div class="loader-text">Loading Admin Dashboard...</div>
-            </div>
+<body>
+    <!-- Page Loader -->
+    <div class="page-loader" id="pageLoader">
+        <div class="loader-content">
+            <div class="loader-logo">Fajar Gold</div>
+            <div class="loader-spinner"></div>
+            <div class="loader-text">Loading Admin Dashboard...</div>
         </div>
+    </div>
 
-        <div class="admin-container">
-            <!-- Mobile Menu Toggle -->
-            <button class="mobile-menu-toggle" id="mobileMenuToggle">
-                <i class="fas fa-bars"></i>
-            </button>
+    <div class="admin-container">
+        <!-- Mobile Menu Button -->
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
 
-            <!-- Sidebar Backdrop (untuk mobile) -->
-            <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+        <!-- Mobile Backdrop -->
+        <div class="mobile-backdrop" id="mobileBackdrop"></div>
 
-            <!-- Sidebar -->
-            <aside class="sidebar fade-in-left" id="sidebar">
+        <!-- Sidebar Backdrop (alternative name for compatibility) -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar fade-in-left" id="sidebar">
             <div class="sidebar-header">
                 <button class="sidebar-toggle" id="sidebarToggle">
                     <i class="fas fa-bars"></i>
@@ -1731,82 +3660,70 @@
 
             <nav class="sidebar-nav">
                 <div class="nav-item">
-                    <a href="home-admin.html" class="nav-link" data-page="dashboard">
+                    <a href="/admin/home" class="nav-link" data-page="dashboard">
                         <i class="fas fa-tachometer-alt nav-icon"></i>
                         <span class="nav-text">Dashboard</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="manajemen-produk.html" class="nav-link" data-page="products">
+                    <a href="/admin/produk" class="nav-link" data-page="products">
                         <i class="fas fa-gem nav-icon"></i>
                         <span class="nav-text">Produk Emas</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" data-page="prices">
+                    <a href="/admin/harga-emas" class="nav-link" data-page="prices">
                         <i class="fas fa-chart-line nav-icon"></i>
                         <span class="nav-text">Harga Emas</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="orders-admin.html" class="nav-link active" data-page="orders">
+                    <a href="/admin/pesanan" class="nav-link active" data-page="orders">
                         <i class="fas fa-shopping-cart nav-icon"></i>
                         <span class="nav-text">Pesanan</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" data-page="customers">
-                        <i class="fas fa-users nav-icon"></i>
-                        <span class="nav-text">Pelanggan</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link" data-page="reports">
+                    <a href="/admin/laporan" class="nav-link" data-page="reports">
                         <i class="fas fa-chart-bar nav-icon"></i>
                         <span class="nav-text">Laporan</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link" data-page="settings">
-                        <i class="fas fa-cog nav-icon"></i>
-                        <span class="nav-text">Pengaturan</span>
                     </a>
                 </div>
             </nav>
         </aside>
 
-            <main class="main-content fade-in-right">
-                <header class="header">
-                    <h1 class="header-title">
-                        <i class="fas fa-shopping-cart"></i>
-                        Manajemen Pesanan
-                    </h1>
-                    <div class="header-actions">
-                        <div class="header-controls">
-                            <button class="refresh-btn" onclick="ordersManager.refreshOrders()" id="refreshBtn">
-                                <i class="fas fa-sync-alt"></i>
-                                Refresh
-                            </button>
-                            <button class="refresh-btn test-api" onclick="ordersManager.testAPIConnection()">
-                                <i class="fas fa-plug"></i>
-                                Test API
-                            </button>
-                            <button class="notification-btn">
-                                <i class="fas fa-bell"></i>
-                                <span class="notification-badge">5</span>
-                            </button>
+        <main class="main-content fade-in-right">
+            <header class="header">
+                <h1 class="header-title">
+                    <i class="fas fa-shopping-cart"></i>
+                    Manajemen Pesanan
+                </h1>
+                <div class="header-actions">
+                    <div class="header-controls">
+                        <button class="refresh-btn" onclick="ordersManager.refreshOrders()" id="refreshBtn">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
+                        </button>
+                        <button class="refresh-btn test-api" onclick="ordersManager.testAPIConnection()">
+                            <i class="fas fa-plug"></i>
+                            Test API
+                        </button>
+                        <button class="notification-btn">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge">5</span>
+                        </button>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
                         </div>
-                        <div class="user-profile">
-                            <div class="user-avatar">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div class="user-info">
-                                <h4>Admin Fajar Gold</h4>
-                                <p>Super Administrator</p>
-                            </div>
+                        <div class="user-info">
+                            <h4>Admin Fajar Gold</h4>
+                            <p>Super Administrator</p>
                         </div>
                     </div>
-                </header>
+                </div>
+            </header>
 
             <div class="content">
                 <div class="orders-header fade-in-up">
@@ -1814,7 +3731,7 @@
                         <i class="fas fa-shopping-cart"></i>
                         Kelola Pesanan Pelanggan
                     </h2>
-                    
+
                     <div class="orders-stats">
                         <div class="stat-item scale-in stagger-animation">
                             <span class="stat-number" id="totalOrders">156</span>
@@ -1844,12 +3761,14 @@
 
                     <div class="orders-controls">
                         <div class="search-box">
-                            <input type="text" class="search-input" placeholder="Cari pesanan berdasarkan ID, nama pelanggan, atau email..." id="searchInput">
+                            <input type="text" class="search-input"
+                                placeholder="Cari pesanan berdasarkan ID, nama pelanggan, atau email..."
+                                id="searchInput">
                             <button class="search-btn" id="searchBtn">
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
-                        
+
                         <div class="filter-controls">
                             <select class="filter-select" id="statusFilter">
                                 <option value="">Semua Status</option>
@@ -1861,7 +3780,7 @@
                                 <option value="DELIVERED">Selesai</option>
                                 <option value="CANCELLED">Dibatalkan</option>
                             </select>
-                            
+
                             <select class="filter-select" id="dateFilter">
                                 <option value="">Semua Tanggal</option>
                                 <option value="today">Hari Ini</option>
@@ -1869,7 +3788,7 @@
                                 <option value="month">Bulan Ini</option>
                                 <option value="custom">Pilih Tanggal</option>
                             </select>
-                            
+
                             <button class="export-btn" id="exportBtn">
                                 <i class="fas fa-download"></i>
                                 Export
@@ -1878,7 +3797,7 @@
                     </div>
                 </div>
 
-            
+
                 <div class="orders-table-container slide-in-bottom" id="ordersContainer">
                     <div class="table-wrapper">
                         <table class="orders-table" id="ordersTable">
@@ -1895,6 +3814,23 @@
                                 </tr>
                             </thead>
                             <tbody id="ordersTableBody">
+                                <!-- Data will be populated by JavaScript -->
+                                <!-- Example mobile-friendly structure: -->
+                                <!--
+                                <tr>
+                                    <td data-label="ID Pesanan">ORD001</td>
+                                    <td data-label="Pelanggan">John Doe</td>
+                                    <td data-label="Produk">Kalung Emas 24K</td>
+                                    <td data-label="Total">Rp 15.000.000</td>
+                                    <td data-label="Status">Pending</td>
+                                    <td data-label="Bukti Pembayaran">Ada</td>
+                                    <td data-label="Tanggal">2024-01-15</td>
+                                    <td data-label="Aksi">
+                                        <button>View</button>
+                                        <button>Edit</button>
+                                    </td>
+                                </tr>
+                                -->
                             </tbody>
                         </table>
                     </div>
@@ -1904,7 +3840,8 @@
                             <i class="fas fa-chevron-left"></i>
                         </button>
                         <div class="pagination-info">
-                            Menampilkan <span id="startItem">1</span>-<span id="endItem">10</span> dari <span id="totalItems">156</span> pesanan
+                            Menampilkan <span id="startItem">1</span>-<span id="endItem">10</span> dari <span
+                                id="totalItems">156</span> pesanan
                         </div>
                         <button class="pagination-btn" id="nextBtn">
                             <i class="fas fa-chevron-right"></i>
@@ -1915,7 +3852,7 @@
         </main>
     </div>
 
-     Order Detail Modal 
+    Order Detail Modal
     <div class="modal-overlay" id="orderModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1924,9 +3861,9 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="order-detail-grid" id="orderDetailContent">
-                 Order details will be populated by JavaScript 
+                Order details will be populated by JavaScript
             </div>
         </div>
     </div>
@@ -1940,13 +3877,13 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div style="text-align: center; padding: 20px;">
-                <img id="buktiImage" 
-                     style="max-width: 100%; max-height: 70vh; border-radius: 10px; box-shadow: var(--shadow-soft);" 
-                     alt="Bukti Pembayaran" />
+                <img id="buktiImage"
+                    style="max-width: 100%; max-height: 70vh; border-radius: 10px; box-shadow: var(--shadow-soft);"
+                    alt="Bukti Pembayaran" />
                 <div style="margin-top: 15px; color: var(--gray-elegant); font-size: 14px;">
-                    <i class="fas fa-info-circle"></i> 
+                    <i class="fas fa-info-circle"></i>
                     Klik gambar untuk memperbesar atau gunakan scroll untuk zoom
                 </div>
             </div>
@@ -1978,7 +3915,8 @@
                 this.setupEventListeners();
                 this.loadOrders();
                 this.loadStatisticsFromAPI();
-                this.setupMobileMenu();
+                // Disable conflicting mobile menu - using enhanced implementation instead
+                // this.setupMobileMenu();
             }
 
             setupMobileMenu() {
@@ -2032,7 +3970,7 @@
 
                 this.sidebar.classList.toggle('open');
                 mobileMenuToggle.classList.toggle('active');
-                
+
                 if (this.sidebar.classList.contains('open')) {
                     sidebarBackdrop.classList.add('active');
                     document.body.style.overflow = 'hidden';
@@ -2135,7 +4073,7 @@
                     if (result.success === true || (result.success !== false && (result.data || result.content))) {
                         // Handle different response structures
                         let ordersData = [];
-                        
+
                         console.log('🔍 Analyzing response structure:', {
                             hasSuccess: result.success !== undefined,
                             successValue: result.success,
@@ -2144,7 +4082,7 @@
                             dataType: result.data ? (Array.isArray(result.data) ? 'array' : typeof result.data) : 'undefined',
                             contentType: result.content ? (Array.isArray(result.content) ? 'array' : typeof result.content) : 'undefined'
                         });
-                        
+
                         // Case 1: Direct Page response (Spring Boot Page object) - most likely case
                         if (result.content && Array.isArray(result.content)) {
                             ordersData = result.content;
@@ -2328,11 +4266,11 @@
                     const status = statuses[Math.floor(Math.random() * statuses.length)];
                     const orderDate = new Date();
                     orderDate.setDate(orderDate.getDate() - Math.floor(Math.random() * 30));
-                    
+
                     const orderItems = [];
                     const numItems = Math.floor(Math.random() * 3) + 1;
                     let total = 0;
-                    
+
                     for (let j = 0; j < numItems; j++) {
                         const product = products[Math.floor(Math.random() * products.length)];
                         const quantity = Math.floor(Math.random() * 2) + 1;
@@ -2370,7 +4308,7 @@
 
                 this.filteredOrders = this.allOrders.filter(order => {
                     // Search filter
-                    const matchesSearch = !searchTerm || 
+                    const matchesSearch = !searchTerm ||
                         order.id.toString().toLowerCase().includes(searchTerm) ||
                         (order.customerName && order.customerName.toLowerCase().includes(searchTerm)) ||
                         (order.customerEmail && order.customerEmail.toLowerCase().includes(searchTerm)) ||
@@ -2384,7 +4322,7 @@
                     if (dateFilter) {
                         const orderDate = new Date(order.createdAt);
                         const today = new Date();
-                        
+
                         switch (dateFilter) {
                             case 'today':
                                 matchesDate = orderDate.toDateString() === today.toDateString();
@@ -2394,8 +4332,8 @@
                                 matchesDate = orderDate >= weekAgo;
                                 break;
                             case 'month':
-                                matchesDate = orderDate.getMonth() === today.getMonth() && 
-                                            orderDate.getFullYear() === today.getFullYear();
+                                matchesDate = orderDate.getMonth() === today.getMonth() &&
+                                    orderDate.getFullYear() === today.getFullYear();
                                 break;
                         }
                     }
@@ -2417,10 +4355,10 @@
 
                 this.ordersTableBody.innerHTML = ordersToShow.map(order => `
                     <tr>
-                        <td>
+                        <td data-label="ID Pesanan">
                             <span class="order-id">${order.id || order.orderNumber || 'N/A'}</span>
                         </td>
-                        <td>
+                        <td data-label="Pelanggan">
                             <div class="customer-info">
                                 <div class="customer-avatar">
                                     ${order.customerName ? order.customerName.charAt(0).toUpperCase() : 'U'}
@@ -2431,7 +4369,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Produk">
                             <div class="order-items">
                                 <div class="item-summary">
                                     <i class="fas fa-shopping-bag me-1"></i>
@@ -2442,30 +4380,30 @@
                                 </div>
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Total">
                             <span class="order-total">${this.formatCurrency(order.totalAmount || 0)}</span>
                         </td>
-                        <td>
+                        <td data-label="Status">
                             <span class="status-badge ${this.getStatusClass(order.status)}">
                                 ${this.getStatusText(order.status)}
                             </span>
                         </td>
-                        <td>
+                        <td data-label="Bukti Pembayaran">
                             ${this.renderBuktiColumn(order)}
                         </td>
-                        <td>
+                        <td data-label="Tanggal">
                             ${this.formatDate(order.createdAt)}
                         </td>
-                        <td>
+                        <td data-label="Aksi">
                             <div class="order-actions">
                                 <button class="action-btn view" onclick="window.handleViewOrder('${order.id || order.orderNumber}')" title="Lihat Detail">
                                     <i class="fas fa-eye"></i>
                                 </button>
                                 ${(order.status === 'PENDING_PAYMENT' || order.status === 'PENDING_CONFIRMATION') ?
-                                    `<button class="action-btn edit" onclick="window.handleConfirmOrder('${order.id || order.orderNumber}')" title="Konfirmasi Pesanan" style="background: var(--success-color);">
+                        `<button class="action-btn edit" onclick="window.handleConfirmOrder('${order.id || order.orderNumber}')" title="Konfirmasi Pesanan" style="background: var(--success-color);">
                                         <i class="fas fa-check"></i>
                                     </button>` : ''
-                                }
+                    }
                                 <button class="action-btn edit" onclick="window.handleEditOrder('${order.id || order.orderNumber}')" title="Edit Status">
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -2511,10 +4449,10 @@
                 try {
                     const response = await fetch('/admin/api/orders/statistics');
                     const result = await response.json();
-                    
+
                     if (result.success) {
                         const stats = result.data;
-                        
+
                         // Update statistik dari API
                         const totalElement = document.getElementById('totalOrders');
                         const pendingElement = document.getElementById('pendingOrders');
@@ -2812,11 +4750,11 @@
                 if (confirm('Apakah Anda yakin ingin menghapus pesanan ini?')) {
                     try {
                         console.log('🗑️ Deleting order:', orderId);
-                        
+
                         // Find the table row element to remove it immediately for better UX
                         const tableRows = this.ordersTableBody.querySelectorAll('tr');
                         let targetRow = null;
-                        
+
                         // Find the row that contains this order ID
                         tableRows.forEach(row => {
                             const orderIdElement = row.querySelector('.order-id');
@@ -2824,14 +4762,14 @@
                                 targetRow = row;
                             }
                         });
-                        
+
                         // Add a visual feedback - fade out the row
                         if (targetRow) {
                             targetRow.style.opacity = '0.5';
                             targetRow.style.pointerEvents = 'none';
                             console.log('👁️ Found and fading out target row for order:', orderId);
                         }
-                        
+
                         const response = await fetch(`/admin/api/orders/${orderId}`, {
                             method: 'DELETE',
                             headers: {
@@ -2844,13 +4782,13 @@
 
                         if (result.success) {
                             console.log('✅ Order deleted successfully from server');
-                            
+
                             // Immediately remove the row from DOM for instant feedback
                             if (targetRow) {
                                 targetRow.style.transition = 'all 0.3s ease-out';
                                 targetRow.style.transform = 'translateX(-100%)';
                                 targetRow.style.opacity = '0';
-                                
+
                                 setTimeout(() => {
                                     if (targetRow.parentNode) {
                                         targetRow.remove();
@@ -2858,35 +4796,35 @@
                                     }
                                 }, 300);
                             }
-                            
+
                             // Remove from local orders array - support both id and orderNumber
                             const initialCount = this.allOrders.length;
                             this.allOrders = this.allOrders.filter(o => {
                                 // Handle different ID formats
-                                const orderIdMatch = (o.id && o.id.toString() === orderId.toString()) || 
-                                                    (o.orderNumber && o.orderNumber.toString() === orderId.toString());
+                                const orderIdMatch = (o.id && o.id.toString() === orderId.toString()) ||
+                                    (o.orderNumber && o.orderNumber.toString() === orderId.toString());
                                 return !orderIdMatch;
                             });
-                            
+
                             console.log(`🔄 Removed order from local array. Count changed from ${initialCount} to ${this.allOrders.length}`);
-                            
+
                             // Update filtered orders
                             this.filteredOrders = this.filteredOrders.filter(o => {
-                                const orderIdMatch = (o.id && o.id.toString() === orderId.toString()) || 
-                                                    (o.orderNumber && o.orderNumber.toString() === orderId.toString());
+                                const orderIdMatch = (o.id && o.id.toString() === orderId.toString()) ||
+                                    (o.orderNumber && o.orderNumber.toString() === orderId.toString());
                                 return !orderIdMatch;
                             });
-                            
+
                             // Re-render the table after a short delay to ensure smooth transition
                             setTimeout(() => {
                                 this.renderOrders();
                                 console.log('🔄 Table re-rendered after row removal');
                             }, 350);
-                            
+
                             // Update statistics
                             this.updateStats();
                             this.loadStatisticsFromAPI();
-                            
+
                             this.showNotification('Pesanan berhasil dihapus', 'success');
                             console.log('✅ UI updated after order deletion');
                         } else {
@@ -2954,7 +4892,7 @@
             async confirmOrder(orderId) {
                 try {
                     console.log('🔄 Confirming payment for order:', orderId);
-                    
+
                     // First, check order details to understand current status
                     console.log('🔍 Checking order details before confirmation...');
                     const checkResponse = await fetch(`/admin/api/orders/${orderId}`, {
@@ -2964,17 +4902,17 @@
                         },
                         credentials: 'include'
                     });
-                    
+
                     if (checkResponse.ok) {
                         const orderData = await checkResponse.json();
                         console.log('📋 Current order data:', orderData);
-                        
+
                         if (orderData.success && orderData.data) {
                             const order = orderData.data.order;
                             console.log('📊 Order status:', order.status);
                             console.log('📊 Order created at:', order.createdAt);
                             console.log('📊 Order total:', order.totalAmount);
-                            
+
                             // Check if order is in correct status for confirmation
                             if (order.status !== 'PENDING_CONFIRMATION') {
                                 this.showNotification(`Order tidak dapat dikonfirmasi. Status saat ini: ${order.status}`, 'error');
@@ -2984,16 +4922,16 @@
                     } else {
                         console.warn('⚠️ Could not fetch order details for validation');
                     }
-                    
+
                     // Show confirmation dialog
                     const confirmResult = confirm('Apakah Anda yakin ingin mengkonfirmasi pembayaran pesanan ini?');
                     if (!confirmResult) {
                         return;
                     }
-                    
+
                     // Show loading state
                     this.showNotification('Memproses konfirmasi pembayaran...', 'info');
-                    
+
                     console.log('🚀 Sending payment confirmation request...');
                     const response = await fetch(`/admin/api/orders/${orderId}/confirm-payment`, {
                         method: 'POST',
@@ -3009,13 +4947,13 @@
 
                     console.log('📥 Confirm payment response status:', response.status);
                     console.log('📥 Confirm payment response headers:', Array.from(response.headers.entries()));
-                    
+
                     // Try to get response body for better error information
                     let responseData;
                     try {
                         const responseText = await response.text();
                         console.log('📥 Raw response text:', responseText);
-                        
+
                         if (responseText) {
                             responseData = JSON.parse(responseText);
                             console.log('📥 Parsed response data:', responseData);
@@ -3035,7 +4973,7 @@
                         }, 2000);
                         return;
                     }
-                    
+
                     if (response.status === 404) {
                         this.showNotification('Pesanan tidak ditemukan.', 'error');
                         this.loadOrders();
@@ -3051,7 +4989,7 @@
                             errorMessage: errorMessage,
                             responseData: responseData
                         });
-                        
+
                         // Show specific error messages based on common issues
                         if (errorMessage.includes('tidak dapat dikonfirmasi dengan status')) {
                             this.showNotification('❌ Pesanan tidak dapat dikonfirmasi. Status pesanan sudah berubah. Silakan refresh halaman.', 'error');
@@ -3064,7 +5002,7 @@
                         } else {
                             this.showNotification(`❌ Gagal mengkonfirmasi pembayaran: ${errorMessage}`, 'error');
                         }
-                        
+
                         // Refresh orders list to get latest status
                         this.loadOrders();
                         return;
@@ -3073,7 +5011,7 @@
                     if (responseData && responseData.success) {
                         console.log('✅ Payment confirmed successfully for order:', orderId);
                         this.showNotification('Pembayaran berhasil dikonfirmasi!', 'success');
-                        
+
                         // Refresh data
                         this.loadOrders();
                         this.loadStatisticsFromAPI();
@@ -3082,7 +5020,7 @@
                         console.error('❌ Confirm payment failed:', errorMsg);
                         this.showNotification(`Gagal mengkonfirmasi: ${errorMsg}`, 'error');
                     }
-                    
+
                 } catch (error) {
                     console.error('❌ Error confirming payment:', {
                         error: error,
@@ -3090,7 +5028,7 @@
                         stack: error.stack,
                         orderId: orderId
                     });
-                    
+
                     // Enhanced error handling for network issues
                     if (error.name === 'TypeError' && error.message.includes('fetch')) {
                         this.showNotification('❌ Gagal terhubung ke server. Periksa koneksi internet Anda.', 'error');
@@ -3101,7 +5039,7 @@
                     } else {
                         this.showNotification(`❌ Terjadi kesalahan sistem: ${error.message}`, 'error');
                     }
-                    
+
                     // Always refresh orders list in case of error
                     this.loadOrders();
                 }
@@ -3208,20 +5146,20 @@
                     let statusText = 'Ada Bukti';
                     let statusIcon = 'fas fa-check-circle';
                     let statusColor = 'var(--success-color)';
-                    
+
                     if (order.status === 'PENDING_CONFIRMATION') {
                         borderColor = 'var(--warning-color)';
                         statusText = 'Menunggu Konfirmasi';
                         statusIcon = 'fas fa-clock';
                         statusColor = 'var(--warning-color)';
-                    } else if (order.status === 'PAID' || order.status === 'PROCESSING' || 
-                              order.status === 'SHIPPED' || order.status === 'DELIVERED') {
+                    } else if (order.status === 'PAID' || order.status === 'PROCESSING' ||
+                        order.status === 'SHIPPED' || order.status === 'DELIVERED') {
                         borderColor = 'var(--success-color)';
                         statusText = 'Sudah Konfirmasi';
                         statusIcon = 'fas fa-check-circle';
                         statusColor = 'var(--success-color)';
                     }
-                    
+
                     return `
                         <div style="text-align: center;">
                             <img src="/admin/api/orders/${order.id}/payment-proof/image" 
@@ -3314,7 +5252,7 @@
         let ordersManager;
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🚀 DOM Content Loaded - Initializing admin orders...');
-            
+
             // Hide page loader immediately
             const pageLoader = document.getElementById('pageLoader');
             if (pageLoader) {
@@ -3323,7 +5261,7 @@
                     pageLoader.classList.add('hidden');
                 }, 300);
             }
-            
+
             // Initialize orders manager
             try {
                 ordersManager = new OrdersManager();
@@ -3355,7 +5293,7 @@
         });
 
         // Global action handlers for better error handling
-        window.handleViewOrder = function(orderId) {
+        window.handleViewOrder = function (orderId) {
             try {
                 console.log('🔍 View order clicked:', orderId);
                 if (window.ordersManager) {
@@ -3372,7 +5310,7 @@
             }
         };
 
-        window.handleConfirmOrder = function(orderId) {
+        window.handleConfirmOrder = function (orderId) {
             try {
                 console.log('✅ Confirm order clicked:', orderId);
                 if (window.ordersManager) {
@@ -3389,7 +5327,7 @@
             }
         };
 
-        window.handleEditOrder = function(orderId) {
+        window.handleEditOrder = function (orderId) {
             try {
                 console.log('✏️ Edit order clicked:', orderId);
                 if (window.ordersManager) {
@@ -3406,7 +5344,7 @@
             }
         };
 
-        window.handleDeleteOrder = function(orderId) {
+        window.handleDeleteOrder = function (orderId) {
             try {
                 console.log('🗑️ Delete order clicked:', orderId);
                 if (window.ordersManager) {
@@ -3424,11 +5362,11 @@
         };
 
         // Global function to view bukti pembayaran image
-        window.viewBuktiImage = function(imageUrl) {
+        window.viewBuktiImage = function (imageUrl) {
             console.log('📸 Viewing bukti image:', imageUrl);
             const buktiModal = document.getElementById('buktiModal');
             const buktiImage = document.getElementById('buktiImage');
-            
+
             if (buktiModal && buktiImage) {
                 buktiImage.src = imageUrl;
                 buktiModal.classList.add('active');
@@ -3441,7 +5379,7 @@
             const buktiModal = document.getElementById('buktiModal');
             const buktiModalClose = document.getElementById('buktiModalClose');
             const buktiImage = document.getElementById('buktiImage');
-            
+
             // Close modal when clicking the close button
             if (buktiModalClose) {
                 buktiModalClose.addEventListener('click', () => {
@@ -3449,7 +5387,7 @@
                     document.body.style.overflow = 'auto';
                 });
             }
-            
+
             // Close modal when clicking outside the modal content
             if (buktiModal) {
                 buktiModal.addEventListener('click', (e) => {
@@ -3459,7 +5397,7 @@
                     }
                 });
             }
-            
+
             // Handle image load error
             if (buktiImage) {
                 buktiImage.addEventListener('error', () => {
@@ -3471,7 +5409,7 @@
                 });
             }
         });
-        
+
         // Fallback: Hide loader after window loads completely
         window.addEventListener('load', () => {
             console.log('🏁 Window fully loaded - ensuring loader is hidden...');
@@ -3481,7 +5419,7 @@
                 pageLoader.classList.add('hidden');
             }
         });
-        
+
         // Emergency fallback: Force hide loader after 5 seconds
         setTimeout(() => {
             const pageLoader = document.getElementById('pageLoader');
@@ -3491,7 +5429,314 @@
             }
         }, 5000);
     </script>
-    
+
+    <!-- Enhanced Mobile Menu JavaScript -->
+    <script>
+        // Enhanced Sidebar toggle functionality with comprehensive mobile support
+        let sidebar, mobileMenuBtn, mobileBackdrop, sidebarBackdrop;
+
+        // Initialize elements after DOM is ready
+        function initializeMobileMenu() {
+            sidebar = document.getElementById('sidebar');
+            mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            mobileBackdrop = document.getElementById('mobileBackdrop');
+            sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+            console.log('🔧 Mobile menu elements initialized:', {
+                sidebar: !!sidebar,
+                mobileMenuBtn: !!mobileMenuBtn,
+                mobileBackdrop: !!mobileBackdrop,
+                sidebarBackdrop: !!sidebarBackdrop
+            });
+
+            // Force proper initial state immediately
+            if (sidebar && isMobile()) {
+                // On mobile, sidebar should start hidden
+                sidebar.classList.remove('mobile-open', 'collapsed');
+                sidebar.style.transform = 'translateX(-100%)';
+                console.log('📱 Sidebar forced hidden on mobile');
+            } else if (sidebar && !isMobile()) {
+                // On desktop, sidebar should be visible
+                sidebar.classList.remove('mobile-open', 'collapsed');
+                sidebar.style.transform = 'translateX(0)';
+                console.log('💻 Sidebar visible on desktop');
+            }
+
+            // Setup event listeners after elements are found
+            setupMobileMenuListeners();
+        }
+
+        // Check if device is mobile
+        function isMobile() {
+            return window.innerWidth <= 1024;
+        }
+
+        // Reset sidebar state
+        function resetSidebarState() {
+            if (!sidebar || !mobileMenuBtn || !mobileBackdrop || !sidebarBackdrop) return;
+
+            // Reset classes
+            sidebar.classList.remove('mobile-open');
+            sidebar.classList.remove('collapsed'); // Remove any collapsed state
+            mobileBackdrop.classList.remove('show');
+            sidebarBackdrop.classList.remove('visible');
+            document.body.classList.remove('mobile-menu-open');
+            mobileMenuBtn.classList.remove('active');
+
+            // Force proper transform based on screen size
+            if (isMobile()) {
+                sidebar.style.transform = 'translateX(-100%)';
+                console.log('📱 Sidebar reset to hidden on mobile');
+            } else {
+                sidebar.style.transform = 'translateX(0)';
+                console.log('💻 Sidebar reset to visible on desktop');
+            }
+        }
+
+        // Open mobile menu
+        function openMobileMenu() {
+            if (!sidebar || !mobileMenuBtn || !mobileBackdrop || !sidebarBackdrop) {
+                console.error('❌ Mobile menu elements not found!');
+                return;
+            }
+
+            console.log('📱 Opening mobile menu...');
+
+            // Clear any existing states first
+            sidebar.classList.remove('collapsed');
+
+            // Add mobile-specific classes
+            sidebar.classList.add('mobile-open');
+            mobileBackdrop.classList.add('show');
+            sidebarBackdrop.classList.add('visible');
+            document.body.classList.add('mobile-menu-open');
+            mobileMenuBtn.classList.add('active');
+
+            // Force transform to show sidebar
+            sidebar.style.transform = 'translateX(0)';
+            sidebar.style.zIndex = '1002';
+
+            console.log('📱 Mobile menu opened successfully');
+        }
+
+        // Close mobile menu
+        function closeMobileMenu() {
+            if (!sidebar || !mobileMenuBtn || !mobileBackdrop || !sidebarBackdrop) {
+                console.error('❌ Mobile menu elements not found!');
+                return;
+            }
+
+            // Remove mobile classes
+            sidebar.classList.remove('mobile-open');
+            mobileBackdrop.classList.remove('show');
+            sidebarBackdrop.classList.remove('visible');
+            document.body.classList.remove('mobile-menu-open');
+            mobileMenuBtn.classList.remove('active');
+
+            // Force transform based on screen size
+            if (isMobile()) {
+                sidebar.style.transform = 'translateX(-100%)';
+            } else {
+                sidebar.style.transform = 'translateX(0)';
+            }
+
+            console.log('📱 Mobile menu closed');
+        }
+
+        // Toggle mobile menu
+        function toggleMobileMenu() {
+            if (!sidebar) {
+                console.error('❌ Sidebar element not found!');
+                return;
+            }
+
+            console.log('🔄 Toggling mobile menu. Current state:', {
+                isOpen: sidebar.classList.contains('mobile-open'),
+                transform: sidebar.style.transform,
+                isMobile: isMobile()
+            });
+
+            if (sidebar.classList.contains('mobile-open')) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        }
+
+        // Setup event listeners
+        function setupMobileMenuListeners() {
+            console.log('🔧 Setting up mobile menu listeners...');
+
+            // Mobile menu button click - ensure no conflicts with other handlers
+            if (mobileMenuBtn) {
+                // Clear any existing listeners first
+                const newButton = mobileMenuBtn.cloneNode(true);
+                mobileMenuBtn.parentNode.replaceChild(newButton, mobileMenuBtn);
+                mobileMenuBtn = newButton;
+
+                mobileMenuBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔘 Mobile menu button clicked, isMobile:', isMobile(), 'sidebar hidden:', sidebar ? sidebar.style.transform : 'no sidebar');
+
+                    toggleMobileMenu();
+                });
+
+                // Also handle touch events for better mobile support
+                mobileMenuBtn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('👆 Mobile menu button touched, isMobile:', isMobile());
+
+                    toggleMobileMenu();
+                }, { passive: false });
+
+                console.log('✅ Mobile menu button listeners added');
+            } else {
+                console.error('❌ Mobile menu button not found!');
+            }
+
+            // Close mobile menu when clicking backdrop
+            if (mobileBackdrop) {
+                mobileBackdrop.addEventListener('click', () => {
+                    if (isMobile()) {
+                        closeMobileMenu();
+                    }
+                });
+                console.log('✅ Mobile backdrop listener added');
+            }
+
+            if (sidebarBackdrop) {
+                sidebarBackdrop.addEventListener('click', () => {
+                    if (isMobile()) {
+                        closeMobileMenu();
+                    }
+                });
+                console.log('✅ Sidebar backdrop listener added');
+            }
+
+            // Handle ESC key to close mobile menu
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && isMobile() && sidebar && sidebar.classList.contains('mobile-open')) {
+                    closeMobileMenu();
+                }
+            });
+
+            // Close mobile menu when clicking nav links on mobile
+            document.addEventListener('click', (e) => {
+                if (isMobile() && e.target.closest('.nav-link')) {
+                    // Small delay to allow navigation
+                    setTimeout(() => {
+                        closeMobileMenu();
+                    }, 100);
+                }
+            });
+
+            // Touch gesture support for mobile
+            let startX, startY, currentX, currentY;
+
+            if (sidebar) {
+                sidebar.addEventListener('touchstart', (e) => {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                }, { passive: true });
+
+                sidebar.addEventListener('touchmove', (e) => {
+                    if (!startX || !startY) return;
+
+                    currentX = e.touches[0].clientX;
+                    currentY = e.touches[0].clientY;
+
+                    const deltaX = currentX - startX;
+                    const deltaY = currentY - startY;
+
+                    // If swiping left and it's more horizontal than vertical
+                    if (deltaX < -50 && Math.abs(deltaX) > Math.abs(deltaY)) {
+                        closeMobileMenu();
+                    }
+                }, { passive: true });
+            }
+
+            // Prevent body scroll when mobile menu is open
+            document.addEventListener('touchmove', (e) => {
+                if (document.body.classList.contains('mobile-menu-open')) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            console.log('✅ All mobile menu listeners setup complete');
+        }
+
+        // Initialize mobile menu when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('📱 DOM loaded, initializing mobile menu...');
+
+            // Small delay to ensure all elements are rendered
+            setTimeout(() => {
+                initializeMobileMenu();
+
+                // Reset initial state
+                resetSidebarState();
+
+                // Ensure proper initial state based on screen size
+                if (sidebar) {
+                    if (isMobile()) {
+                        // On mobile: sidebar should be hidden, show burger button
+                        sidebar.classList.remove('collapsed', 'mobile-open');
+                        sidebar.style.transform = 'translateX(-100%)';
+                        console.log('📱 Initial mobile state: sidebar hidden');
+                    } else {
+                        // On desktop: sidebar should be visible, hide burger button
+                        sidebar.classList.remove('collapsed', 'mobile-open');
+                        sidebar.style.transform = 'translateX(0)';
+                        console.log('💻 Initial desktop state: sidebar visible');
+                    }
+
+                    // Force visibility of nav text on all screen sizes
+                    const navTexts = sidebar.querySelectorAll('.nav-text, .logo-subtitle');
+                    navTexts.forEach(element => {
+                        element.style.opacity = '1';
+                        element.style.pointerEvents = 'auto';
+                    });
+                }
+
+                console.log('✅ Mobile menu initialization complete');
+            }, 100);
+        });
+
+        // Also initialize on window load as a fallback
+        window.addEventListener('load', () => {
+            console.log('🌐 Window loaded, ensuring mobile menu is ready...');
+            if (!mobileMenuBtn) {
+                setTimeout(() => {
+                    initializeMobileMenu();
+                    resetSidebarState();
+                }, 100);
+            }
+        });
+
+        // Handle window resize with proper state management
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                console.log('🔄 Window resized, adjusting sidebar state...');
+                const nowMobile = isMobile();
+
+                if (!nowMobile && sidebar) {
+                    // Switching to desktop - show sidebar, close mobile menu
+                    closeMobileMenu();
+                    sidebar.style.transform = 'translateX(0)';
+                    console.log('💻 Switched to desktop: sidebar visible');
+                } else if (nowMobile && sidebar && !sidebar.classList.contains('mobile-open')) {
+                    // Switching to mobile - hide sidebar unless it's open
+                    sidebar.style.transform = 'translateX(-100%)';
+                    console.log('📱 Switched to mobile: sidebar hidden');
+                }
+            }, 150);
+        });
+    </script>
+
     <!-- Inline Admin Animations Script -->
     <script>
         // Inline animation functionality to avoid MIME type issues
@@ -3499,7 +5744,7 @@
             constructor() {
                 this.hideLoader();
             }
-            
+
             hideLoader() {
                 const loader = document.getElementById('pageLoader');
                 if (loader) {
@@ -3512,11 +5757,11 @@
                 }
             }
         }
-        
+
         // Initialize page loader when DOM is ready
         document.addEventListener('DOMContentLoaded', () => {
             new SimplePageLoader();
-            
+
             // Trigger scroll animations for existing elements
             const animatedElements = document.querySelectorAll('.fade-in-up, .fade-in-left, .fade-in-right, .scale-in, .slide-in-bottom');
             animatedElements.forEach((element, index) => {
