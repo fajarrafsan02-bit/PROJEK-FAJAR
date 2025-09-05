@@ -1410,9 +1410,17 @@
                 const href = activeLink.getAttribute('href');
 
                 // If href is not "#" and is a valid URL, navigate to it
-                if (href && href !== '#' && href !== '/admin/home') {
-                    window.location.href = href;
-                    return;
+                if (href && href !== '#') {
+                    // For relative URLs or URLs with protocol, navigate directly
+                    if (href.startsWith('/') || href.includes('://')) {
+                        window.location.href = href;
+                        return;
+                    }
+                    // For relative paths without leading slash, navigate directly
+                    else if (!href.startsWith('/')) {
+                        window.location.href = href;
+                        return;
+                    }
                 }
 
                 // Remove active class from all links
