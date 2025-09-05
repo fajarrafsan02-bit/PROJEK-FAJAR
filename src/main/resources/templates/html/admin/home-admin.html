@@ -1482,20 +1482,20 @@
             handleQuickAction(action) {
                 const actions = {
                     'add-product': () => {
-                        this.showNotification('Membuka form tambah produk...', 'info');
                         // Navigate to add product page
+                        window.location.href = 'manajemen-produk.html';
                     },
                     'update-price': () => {
-                        this.showNotification('Membuka halaman update harga...', 'info');
                         // Navigate to price update page
+                        window.location.href = '/admin/harga-emas';
                     },
                     'view-orders': () => {
-                        this.showNotification('Membuka daftar pesanan...', 'info');
                         // Navigate to orders page
+                        window.location.href = '/admin/pesanan';
                     },
                     'reports': () => {
-                        this.showNotification('Membuka laporan...', 'info');
                         // Navigate to reports page
+                        window.location.href = '/admin/laporan';
                     }
                 };
 
