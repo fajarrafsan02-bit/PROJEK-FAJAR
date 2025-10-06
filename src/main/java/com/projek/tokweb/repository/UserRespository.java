@@ -21,4 +21,6 @@ public interface UserRespository extends JpaRepository<User, Long>{
     
     // Method untuk menghitung user kecuali role tertentu
     long countByRoleNot(Role role);
+
+    long countByWaktuBuatBetweenAndRoleNot(LocalDateTime start, LocalDateTime end, Role role);
 }

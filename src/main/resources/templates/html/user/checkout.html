@@ -1016,18 +1016,6 @@
                             </label>
                         </div>
                         
-                        <!-- Test buttons untuk debug -->
-                        <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button type="button" onclick="checkoutManager.testQRCode()" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                🧪 Test QR Code
-                            </button>
-                            <button type="button" onclick="checkoutManager.debugCheckoutData()" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                🔍 Debug Data
-                            </button>
-                            <button type="button" onclick="checkoutManager.loadSampleData()" style="padding: 8px 16px; background: #ffc107; color: #212529; border: none; border-radius: 4px; cursor: pointer;">
-                                📦 Load Sample
-                            </button>
-                        </div>
                     </div>
 
                     <!-- Payment Instructions akan muncul di sini -->
@@ -1110,6 +1098,18 @@
                 this.priceChanges = [];
                 this.priceHistory = [];
                 this.currentOrderId = null;
+                this.lastCheckoutItems = [];
+                const pendingRemovalRaw = localStorage.getItem('pendingRemovalItems');
+                if (pendingRemovalRaw) {
+                    try {
+                        this.pendingRemovalItems = JSON.parse(pendingRemovalRaw) || [];
+                    } catch (error) {
+                        console.warn('⚠️ Failed to parse pendingRemovalItems from storage:', error);
+                        this.pendingRemovalItems = [];
+                    }
+                } else {
+                    this.pendingRemovalItems = [];
+                }
 
                 this.init();
             }
@@ -1205,6 +1205,11 @@
                 
                 // Update checkout data dengan items yang sudah dinormalisasi
                 this.checkoutData.items = validItems;
+                this.lastCheckoutItems = validItems.map(item => ({
+                    cartItemId: item.id ?? item.cartItemId ?? null,
+                    productId: item.productId ?? item.product_id ?? null,
+                    quantity: item.quantity ?? item.qty ?? 1
+                }));
                 console.log('✅ Checkout data validation passed with', validItems.length, 'items');
                 return true;
             }
@@ -1461,6 +1466,15 @@
                         console.log('✅ Checkout successful');
                         this.showNotification('Pesanan berhasil dibuat!', 'success');
 
+                        // Snapshot current checkout items for later sync (upload proof)
+                        const checkoutItemsSnapshot = (this.lastCheckoutItems || []).map(item => ({
+                            cartItemId: item.cartItemId ?? item.id ?? null,
+                            productId: item.productId ?? null,
+                            quantity: item.quantity ?? 1
+                        }));
+                        this.pendingRemovalItems = checkoutItemsSnapshot;
+                        localStorage.setItem('pendingRemovalItems', JSON.stringify(checkoutItemsSnapshot));
+
                         // Add notification to notification manager
                         if (window.notificationManager) {
                             const orderNumber = result.data?.orderNumber || result.data?.externalId || 'ID-' + Date.now();
@@ -1480,9 +1494,6 @@
                             console.warn('⚠️ No payment data received');
                             this.showNotification('Pesanan berhasil dibuat, tetapi data pembayaran tidak lengkap', 'warning');
                         }
-
-                        // Clear cart from localStorage and database
-                        await this.clearCartAfterPayment();
 
                     } else {
                         throw new Error(result.message || 'Gagal memproses checkout');
@@ -1775,59 +1786,173 @@
                 `;
             }
 
-            async clearCartAfterPayment() {
+            async clearCartAfterPayment(itemsOverride = null) {
                 try {
-                    console.log('🗑️ Clearing cart after successful payment proof upload...');
+                    console.log('🗑️ Synchronizing cart after successful payment step...');
 
-                    // 1. Clear from localStorage first
-                    localStorage.removeItem('cart');
-                    localStorage.removeItem('checkoutData');
-                    localStorage.removeItem('cartChanged'); // Clear change flag
-                    console.log('✅ Cart cleared from localStorage');
+                    const sourceItems = Array.isArray(itemsOverride) && itemsOverride.length
+                        ? itemsOverride
+                        : (Array.isArray(this.pendingRemovalItems) && this.pendingRemovalItems.length
+                            ? this.pendingRemovalItems
+                            : this.lastCheckoutItems);
 
-                    // 2. Update local cart data
-                    this.cart = [];
-                    this.checkoutData = {};
+                    if (!Array.isArray(sourceItems) || sourceItems.length === 0) {
+                        console.log('ℹ️ No checkout items snapshot available for cart synchronization.');
+                        return;
+                    }
 
-                    // 3. Force refresh cart from database to ensure it's empty
-                    try {
-                        const userId = await this.getCurrentUserId();
-                        if (userId) {
-                            console.log('🔄 Force refreshing cart from database for user:', userId);
-                            const response = await fetch(`/user/api/cart?userId=${userId}`);
-                            if (response.ok) {
-                                const result = await response.json();
-                                console.log('📥 Current cart from database after checkout:', result);
-                                if (result.success && result.data && result.data.items && result.data.items.length > 0) {
-                                    console.log('⚠️ Cart not empty in database, items still present:', result.data.items.length);
-                                } else {
-                                    console.log('✅ Cart confirmed empty in database');
-                                }
+                    const cartItemIdsToRemove = new Set();
+                    const productIdsToRemove = new Set();
+
+                    sourceItems.forEach(item => {
+                        if (item && typeof item === 'object') {
+                            if (item.cartItemId != null) {
+                                cartItemIdsToRemove.add(String(item.cartItemId));
+                            }
+                            const productId = item.productId ?? item.product_id ?? null;
+                            if (productId != null) {
+                                productIdsToRemove.add(Number(productId));
                             }
                         }
-                    } catch (dbError) {
-                        console.warn('⚠️ Could not verify database cart status:', dbError);
+                    });
+
+                    const userId = await this.getCurrentUserId();
+                    let synchronizedCart = null;
+
+                    if (userId && productIdsToRemove.size > 0) {
+                        console.log('🗄️ Removing purchased items from server cart for user:', userId);
+                        for (const productId of productIdsToRemove) {
+                            try {
+                                const removeResponse = await fetch(`/user/api/cart/remove?userId=${userId}&productId=${productId}`, {
+                                    method: 'DELETE',
+                                    headers: { 'Accept': 'application/json' },
+                                    credentials: 'include'
+                                });
+
+                                if (!removeResponse.ok) {
+                                    const removeBody = await this.parseJsonSafe(removeResponse);
+                                    const removeMessage = removeBody?.message || `HTTP ${removeResponse.status}`;
+                                    console.warn('⚠️ Failed to remove product from server cart:', productId, removeMessage);
+                                } else {
+                                    console.log('✅ Removed product from server cart:', productId);
+                                }
+                            } catch (removeError) {
+                                console.warn('⚠️ Error removing product from server cart:', productId, removeError);
+                            }
+                        }
+
+                        try {
+                            console.log('🔄 Fetching latest cart from server after removals...');
+                            const response = await fetch(`/user/api/cart?userId=${userId}`, {
+                                method: 'GET',
+                                headers: { 'Accept': 'application/json' },
+                                credentials: 'include'
+                            });
+
+                            if (response.ok) {
+                                const body = await response.json();
+                                if (body?.success && body?.data) {
+                                    synchronizedCart = Array.isArray(body.data.items) ? body.data.items : [];
+                                    console.log('✅ Server cart fetched with', synchronizedCart.length, 'items remaining.');
+                                } else {
+                                    console.warn('⚠️ Server cart fetch returned unexpected payload:', body);
+                                }
+                            } else {
+                                console.warn('⚠️ Failed to fetch server cart. HTTP', response.status);
+                            }
+                        } catch (serverError) {
+                            console.warn('⚠️ Error fetching server cart:', serverError);
+                        }
+                    } else if (!userId) {
+                        console.log('ℹ️ Guest checkout detected, relying on local cart data.');
                     }
 
-                    // 4. Update badges immediately
+                    let updatedCart = [];
+
+                    if (Array.isArray(synchronizedCart)) {
+                        updatedCart = synchronizedCart;
+                        localStorage.setItem('cart', JSON.stringify(updatedCart));
+                        console.log('💾 Local cart replaced with server data.');
+                    } else {
+                        const localCartRaw = localStorage.getItem('cart');
+                        let localCart = [];
+                        try {
+                            localCart = localCartRaw ? JSON.parse(localCartRaw) : [];
+                        } catch (parseError) {
+                            console.warn('⚠️ Failed to parse local cart data, resetting to empty array.', parseError);
+                            localCart = [];
+                        }
+
+                        if (cartItemIdsToRemove.size === 0 && productIdsToRemove.size === 0) {
+                            console.log('ℹ️ No specific checkout items recorded, leaving local cart untouched.');
+                            updatedCart = localCart;
+                        } else {
+                            updatedCart = localCart.filter(item => {
+                                const cartItemId = item?.id != null ? String(item.id) : null;
+                                const productId = item?.productId ?? item?.product_id ?? null;
+
+                                if (cartItemId && cartItemIdsToRemove.has(cartItemId)) {
+                                    return false;
+                                }
+                                if (productId != null && productIdsToRemove.has(Number(productId))) {
+                                    return false;
+                                }
+                                return true;
+                            });
+
+                            localStorage.setItem('cart', JSON.stringify(updatedCart));
+                            console.log('✅ Local cart updated. Removed', localCart.length - updatedCart.length, 'items based on checkout list.');
+                        }
+                    }
+
+                    this.cart = updatedCart;
+                    this.totalItems = Array.isArray(updatedCart)
+                        ? updatedCart.reduce((sum, item) => sum + (item?.quantity || 0), 0)
+                        : 0;
+
+                    // Sinkronkan storage legacy jika digunakan halaman lain
+                    const legacyKeys = ['cartItems', 'cart_list', 'cartItemsLocal', 'cartData'];
+                    legacyKeys.forEach(key => {
+                        if (localStorage.getItem(key) !== null) {
+                            localStorage.setItem(key, JSON.stringify(updatedCart));
+                        }
+                    });
+
+                    this.pendingRemovalItems = [];
+                    localStorage.removeItem('pendingRemovalItems');
+
+                    // Bersihkan checkoutData agar tidak diproses ulang, namun simpan snapshot untuk upload proof
+                    this.checkoutData = {};
+                    localStorage.removeItem('checkoutData');
+
                     this.updateBadges();
 
-                    // 5. Trigger global cart refresh for all other pages/tabs
                     if (window.CartBadgeManager) {
-                        console.log('🔄 Triggering global cart refresh...');
+                        console.log('🔄 Triggering CartBadgeManager refresh after checkout sync...');
                         await CartBadgeManager.forceRefresh();
-                        CartBadgeManager.triggerCartUpdate({ action: 'cleared_after_checkout' });
+                        CartBadgeManager.triggerCartUpdate({
+                            action: 'checkout_items_removed',
+                            removedCartItemIds: Array.from(cartItemIdsToRemove),
+                            timestamp: new Date().toISOString()
+                        });
+                    } else {
+                        localStorage.setItem('cartChanged', Date.now().toString());
                     }
 
-                    // 6. Set storage flag to notify other tabs
-                    localStorage.setItem('cartCleared', Date.now().toString());
+                    if (window.notificationManager) {
+                        window.notificationManager.addNotification(
+                            'Keranjang Diperbarui',
+                            'Item yang sudah dibayar telah dikurangi dari keranjangmu.',
+                            null
+                        );
+                    }
 
-                    console.log('✅ Cart clearing completed successfully');
-                    this.showNotification('Keranjang berhasil dikosongkan setelah pembayaran!', 'success');
+                    console.log('✅ Cart synchronization after checkout completed successfully.');
+                    this.showNotification('Keranjang diperbarui setelah pembayaran!', 'success');
 
                 } catch (error) {
-                    console.error('❌ Error clearing cart:', error);
-                    this.showNotification('Ada masalah saat mengosongkan keranjang, silakan refresh halaman', 'warning');
+                    console.error('❌ Error synchronizing cart:', error);
+                    this.showNotification('Ada masalah saat memperbarui keranjang, silakan refresh halaman', 'warning');
                 }
             }
 
@@ -1867,6 +1992,15 @@
                         console.log('✅ Payment proof uploaded successfully');
                         this.showNotification('Bukti pembayaran berhasil diupload. Menunggu konfirmasi admin.', 'success');
 
+                        if (window.notificationManager) {
+                            const orderNumber = this.currentOrderId || `ORDER-${Date.now()}`;
+                            window.notificationManager.addNotification(
+                                'Pembayaran Diterima',
+                                'Pesanan kamu berhasil diterima admin.',
+                                orderNumber
+                            );
+                        }
+
                         // Clear cart after successful payment proof upload
                         console.log('🗑️ Clearing cart after payment proof upload...');
                         await this.clearCartAfterPayment();
@@ -1903,14 +2037,12 @@
                     const wishlistBadge = document.getElementById('wishlistBadge');
 
                     if (cartBadge) {
-                        // After clearing, cart should be empty
-                        const uniqueProducts = 0;
+                        const uniqueProducts = Array.isArray(this.cart) ? this.cart.length : 0;
                         cartBadge.textContent = uniqueProducts;
 
-                        // Hide badge when empty
-                        cartBadge.style.display = 'none';
+                        cartBadge.style.display = uniqueProducts === 0 ? 'none' : 'inline-block';
 
-                        console.log('CheckoutManager: Cart cleared, badge set to 0 and hidden');
+                        console.log('CheckoutManager: Cart fallback update, badge set to', uniqueProducts);
                     }
 
                     // Update wishlist badge with real data
@@ -1973,6 +2105,18 @@
                         wishlistBadge.style.display = 'none';
                     }
                 }
+            }
+
+            async parseJsonSafe(response) {
+                try {
+                    const contentType = response.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        return await response.json();
+                    }
+                } catch (error) {
+                    console.warn('CheckoutManager: Failed to parse JSON response:', error);
+                }
+                return null;
             }
 
             // Method to setup event listeners for wishlist badge updates

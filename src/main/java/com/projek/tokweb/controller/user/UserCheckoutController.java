@@ -17,8 +17,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.projek.tokweb.dto.customer.CheckoutRequest;
 import com.projek.tokweb.models.User;
+import com.projek.tokweb.models.customer.BuktiPembayaran;
+import com.projek.tokweb.models.customer.Order;
+import com.projek.tokweb.models.customer.OrderStatus;
+import com.projek.tokweb.models.customer.PaymentTransaction;
 import com.projek.tokweb.repository.UserRespository;
 import com.projek.tokweb.service.customer.CheckoutService;
+import com.projek.tokweb.service.customer.BuktiPembayaranService;
+import com.projek.tokweb.repository.customer.PaymentTransactionRepository;
+import com.projek.tokweb.repository.customer.OrderRepository;
 import com.projek.tokweb.utils.AuthUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
@@ -36,6 +43,9 @@ public class UserCheckoutController {
 
     private final CheckoutService checkoutService;
     private final UserRespository userRespository;
+    private final BuktiPembayaranService buktiPembayaranService;
+    private final PaymentTransactionRepository paymentTransactionRepository;
+    private final OrderRepository orderRepository;
 
     @PostMapping("/checkout")
     public ResponseEntity<?> checkout(@Valid @RequestBody CheckoutRequest req) {
@@ -175,33 +185,31 @@ public class UserCheckoutController {
                 ));
             }
 
-            // Create upload directory if not exists
-            String uploadDir = "uploads/payment-proofs/";
-            Path uploadPath = Paths.get(uploadDir);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
+            // Find the payment transaction by external ID
+            PaymentTransaction transaction = paymentTransactionRepository.findByExternalPaymentId(externalId)
+                    .orElseThrow(() -> new IllegalArgumentException("Transaction tidak ditemukan: " + externalId));
 
-            // Generate unique file name
-            String originalFileName = file.getOriginalFilename();
-            String fileExtension = originalFileName != null && originalFileName.contains(".") 
-                ? originalFileName.substring(originalFileName.lastIndexOf("."))
-                : ".jpg";
-            String fileName = "payment_proof_" + externalId + "_" + System.currentTimeMillis() + fileExtension;
+            Order order = transaction.getOrder();
             
-            // Save file
-            Path filePath = uploadPath.resolve(fileName);
-            Files.copy(file.getInputStream(), filePath);
+            // Save bukti pembayaran directly to database using BuktiPembayaranService
+            BuktiPembayaran savedBukti = buktiPembayaranService.saveBukti(order.getId(), file);
+            
+            // Link the bukti to the order
+            order.setBukti(savedBukti);
+            order.setStatus(OrderStatus.PENDING_CONFIRMATION);
+            orderRepository.save(order);
+            
+            // Update transaction status
+            transaction.setRawPayload(savedBukti.getFileName());
+            transaction.setStatus(com.projek.tokweb.models.customer.PaymentStatus.PROCESSING);
+            paymentTransactionRepository.save(transaction);
 
-            // Update payment status using service
-            checkoutService.updatePaymentProof(externalId, fileName);
-            
-            System.out.println("Payment proof uploaded: " + fileName);
+            System.out.println("✅ Payment proof saved directly to database with ID: " + savedBukti.getId());
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Bukti pembayaran berhasil diupload",
-                "fileName", fileName
+                "fileName", savedBukti.getFileName()
             ));
             
         } catch (IOException e) {

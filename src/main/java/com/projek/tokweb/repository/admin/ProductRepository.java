@@ -36,6 +36,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      */
     List<Product> findByPurityAndIsActiveTrue(int purity);
 
+    Optional<Product> findByIdAndIsActiveTrue(Long id);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from Product p where p.id = :id")
     Optional<Product> findByIdForUpdate(@Param("id") Long id);

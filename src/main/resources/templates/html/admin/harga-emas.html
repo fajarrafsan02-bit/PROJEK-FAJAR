@@ -1565,8 +1565,6 @@
                         <button class="btn btn-primary" id="updateAllBtn"><i class="fas fa-sync-alt"></i> Update
                             Semua</button>
                         <button class="btn btn-secondary" id="refreshBtn" style="background: var(--info-color);"><i class="fas fa-refresh"></i> Refresh</button>
-                        <button class="btn btn-secondary" id="reliableRefreshBtn" style="background: var(--success-color);"><i class="fas fa-shield-alt"></i> Reliable Refresh</button>
-                        <button class="btn btn-secondary" id="debugBtn" style="background: var(--warning-color);"><i class="fas fa-bug"></i> Debug</button>
                     </div>
                 </div>
 
@@ -1802,6 +1800,17 @@
                     }
                 });
 
+                // History button scroll
+                const historyBtn = document.getElementById('historyBtn');
+                if (historyBtn) {
+                    historyBtn.addEventListener('click', () => {
+                        const historySection = document.querySelector('.history-section');
+                        if (historySection) {
+                            historySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    });
+                }
+
                 // Update all prices button
                 const updateAllBtn = document.getElementById('updateAllBtn');
                 if (updateAllBtn) {
@@ -1937,34 +1946,6 @@
                 if (refreshBtn) {
                     refreshBtn.addEventListener('click', () => {
                         this.forceRefreshAllData();
-                    });
-                }
-
-                // Debug button
-                const debugBtn = document.getElementById('debugBtn');
-                if (debugBtn) {
-                    debugBtn.addEventListener('click', () => {
-                        this.debugPriceChanges();
-                    });
-                }
-
-                // Reliable Refresh button
-                const reliableRefreshBtn = document.getElementById('reliableRefreshBtn');
-                if (reliableRefreshBtn) {
-                    reliableRefreshBtn.addEventListener('click', async () => {
-                        const originalText = reliableRefreshBtn.innerHTML;
-                        reliableRefreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
-                        reliableRefreshBtn.disabled = true;
-                        
-                        try {
-                            await this.reliableRefreshData();
-                            this.showNotification('Reliable refresh berhasil!', 'success');
-                        } catch (error) {
-                            this.showNotification('Reliable refresh gagal: ' + error.message, 'error');
-                        } finally {
-                            reliableRefreshBtn.innerHTML = originalText;
-                            reliableRefreshBtn.disabled = false;
-                        }
                     });
                 }
             }
@@ -2544,7 +2525,7 @@
 
             async loadPriceHistory() {
                 try {
-                    const response = await fetch(`${this.baseUrl}/history?page=0&size=100&sortBy=tanggalAmbil&sortDirection=desc`);
+                    const response = await fetch(`${this.baseUrl}/history?page=0&size=40&sortBy=tanggalAmbil&sortDirection=desc`);
                     const result = await response.json();
 
                     if (result.success) {
@@ -3714,127 +3695,6 @@
                 }
             }
 
-            // Method untuk debug dan test perubahan harga emas
-            async debugPriceChanges() {
-                console.log('=== DEBUG ADMIN PRICE CHANGES ===');
-                console.log('Current prices:', this.currentPrices);
-                console.log('Price changes:', this.priceChanges);
-                console.log('External price:', this.externalPrice);
-                console.log('Price history length:', this.priceHistory ? this.priceHistory.length : 0);
-                console.log('Has valid price changes:', this.hasValidPriceChanges());
-                
-                try {
-                    // Test endpoint history
-                    const res = await fetch('/gold-price/history?page=0&size=5&sortBy=tanggalAmbil&sortDirection=desc');
-                    if (res.ok) {
-                        const data = await res.json();
-                        console.log('History data:', data);
-                        
-                        if (data.success && data.data?.content) {
-                            console.log('Price history items:');
-                            data.data.content.forEach((item, index) => {
-                                console.log(`${index + 1}. 24K: ${item.hargaJual24k}, 22K: ${item.hargaJual22k}, 18K: ${item.hargaJual18k}, Tanggal: ${item.tanggalAmbil}`);
-                            });
-                        }
-                    }
-                    
-                    // Test endpoint changes
-                    const changesRes = await fetch('/gold-price/changes/latest');
-                    if (changesRes.ok) {
-                        const changesData = await changesRes.json();
-                        console.log('Changes data:', changesData);
-                        
-                        if (changesData.success && changesData.data) {
-                            console.log('Price changes from API:');
-                            changesData.data.forEach((change, index) => {
-                                console.log(`${index + 1}. ${change.purity}: ${change.oldPrice} -> ${change.newPrice} (${change.changeType}, ${change.changePercent}%)`);
-                                console.log(`   Date: ${change.changeDate}, Source: ${change.changeSource}, Notes: ${change.notes}`);
-                            });
-                        }
-                    } else {
-                        console.log('Changes endpoint not available or error:', changesRes.status);
-                    }
-                    
-                    // Test endpoint external
-                    const externalRes = await fetch('/gold-price/fetch-external');
-                    if (externalRes.ok) {
-                        const externalData = await externalRes.json();
-                        console.log('External price data:', externalData);
-                    } else {
-                        console.log('External endpoint not available or error:', externalRes.status);
-                    }
-                    
-                    // Test endpoint latest
-                    const latestRes = await fetch('/gold-price/latest');
-                    if (latestRes.ok) {
-                        const latestData = await latestRes.json();
-                        console.log('Latest price data:', latestData);
-                    } else {
-                        console.log('Latest endpoint not available or error:', latestRes.status);
-                    }
-                    
-                    // Debug rendering data
-                    console.log('=== RENDERING DEBUG ===');
-                    const requiredPurities = ['24k', '22k', '18k'];
-                    requiredPurities.forEach(purity => {
-                        const changeData = this.priceChanges[purity];
-                        console.log(`${purity}:`, {
-                            currentPrice: this.currentPrices[purity],
-                            changeData: changeData,
-                            hasValidChange: changeData && changeData.oldPrice > 0 && changeData.newPrice > 0
-                        });
-                    });
-                    
-                    // Debug source tracking
-                    console.log('=== SOURCE TRACKING DEBUG ===');
-                    if (changesRes.ok && changesData.success && changesData.data) {
-                        const sources = {};
-                        changesData.data.forEach(change => {
-                            if (!sources[change.changeSource]) {
-                                sources[change.changeSource] = [];
-                            }
-                            sources[change.changeSource].push({
-                                purity: change.purity,
-                                oldPrice: change.oldPrice,
-                                newPrice: change.newPrice,
-                                date: change.changeDate
-                            });
-                        });
-                        console.log('Changes grouped by source:', sources);
-                    }
-                    
-                    // Debug karat ratio calculation
-                    console.log('=== KARAT RATIO DEBUG ===');
-                    if (this.currentPrices['24k'] > 0) {
-                        const basePrice24k = this.currentPrices['24k'];
-                        const expected22k = Math.round(basePrice24k * 0.9167);
-                        const expected18k = Math.round(basePrice24k * 0.75);
-                        const actual22k = this.currentPrices['22k'];
-                        const actual18k = this.currentPrices['18k'];
-                        
-                        console.log('Karat ratio calculation:');
-                        console.log(`  24K (base): ${basePrice24k}`);
-                        console.log(`  22K expected: ${expected22k} (${basePrice24k} * 0.9167)`);
-                        console.log(`  22K actual: ${actual22k}`);
-                        console.log(`  22K difference: ${actual22k - expected22k}`);
-                        console.log(`  18K expected: ${expected18k} (${basePrice24k} * 0.75)`);
-                        console.log(`  18K actual: ${actual18k}`);
-                        console.log(`  18K difference: ${actual18k - expected18k}`);
-                        
-                        // Check if ratios are correct
-                        const ratio22kCorrect = Math.abs(actual22k - expected22k) <= 1000; // Tolerance 1000 rupiah
-                        const ratio18kCorrect = Math.abs(actual18k - expected18k) <= 1000; // Tolerance 1000 rupiah
-                        
-                        console.log(`  22K ratio correct: ${ratio22kCorrect ? '✅' : '❌'}`);
-                        console.log(`  18K ratio correct: ${ratio18kCorrect ? '✅' : '❌'}`);
-                    }
-                    
-                } catch (error) {
-                    console.error('Debug error:', error);
-                }
-                
-                console.log('=== END DEBUG ===');
-            }
 
             // Method untuk force refresh semua data
             async forceRefreshAllData() {
@@ -3869,42 +3729,6 @@
                 }
             }
 
-            // Method untuk refresh data dengan lebih reliable
-            async reliableRefreshData() {
-                try {
-                    console.log('Starting reliable data refresh...');
-                    
-                    // 1. Load current prices
-                    await this.loadCurrentPrices();
-                    console.log('Step 1: Current prices loaded');
-                    
-                    // 2. Load price changes dari database
-                    await this.loadPriceChanges();
-                    console.log('Step 2: Price changes loaded');
-                    
-                    // 3. Load price history
-                    await this.loadPriceHistory();
-                    console.log('Step 3: Price history loaded');
-                    
-                    // 4. Jika tidak ada data perubahan yang valid dari database, hitung dari history
-                    if (!this.hasValidPriceChanges()) {
-                        console.log('Step 4: Calculating price changes from history...');
-                        await this.calculatePriceChanges();
-                    } else {
-                        console.log('Step 4: Valid price changes found in database');
-                    }
-                    
-                    // 5. Render ulang tampilan
-                    this.renderCurrentPrices();
-                    this.loadCurrentPricesInForm();
-                    
-                    console.log('Reliable refresh completed successfully');
-                    return true;
-                } catch (error) {
-                    console.error('Error during reliable refresh:', error);
-                    return false;
-                }
-            }
 
             // Method untuk show update message
             showUpdateMessage(message, type = 'info') {

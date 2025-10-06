@@ -2,6 +2,7 @@ package com.projek.tokweb.controller.user;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
@@ -36,6 +37,16 @@ public class UserController {
     @GetMapping("/wishlist")
     public String wishlist() {
         return "html/user/wishlist";
+    }
+
+    @GetMapping("/account")
+    public String account() {
+        return "html/user/account";
+    }
+
+    @GetMapping("/product/{id}")
+    public String productDetail(@PathVariable Long id) {
+        return "html/user/product-detail";
     }
 
     @GetMapping("/about")

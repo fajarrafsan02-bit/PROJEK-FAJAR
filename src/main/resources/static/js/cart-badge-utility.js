@@ -120,7 +120,7 @@ class CartBadgeManager {
 
         // Listen untuk storage events (untuk sinkronisasi antar tab)
         window.addEventListener('storage', (event) => {
-            if (event.key === 'cartChanged') {
+            if (event.key === 'cartChanged' || event.key === 'cartCleared') {
                 console.log('CartBadgeManager: Storage cart change detected');
                 this.refreshCart();
             }

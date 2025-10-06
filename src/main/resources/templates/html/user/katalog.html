@@ -754,6 +754,227 @@
             color: var(--black-luxury);
         }
 
+        /* ===== PRODUCT DETAIL MODAL ===== */
+        .quick-view-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .quick-view-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .quick-view-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 900px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.4s ease;
+            box-shadow: var(--shadow-luxury);
+        }
+
+        .quick-view-modal.active .quick-view-content {
+            transform: translateY(0);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--gray-elegant);
+            transition: color 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .close-modal:hover {
+            color: var(--black-luxury);
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .product-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .product-detail-image {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gray-light);
+        }
+
+        .product-detail-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .product-detail-info h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--black-luxury);
+            margin-bottom: 15px;
+            font-size: 28px;
+            line-height: 1.3;
+        }
+
+        .product-detail-specs {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 15px 0;
+            border-top: 1px solid var(--gray-light);
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .spec-item {
+            text-align: center;
+        }
+
+        .spec-value {
+            font-weight: 700;
+            color: var(--gold-primary);
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .spec-label {
+            font-size: 14px;
+            color: var(--gray-elegant);
+        }
+
+        .product-detail-price {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--gold-primary);
+            margin: 20px 0;
+        }
+
+        .product-detail-description {
+            color: var(--gray-elegant);
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .product-detail-description h4 {
+            color: var(--black-luxury);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .product-detail-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .add-to-cart-detail {
+            flex: 1;
+            background: var(--gradient-gold);
+            color: var(--black-luxury);
+            border: none;
+            padding: 15px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .add-to-cart-detail:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .wishlist-detail {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            border: 2px solid var(--gray-medium);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .wishlist-detail.active {
+            background: var(--error-color);
+            border-color: var(--error-color);
+            color: white;
+        }
+
+        .wishlist-detail:hover {
+            border-color: var(--gold-primary);
+            color: var(--gold-primary);
+        }
+
+        .wishlist-detail.active:hover {
+            background: #c82333;
+            border-color: #c82333;
+        }
+
+        /* Responsive for product detail */
+        @media (max-width: 768px) {
+            .product-detail-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .product-detail-image {
+                height: 300px;
+            }
+
+            .product-detail-info h2 {
+                font-size: 24px;
+            }
+
+            .product-detail-price {
+                font-size: 28px;
+            }
+
+            .product-detail-actions {
+                flex-direction: column;
+            }
+        }
+
         /* ===== RESPONSIVE FIXES ===== */
 
         /* Tablet and below */
@@ -2381,7 +2602,7 @@
                                 <i class="fas fa-cart-plus"></i>
                                 Tambah ke Keranjang
                             </button>
-                            <button class="quick-view" onclick="catalog.quickView(${product.id})">
+                            <button class="quick-view" onclick="catalog.openProductDetail(${product.id})">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </div>
@@ -2661,6 +2882,19 @@
                         // Update badges dan render products
                         this.updateBadges();
                         this.renderProducts();
+                        
+                        // Update wishlist button in modal if it's open
+                        const modalWishlistBtn = document.querySelector('.wishlist-detail');
+                        if (modalWishlistBtn) {
+                            modalWishlistBtn.classList.remove('active');
+                            const icon = modalWishlistBtn.querySelector('i');
+                            if (icon) {
+                                icon.className = 'far fa-heart';
+                            }
+                        }
+                        
+                        // Also update any quick view modal that might be open for this specific product
+                        this.updateQuickViewWishlistButton(productId, false);
                     }
                 } else {
                     const success = await this.addToWishlist(product);
@@ -2668,9 +2902,50 @@
                         // Update badges dan render products
                         this.updateBadges();
                         this.renderProducts();
+                        
+                        // Update wishlist button in modal if it's open
+                        const modalWishlistBtn = document.querySelector('.wishlist-detail');
+                        if (modalWishlistBtn) {
+                            modalWishlistBtn.classList.add('active');
+                            const icon = modalWishlistBtn.querySelector('i');
+                            if (icon) {
+                                icon.className = 'fas fa-heart';
+                            }
+                        }
+                        
+                        // Also update any quick view modal that might be open for this specific product
+                        this.updateQuickViewWishlistButton(productId, true);
                     }
                 }
                 console.log('Wishlist updated, new count:', this.wishlist.length);
+            }
+
+            // New method to update the wishlist button in quick view modal
+            updateQuickViewWishlistButton(productId, isInWishlist) {
+                // Find the quick view modal for this specific product
+                const modal = document.getElementById('quickViewModal');
+                if (modal && modal.classList.contains('active')) {
+                    // Check if this modal is for the product we're updating
+                    const modalProductId = modal.querySelector('.add-to-cart-detail')?.getAttribute('onclick')?.match(/\d+/)?.[0];
+                    if (modalProductId && parseInt(modalProductId) === productId) {
+                        const wishlistBtn = modal.querySelector('.wishlist-detail');
+                        if (wishlistBtn) {
+                            if (isInWishlist) {
+                                wishlistBtn.classList.add('active');
+                                const icon = wishlistBtn.querySelector('i');
+                                if (icon) {
+                                    icon.className = 'fas fa-heart';
+                                }
+                            } else {
+                                wishlistBtn.classList.remove('active');
+                                const icon = wishlistBtn.querySelector('i');
+                                if (icon) {
+                                    icon.className = 'far fa-heart';
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             isInWishlist(productId) {
@@ -2684,65 +2959,114 @@
                 return isInList;
             }
 
+            openProductDetail(productId) {
+                if (!productId) {
+                    console.warn('Product ID tidak valid untuk detail page');
+                    return;
+                }
+                window.location.href = `/user/product/${productId}`;
+            }
+
             quickView(productId) {
                 const product = this.products.find(p => p.id === productId);
                 if (!product) return;
 
-                const modal = document.createElement('div');
-                modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.8);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 10000;
-            `;
+                // Create modal element if it doesn't exist
+                let modal = document.getElementById('quickViewModal');
+                if (!modal) {
+                    modal = document.createElement('div');
+                    modal.id = 'quickViewModal';
+                    modal.className = 'quick-view-modal';
+                    document.body.appendChild(modal);
+                }
 
+                // Check if product is in wishlist
+                const isInWishlist = this.isInWishlist(product.id);
+
+                // Set modal content
                 modal.innerHTML = `
-                <div style="background: white; border-radius: 20px; padding: 30px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 style="font-family: 'Playfair Display', serif; color: var(--black-luxury);">${product.name}</h2>
-                        <button onclick="this.closest('.modal').remove()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
-                        <img src="${this.getProductImageUrl(product)}" 
-                            alt="${product.name}" 
-                            style="width: 100%; border-radius: 10px;"
-                            onerror="this.src='/placeholder.svg'">
-                        <div>
-                            <p style="color: var(--gray-elegant); margin-bottom: 10px;">Berat: ${product.formattedWeight || product.weight + ' gram'} gram | Kadar: ${product.purity}K</p>
-                            <div style="font-size: 28px; font-weight: 700; color: var(--gold-primary); margin-bottom: 20px;">${this.formatProductPrice(product)}</div>
-                            <div style="margin-bottom: 20px;">
-                                <h4 style="margin-bottom: 10px;">Deskripsi:</h4>
-                                <p style="color: var(--gray-elegant);">${product.description || 'Produk emas berkualitas tinggi dengan sertifikat resmi. Cocok untuk investasi maupun perhiasan sehari-hari.'}</p>
+                    <div class="quick-view-content">
+                        <button class="close-modal">&times;</button>
+                        <div class="product-detail-grid">
+                            <div class="product-detail-image">
+                                <img src="${this.getProductImageUrl(product)}" 
+                                     alt="${product.name}" 
+                                     onerror="this.src='/placeholder.svg'">
                             </div>
-                            <div style="margin-bottom: 20px;">
-                                <h4 style="margin-bottom: 10px;">Perawatan:</h4>
-                                <ul style="color: var(--gray-elegant); padding-left: 20px;">
-                                    <li>Bersihkan dengan kain lembut</li>
-                                    <li>Hindari kontak dengan bahan kimia</li>
-                                    <li>Simpan di tempat kering</li>
-                                </ul>
+                            <div class="product-detail-info">
+                                <h2>${product.name}</h2>
+                                <div class="product-detail-specs">
+                                    <div class="spec-item">
+                                        <div class="spec-value">${product.formattedWeight || product.weight + ' gram'}</div>
+                                        <div class="spec-label">Berat</div>
+                                    </div>
+                                    <div class="spec-item">
+                                        <div class="spec-value">${product.purity}K</div>
+                                        <div class="spec-label">Kadar</div>
+                                    </div>
+                                    <div class="spec-item">
+                                        <div class="spec-value">${product.stock}</div>
+                                        <div class="spec-label">Stok</div>
+                                    </div>
+                                </div>
+                                <div class="product-detail-price">${this.formatProductPrice(product)}</div>
+                                <div class="product-detail-description">
+                                    <h4>Deskripsi:</h4>
+                                    <p>${product.description || 'Produk emas berkualitas tinggi dengan sertifikat resmi. Cocok untuk investasi maupun perhiasan sehari-hari.'}</p>
+                                </div>
+                                <div class="product-detail-description">
+                                    <h4>Perawatan:</h4>
+                                    <ul>
+                                        <li>Bersihkan dengan kain lembut</li>
+                                        <li>Hindari kontak dengan bahan kimia</li>
+                                        <li>Simpan di tempat kering</li>
+                                    </ul>
+                                </div>
+                                <div class="product-detail-actions">
+                                    <button class="add-to-cart-detail" onclick="catalog.addToCart(${product.id})">
+                                        <i class="fas fa-cart-plus"></i>
+                                        Tambah ke Keranjang
+                                    </button>
+                                    <button class="wishlist-detail ${isInWishlist ? 'active' : ''}" onclick="catalog.toggleWishlist(${product.id})">
+                                        <i class="${isInWishlist ? 'fas' : 'far'} fa-heart"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <button onclick="catalog.addToCart(${product.id}); this.closest('.modal').remove();" 
-                                style="width: 100%; background: var(--gradient-gold); color: var(--black-luxury); border: none; padding: 15px; border-radius: 10px; font-weight: 600; cursor: pointer;">
-                                <i class="fas fa-cart-plus"></i> Tambah ke Keranjang
-                            </button>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
 
-                modal.className = 'modal';
-                document.body.appendChild(modal);
+                // Show modal
+                setTimeout(() => {
+                    modal.classList.add('active');
+                }, 10);
 
+                // Add event listeners
+                const closeBtn = modal.querySelector('.close-modal');
+                closeBtn.addEventListener('click', () => {
+                    modal.classList.remove('active');
+                    setTimeout(() => {
+                        modal.remove();
+                    }, 300);
+                });
+
+                // Close modal when clicking outside content
                 modal.addEventListener('click', (e) => {
                     if (e.target === modal) {
-                        modal.remove();
+                        modal.classList.remove('active');
+                        setTimeout(() => {
+                            modal.remove();
+                        }, 300);
+                    }
+                });
+
+                // Prevent body scroll when modal is open
+                document.body.style.overflow = 'hidden';
+
+                // Re-enable scroll when modal is closed
+                modal.addEventListener('transitionend', (e) => {
+                    if (e.propertyName === 'opacity' && !modal.classList.contains('active')) {
+                        document.body.style.overflow = '';
                     }
                 });
             }
@@ -2866,6 +3190,7 @@
                     position: fixed;
                     top: 20px;
                     right: 20px;
+
                     background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
                     color: white;
                     padding: 15px 20px;

@@ -136,12 +136,21 @@ public class CartService {
     }
     
     @Transactional
-    public void clearCart(Long userId) {
+    public CartResponseDto clearCart(Long userId) {
         try {
             Cart cart = cartRepository.findByUserId(userId)
                     .orElseThrow(() -> new RuntimeException("Keranjang tidak ditemukan"));
             
             cartItemRepository.deleteAll(cart.getItems());
+            cart.getItems().clear();
+            cartRepository.save(cart);
+
+            return CartResponseDto.builder()
+                    .cartId(cart.getId())
+                    .items(new ArrayList<>())
+                    .totalItems(0)
+                    .totalPrice(0.0)
+                    .build();
             
         } catch (Exception e) {
             log.error("Error clearing cart: {}", e.getMessage());

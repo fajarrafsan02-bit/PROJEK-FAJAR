@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.projek.tokweb.service.admin.ProductService;
 import com.projek.tokweb.dto.ApiResponse;
 import com.projek.tokweb.dto.admin.ProductResponseDto;
+import com.projek.tokweb.dto.user.UserProfileResponse;
 import com.projek.tokweb.models.User;
 import com.projek.tokweb.repository.UserRespository;
 import com.projek.tokweb.utils.AuthUtils;
@@ -51,13 +53,33 @@ public class UserControllerApi {
             }
             
             System.out.println("✅ Authenticated user found: " + currentUser.getEmail() + ", ID: " + currentUser.getId());
-            return ResponseEntity.ok(ApiResponse.success("User berhasil diambil", currentUser));
+            return ResponseEntity.ok(ApiResponse.success("User berhasil diambil", toUserProfileResponse(currentUser)));
             
         } catch (Exception e) {
             System.err.println("Error getting current user: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error("Gagal mengambil user: " + e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "Get User Account Detail", description = "Mendapatkan detail akun user yang sedang login")
+    @GetMapping("/account/detail")
+    public ResponseEntity<?> getAccountDetail(HttpServletRequest request) {
+        try {
+            User currentUser = AuthUtils.getCurrentUser();
+
+            if (currentUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.error("User tidak terautentikasi"));
+            }
+
+            return ResponseEntity.ok(ApiResponse.success("Detail akun berhasil diambil", toUserProfileResponse(currentUser)));
+        } catch (Exception e) {
+            System.err.println("Error getting user account detail: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Gagal mengambil detail akun"));
         }
     }
     
@@ -157,5 +179,32 @@ public class UserControllerApi {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("Gagal mencari produk: " + e.getMessage()));
         }
+    }
+
+    @Operation(summary = "Get Product Detail", description = "Mengambil detail produk aktif berdasarkan ID")
+    @GetMapping("/products/{id}")
+    public ResponseEntity<?> getActiveProductDetail(@PathVariable Long id) {
+        try {
+            ProductResponseDto product = productService.getActiveProductByIdWithFormattedResponse(id);
+            return ResponseEntity.ok(ApiResponse.success("Detail produk berhasil diambil", product));
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(ex.getMessage()));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Gagal mengambil detail produk: " + ex.getMessage()));
+        }
+    }
+
+    private UserProfileResponse toUserProfileResponse(User user) {
+        return UserProfileResponse.builder()
+                .id(user.getId())
+                .namaLengkap(user.getNamaLengkap())
+                .email(user.getEmail())
+                .nomorHp(user.getNomorHp())
+                .role(user.getRole())
+                .terferifikasi(user.getTerferifikasi())
+                .waktuBuat(user.getWaktuBuat())
+                .build();
     }
 }

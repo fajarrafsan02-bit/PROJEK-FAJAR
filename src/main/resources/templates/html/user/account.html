@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Akun - Fajar Gold</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --gold-primary: #d4af37;
+            --gold-dark: #b8860b;
+            --gray-light: #f7fafc;
+            --gray-border: #e2e8f0;
+            --gray-text: #4a5568;
+            --danger: #e53e3e;
+            --success: #10b981;
+            --bg-dark: #0f172a;
+            --bg-card: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background: radial-gradient(circle at top, rgba(212, 175, 55, 0.25), rgba(15, 23, 42, 0.95) 55%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 16px;
+        }
+
+        .page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 16, 31, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .page-loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-content {
+            text-align: center;
+        }
+
+        .loader-logo {
+            font-family: "Playfair Display", serif;
+            font-size: 40px;
+            color: var(--gold-primary);
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        .loader-spinner {
+            width: 58px;
+            height: 58px;
+            border: 4px solid rgba(255, 255, 255, 0.15);
+            border-top: 4px solid var(--gold-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        .loader-text {
+            margin-top: 18px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 15px;
+            letter-spacing: 0.02em;
+        }
+
+        .account-container {
+            width: 100%;
+            max-width: 960px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            border-radius: 24px;
+            padding: 32px;
+            backdrop-filter: blur(18px);
+            box-shadow: 0 30px 60px rgba(5, 10, 25, 0.45);
+            opacity: 0;
+            transform: translateY(30px) scale(0.98);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .account-container.ready {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .account-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+        }
+
+        .account-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .account-title h1 {
+            font-family: "Playfair Display", serif;
+            font-size: 32px;
+            color: var(--gold-primary);
+        }
+
+        .account-title span {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.72);
+        }
+
+        .account-actions {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            color: var(--gold-primary);
+            background: transparent;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+            border-color: var(--gold-primary);
+            color: #ffffff;
+        }
+
+        .btn-logout {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            border-radius: 999px;
+            border: none;
+            background: rgba(229, 62, 62, 0.18);
+            color: #fed7d7;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background: rgba(229, 62, 62, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-logout:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .btn-logout .spinner {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top: 2px solid rgba(255, 255, 255, 0.8);
+            animation: spin 0.9s linear infinite;
+        }
+
+        .grid {
+            display: grid;
+            gap: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        }
+
+        .info-card {
+            background: rgba(15, 23, 42, 0.65);
+            border-radius: 20px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(40px) scale(0.98);
+            animation: cardFadeIn 0.8s ease forwards;
+            animation-play-state: paused;
+        }
+
+        .info-card:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .account-container.ready .info-card {
+            animation-play-state: running;
+        }
+
+        @keyframes cardFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.85; }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), transparent 65%);
+            pointer-events: none;
+        }
+
+        .info-card h2 {
+            font-size: 18px;
+            color: var(--gold-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .info-label {
+            font-size: 14px;
+            color: rgba(226, 232, 240, 0.75);
+            letter-spacing: 0.02em;
+        }
+
+        .info-value {
+            font-size: 15px;
+            font-weight: 500;
+            color: #ffffff;
+            text-align: right;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .badge.success {
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .badge.danger {
+            color: var(--danger);
+            border-color: rgba(229, 62, 62, 0.45);
+        }
+
+        .skeleton {
+            height: 16px;
+            background: linear-gradient(90deg, rgba(148, 163, 184, 0.15) 25%, rgba(148, 163, 184, 0.25) 50%, rgba(148, 163, 184, 0.15) 75%);
+            background-size: 400% 100%;
+            border-radius: 12px;
+            animation: shimmer 1.6s infinite;
+            width: 60%;
+            margin-left: auto;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 100% 0;
+            }
+            100% {
+                background-position: -100% 0;
+            }
+        }
+
+        .error-banner {
+            margin-top: 24px;
+            padding: 16px;
+            background: rgba(229, 62, 62, 0.2);
+            border: 1px solid rgba(229, 62, 62, 0.35);
+            border-radius: 16px;
+            color: #fed7d7;
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .account-container {
+                padding: 24px 20px;
+                border-radius: 18px;
+            }
+
+            .account-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .info-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .info-value {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-loader" id="pageLoader">
+        <div class="loader-content">
+            <div class="loader-logo">Fajar Gold</div>
+            <div class="loader-spinner"></div>
+            <div class="loader-text">Memuat profil Anda...</div>
+        </div>
+    </div>
+
+    <div class="account-container">
+        <div class="account-header">
+            <div class="account-title">
+                <span><i class="fas fa-user-circle"></i></span>
+                <div>
+                    <h1>Detail Akun</h1>
+                    <span>Ringkasan informasi profil Anda di Fajar Gold</span>
+                </div>
+            </div>
+            <div class="account-actions">
+                <a href="/user/home" class="btn-secondary"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</a>
+                <button type="button" class="btn-logout" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="label">Keluar</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="grid">
+            <section class="info-card">
+                <h2><i class="fas fa-id-card"></i>Informasi Personal</h2>
+                <div class="info-row">
+                    <span class="info-label">Nama Lengkap</span>
+                    <span class="info-value" id="namaLengkap"><span class="skeleton"></span></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email</span>
+                    <span class="info-value" id="email"><span class="skeleton"></span></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Nomor HP</span>
+                    <span class="info-value" id="nomorHp"><span class="skeleton"></span></span>
+                </div>
+            </section>
+
+            <section class="info-card">
+                <h2><i class="fas fa-shield-alt"></i>Status Akun</h2>
+                <div class="info-row">
+                    <span class="info-label">Peran</span>
+                    <span class="info-value" id="role"><span class="skeleton"></span></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status Verifikasi</span>
+                    <span class="info-value" id="statusVerifikasi"><span class="skeleton"></span></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Terdaftar Sejak</span>
+                    <span class="info-value" id="waktuBuat"><span class="skeleton"></span></span>
+                </div>
+            </section>
+        </div>
+
+        <div class="error-banner" id="errorBanner">
+            <i class="fas fa-circle-exclamation"></i>
+            <span id="errorMessage">Gagal memuat data akun.</span>
+        </div>
+    </div>
+
+    <script>
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return new Intl.DateTimeFormat('id-ID', {
+                day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+            }).format(date);
+        }
+
+        function setValue(id, content) {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = content;
+        }
+
+        async function loadAccountDetail() {
+            try {
+                const response = await fetch('/user/account/detail', { credentials: 'include' });
+                if (!response.ok) throw new Error('Tidak dapat mengambil data akun');
+
+                const result = await response.json();
+                if (!result.success || !result.data) throw new Error(result.message || 'Data akun tidak tersedia');
+
+                const data = result.data;
+                setValue('namaLengkap', data.namaLengkap || '-');
+                setValue('email', data.email || '-');
+                setValue('nomorHp', data.nomorHp || '-');
+                setValue('role', `<span class="badge">${data.role || '-'}</span>`);
+                const statusClass = data.terferifikasi ? 'success' : 'danger';
+                const statusText = data.terferifikasi ? 'Terverifikasi' : 'Belum Terverifikasi';
+                setValue('statusVerifikasi', `<span class="badge ${statusClass}"><i class="fas fa-shield-check"></i>${statusText}</span>`);
+                setValue('waktuBuat', formatDate(data.waktuBuat));
+            } catch (error) {
+                document.getElementById('errorBanner').style.display = 'flex';
+                document.getElementById('errorMessage').textContent = error.message;
+                setValue('namaLengkap', '-');
+                setValue('email', '-');
+                setValue('nomorHp', '-');
+                setValue('role', '-');
+                setValue('statusVerifikasi', '-');
+                setValue('waktuBuat', '-');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.querySelector('.account-container');
+            const loader = document.getElementById('pageLoader');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const errorBanner = document.getElementById('errorBanner');
+            const errorMessage = document.getElementById('errorMessage');
+
+            const revealContent = () => {
+                if (loader) {
+                    loader.classList.add('hidden');
+                    setTimeout(() => {
+                        loader.style.display = 'none';
+                    }, 500);
+                }
+
+                if (container) {
+                    container.classList.add('ready');
+                }
+
+                loadAccountDetail();
+            };
+
+            if (document.readyState === 'complete') {
+                setTimeout(revealContent, 400);
+            } else {
+                window.addEventListener('load', () => {
+                    setTimeout(revealContent, 800);
+                });
+            }
+
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    if (logoutBtn.disabled) return;
+                    logoutBtn.disabled = true;
+                    const icon = logoutBtn.querySelector('i');
+                    const label = logoutBtn.querySelector('.label');
+                    if (icon) icon.style.display = 'none';
+                    if (label) label.textContent = 'Keluar...';
+                    const spinner = document.createElement('span');
+                    spinner.classList.add('spinner');
+                    logoutBtn.prepend(spinner);
+
+                    window.location.href = '/auth/logout';
+
+                    // fallback jika redirect gagal
+                    setTimeout(() => {
+                        if (window.location.pathname !== '/auth/login') {
+                            if (spinner) spinner.remove();
+                            if (icon) icon.style.display = '';
+                            if (label) label.textContent = 'Keluar';
+                            logoutBtn.disabled = false;
+                            if (errorBanner && errorMessage) {
+                                errorMessage.textContent = 'Gagal keluar. Silakan coba lagi.';
+                                errorBanner.style.display = 'flex';
+                            }
+                        }
+                    }, 5000);
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

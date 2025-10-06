@@ -312,6 +312,9 @@ class WishlistManager {
         
         // Prepare product data with safe fallbacks
         const product = item.product || {};
+        const productId = product.id;
+        const detailHref = productId ? `/user/product/${productId}` : '#';
+        const detailDisabledAttr = productId ? '' : 'style="pointer-events: none; opacity: 0.6;"';
         const productName = product.name || 'Produk Tidak Diketahui';
         const productImage = product.imageUrl || '/images/default-product.jpg';
         const productWeight = product.weight || 0;
@@ -328,7 +331,7 @@ class WishlistManager {
                 <div class="date-added">${formattedDate}</div>
             </div>
             
-            <button class="remove-btn" onclick="wishlistManager.removeFromWishlist(${product.id})">
+            <button class="remove-btn" onclick="wishlistManager.removeFromWishlist(${productId})">
                 <i class="fas fa-times"></i>
             </button>
             
@@ -351,11 +354,11 @@ class WishlistManager {
                 </div>
                 
                 <div class="item-actions">
-                    <button class="action-btn primary" onclick="wishlistManager.addToCart(${product.id})" ${!isAvailable ? 'disabled' : ''}>
+                    <button class="action-btn primary" onclick="wishlistManager.addToCart(${productId})" ${!isAvailable ? 'disabled' : ''}>
                         <i class="fas fa-cart-plus"></i>
                         Tambah ke Keranjang
                     </button>
-                    <a href="/user/katalog/${product.id}" class="action-btn secondary">
+                    <a href="${detailHref}" class="action-btn secondary" ${detailDisabledAttr}>
                         <i class="fas fa-eye"></i>
                         Lihat
                     </a>

@@ -239,6 +239,12 @@ public class ProductService {
         return ProductResponseDto.fromProduct(product);
     }
 
+    public ProductResponseDto getActiveProductByIdWithFormattedResponse(Long productId) {
+        Product product = productRepository.findByIdAndIsActiveTrue(productId)
+                .orElseThrow(() -> new RuntimeException("Produk tidak ditemukan atau tidak aktif dengan ID: " + productId));
+        return ProductResponseDto.fromProduct(product);
+    }
+
     public Page<Product> getAllProductsWithPagination(int page, int size, String sortBy, String sortDirection) {
         Sort sort = sortDirection.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
 

@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Produk - Fajar Gold</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --gold-primary: #d4af37;
+            --gold-dark: #b8860b;
+            --gold-light: #f7e98e;
+            --black: #0a0a0a;
+            --black-soft: #1f1f1f;
+            --gray-light: #f7fafc;
+            --gray-medium: #e2e8f0;
+            --gray-dark: #2d3748;
+            --white: #ffffff;
+            --error: #ef4444;
+            --success: #10b981;
+            --shadow-soft: 0 25px 50px rgba(15, 23, 42, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background: var(--gray-light);
+            color: var(--black);
+            min-height: 100vh;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--white);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        .nav-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 22px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .logo {
+            font-family: "Playfair Display", serif;
+            font-size: 32px;
+            letter-spacing: 2px;
+            color: var(--gold-primary);
+            font-weight: 700;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .nav-icon {
+            position: relative;
+            font-size: 22px;
+            color: var(--black);
+            padding: 10px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .nav-icon:hover {
+            color: var(--gold-primary);
+            background: rgba(212, 175, 55, 0.12);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: var(--error);
+            color: var(--white);
+            border-radius: 999px;
+            padding: 2px 7px;
+            font-size: 11px;
+            font-weight: 600;
+            display: none;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 60px auto;
+            padding: 0 32px 80px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--gray-dark);
+            margin-bottom: 28px;
+            align-items: center;
+        }
+
+        .breadcrumb a {
+            color: var(--gold-dark);
+        }
+
+        .detail-card {
+            background: var(--white);
+            border-radius: 28px;
+            box-shadow: var(--shadow-soft);
+            padding: 36px;
+            display: grid;
+            gap: 48px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        }
+
+        .image-wrapper {
+            border-radius: 24px;
+            background: linear-gradient(145deg, rgba(212, 175, 55, 0.12), rgba(255, 215, 0, 0.18));
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 360px;
+        }
+
+        .image-wrapper img {
+            max-width: 100%;
+            max-height: 420px;
+            object-fit: contain;
+            transition: transform 0.4s ease;
+        }
+
+        .image-wrapper img.loaded {
+            transform: scale(1.02);
+        }
+
+        .info-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .product-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--black);
+            line-height: 1.3;
+        }
+
+        .price {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--gold-dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stock-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--success);
+            font-weight: 500;
+        }
+
+        .spec-grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        }
+
+        .spec-card {
+            background: rgba(15, 23, 42, 0.04);
+            border-radius: 18px;
+            padding: 16px 18px;
+        }
+
+        .spec-label {
+            font-size: 13px;
+            color: var(--gray-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 6px;
+        }
+
+        .spec-value {
+            font-weight: 600;
+            font-size: 17px;
+            color: var(--black);
+        }
+
+        .section-title {
+            font-family: "Playfair Display", serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--black);
+            margin-bottom: 12px;
+        }
+
+        .description {
+            line-height: 1.7;
+            color: var(--gray-dark);
+            background: rgba(15, 23, 42, 0.04);
+            border-radius: 18px;
+            padding: 20px 22px;
+            font-size: 15px;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-top: 10px;
+        }
+
+        .primary-btn, .secondary-btn {
+            padding: 14px 26px;
+            border-radius: 999px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-dark));
+            color: var(--black);
+        }
+
+        .primary-btn:disabled,
+        .secondary-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .primary-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 28px rgba(212, 175, 55, 0.3);
+        }
+
+        .secondary-btn {
+            background: transparent;
+            border: 1.5px solid rgba(15, 23, 42, 0.16);
+            color: var(--gray-dark);
+        }
+
+        .secondary-btn:hover {
+            border-color: var(--gold-dark);
+            color: var(--gold-dark);
+        }
+
+        .secondary-btn.active {
+            border-color: var(--gold-primary);
+            color: var(--gold-primary);
+            background: rgba(212, 175, 55, 0.12);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 120px 30px;
+            background: var(--white);
+            border-radius: 28px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            color: var(--gold-primary);
+            margin-bottom: 24px;
+        }
+
+        .empty-state h2 {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .notification-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toast {
+            min-width: 260px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            color: var(--white);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .toast-success { background: var(--success); }
+        .toast-error { background: var(--error); }
+        .toast-info { background: var(--gold-dark); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 16px;
+                padding: 18px 24px;
+            }
+
+            main {
+                margin: 40px auto;
+                padding: 0 20px 60px;
+            }
+
+            .detail-card {
+                padding: 24px;
+            }
+
+            .image-wrapper {
+                padding: 28px;
+                min-height: 280px;
+            }
+
+            .product-title {
+                font-size: 26px;
+            }
+
+            .price {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="nav-container">
+            <a href="/user/home" class="logo">Fajar Gold</a>
+            <div class="nav-actions">
+            <a href="/user/katalog" class="nav-icon" title="Kembali ke Katalog">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+            <a href="/user/cart" class="nav-icon" title="Keranjang">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-badge">0</span>
+                </a>
+                <a href="/user/wishlist" class="nav-icon" title="Wishlist">
+                    <i class="fas fa-heart"></i>
+                    <span class="cart-badge" id="wishlistBadge" style="display: none;">0</span>
+                </a>
+            <a href="/user/home" class="nav-icon" title="Dashboard">
+                    <i class="fas fa-user"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <main>
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/user/home">Dashboard</a>
+            <span>/</span>
+            <a href="/user/katalog">Katalog</a>
+            <span>/</span>
+            <span id="breadcrumbProduct">Detail Produk</span>
+        </nav>
+
+        <section id="detailSection" class="detail-card" hidden>
+            <div class="image-wrapper">
+                <img id="productImage" src="/placeholder.svg" alt="Produk emas Fajar Gold">
+            </div>
+            <div class="info-wrapper">
+                <div>
+                    <div class="product-title" id="productTitle">Memuat detail produk...</div>
+                    <div class="price" id="productPrice">-</div>
+                    <div class="stock-chip" id="stockChip" hidden>
+                        <i class="fas fa-box"></i>
+                        <span id="stockLabel"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="section-title">Spesifikasi Produk</h3>
+                    <div class="spec-grid">
+                        <div class="spec-card">
+                            <div class="spec-label">Berat</div>
+                            <div class="spec-value" id="weightValue">-</div>
+                        </div>
+                        <div class="spec-card">
+                            <div class="spec-label">Kadar</div>
+                            <div class="spec-value" id="purityValue">-</div>
+                        </div>
+                        <div class="spec-card">
+                            <div class="spec-label">Kategori</div>
+                            <div class="spec-value" id="categoryValue">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="section-title">Deskripsi</h3>
+                    <p class="description" id="productDescription">
+                        Memuat deskripsi produk...
+                    </p>
+                </div>
+
+                <div class="actions">
+                    <button class="primary-btn" id="addToCartBtn" disabled>
+                        <i class="fas fa-cart-plus"></i>
+                        Tambah ke Keranjang
+                    </button>
+                    <button class="secondary-btn" id="toggleWishlistBtn" disabled>
+                        <i class="far fa-heart"></i>
+                        Simpan ke Wishlist
+                    </button>
+                    <a class="secondary-btn" href="/user/katalog">
+                        <i class="fas fa-th-large"></i>
+                        Kembali ke Katalog
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="emptyState" class="empty-state" hidden>
+            <i class="fas fa-box-open"></i>
+            <h2>Produk tidak ditemukan</h2>
+            <p>Produk yang Anda cari tidak tersedia atau sudah tidak aktif.</p>
+            <div style="margin-top: 24px;">
+                <a class="secondary-btn" href="/user/katalog">
+                    <i class="fas fa-arrow-left"></i>
+                    Kembali ke Katalog
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <script src="/js/cart-badge-utility.js"></script>
+    <script>
+        const detailState = {
+            productId: null,
+            product: null,
+            wishlistItems: [],
+            isInWishlist: false
+        };
+
+        document.addEventListener('DOMContentLoaded', initProductDetailPage);
+
+        async function initProductDetailPage() {
+            detailState.productId = extractProductId();
+            if (!detailState.productId) {
+                showNotification('ID produk tidak valid.', 'error');
+                toggleViews({ detail: false, empty: true });
+                return;
+            }
+
+            await loadProductDetail();
+            await loadWishlistStatus();
+            setupEventHandlers();
+
+            const toggleBtn = document.getElementById('toggleWishlistBtn');
+            if (toggleBtn) {
+                toggleBtn.disabled = !detailState.product;
+            }
+        }
+
+        function extractProductId() {
+            const match = window.location.pathname.match(/\/user\/product\/(\d+)/);
+            if (!match) return null;
+            const id = Number(match[1]);
+            return Number.isFinite(id) ? id : null;
+        }
+
+        async function loadProductDetail() {
+            try {
+                const response = await fetch(`/user/products/${detailState.productId}`);
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        toggleViews({ detail: false, empty: true });
+                        return;
+                    }
+                    throw new Error(`Gagal memuat detail produk (HTTP ${response.status})`);
+                }
+
+                const result = await response.json();
+                if (!result.success || !result.data) {
+                    throw new Error(result.message || 'Detail produk tidak tersedia');
+                }
+
+                detailState.product = result.data;
+                renderProductDetail(detailState.product);
+                toggleViews({ detail: true, empty: false });
+            } catch (error) {
+                console.error('Error loading product detail:', error);
+                showNotification(error.message || 'Gagal memuat detail produk', 'error');
+                toggleViews({ detail: false, empty: true });
+            }
+        }
+
+        function renderProductDetail(product) {
+            document.getElementById('breadcrumbProduct').textContent = product.name || 'Detail Produk';
+            document.getElementById('productTitle').textContent = product.name || '-';
+
+            const priceText = product.formattedFinalPriceWithCurrency || product.formattedFinalPrice || formatCurrency(product.finalPrice);
+            document.getElementById('productPrice').textContent = priceText || 'Harga tidak tersedia';
+
+            if (typeof product.stock === 'number') {
+                const stockChip = document.getElementById('stockChip');
+                stockChip.hidden = false;
+                document.getElementById('stockLabel').textContent = `${product.stock} unit tersedia`;
+                stockChip.style.background = product.stock > 0 ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239,68,68,0.12)';
+                stockChip.style.color = product.stock > 0 ? 'var(--success)' : 'var(--error)';
+                stockChip.querySelector('i').className = product.stock > 0 ? 'fas fa-box' : 'fas fa-triangle-exclamation';
+            }
+
+            document.getElementById('weightValue').textContent = product.formattedWeight || `${product.weight || '-'} gram`;
+            document.getElementById('purityValue').textContent = product.purity ? `${product.purity}K` : '-';
+            document.getElementById('categoryValue').textContent = formatCategory(product.category);
+
+            const description = product.description && product.description.trim().length > 0
+                ? product.description
+                : 'Produk emas berkualitas tinggi dengan sertifikat resmi dari Fajar Gold.';
+            document.getElementById('productDescription').textContent = description;
+
+            const image = document.getElementById('productImage');
+            image.src = product.imageUrl && product.imageUrl.trim() !== '' ? product.imageUrl : '/placeholder.svg';
+            image.onload = () => image.classList.add('loaded');
+            image.onerror = () => {
+                image.src = '/placeholder.svg';
+            };
+
+            const addToCartBtn = document.getElementById('addToCartBtn');
+            addToCartBtn.disabled = false;
+        }
+
+        function setupEventHandlers() {
+            const addToCartBtn = document.getElementById('addToCartBtn');
+            if (addToCartBtn) {
+                addToCartBtn.addEventListener('click', handleAddToCart);
+            }
+
+            const toggleWishlistBtn = document.getElementById('toggleWishlistBtn');
+            if (toggleWishlistBtn) {
+                toggleWishlistBtn.addEventListener('click', handleToggleWishlist);
+            }
+        }
+
+        async function handleAddToCart() {
+            const button = document.getElementById('addToCartBtn');
+            if (!detailState.product) return;
+
+            button.disabled = true;
+            const originalLabel = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menambahkan...';
+
+            try {
+                const userId = await getCurrentUserId();
+                if (!userId) {
+                    showNotification('Silakan login terlebih dahulu.', 'error');
+                    return;
+                }
+
+                const response = await fetch('/user/api/cart/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId,
+                        productId: detailState.productId,
+                        quantity: 1
+                    })
+                });
+
+                const contentType = response.headers.get('content-type') || '';
+                const isJson = contentType.includes('application/json');
+                const payload = isJson ? await response.json() : null;
+
+                if (response.ok && payload?.success) {
+                    showNotification('Produk ditambahkan ke keranjang.', 'success');
+                    await refreshCartBadge();
+                } else {
+                    const message = payload?.message || `Gagal menambahkan ke keranjang (HTTP ${response.status})`;
+                    throw new Error(message);
+                }
+            } catch (error) {
+                console.error('Add to cart error:', error);
+                showNotification(error.message || 'Gagal menambahkan produk.', 'error');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = originalLabel;
+            }
+        }
+
+        async function handleToggleWishlist() {
+            if (!detailState.productId) return;
+
+            const button = document.getElementById('toggleWishlistBtn');
+            if (!button || button.disabled) return;
+
+            const isCurrentlySaved = detailState.isInWishlist;
+            button.disabled = true;
+            button.classList.remove('active');
+            button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${isCurrentlySaved ? 'Menghapus...' : 'Menyimpan...'}`;
+
+            try {
+                if (isCurrentlySaved) {
+                    const result = await removeProductFromWishlist();
+                    if (!result.success) throw new Error(result.message);
+                    showNotification(result.message || 'Produk dihapus dari wishlist.', 'success');
+                } else {
+                    const result = await addProductToWishlist();
+                    if (!result.success) throw new Error(result.message);
+                    showNotification(result.message || 'Produk disimpan ke wishlist.', 'success');
+                }
+
+                await loadWishlistStatus();
+            } catch (error) {
+                console.error('Wishlist toggle error:', error);
+                showNotification(error.message || 'Gagal memperbarui wishlist.', 'error');
+            } finally {
+                button.disabled = false;
+                updateWishlistButton();
+            }
+        }
+
+        async function addProductToWishlist() {
+            try {
+                const response = await fetch('/user/api/wishlist/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        productId: detailState.productId,
+                        notes: null
+                    })
+                });
+
+                const payload = await parseJsonSafe(response);
+                const success = response.ok && payload?.success;
+
+                const defaultMessage = response.status === 401
+                    ? 'Silakan login terlebih dahulu.'
+                    : `Gagal menyimpan ke wishlist (HTTP ${response.status})`;
+
+                return {
+                    success,
+                    message: payload?.message || (success ? 'Produk disimpan ke wishlist.' : defaultMessage)
+                };
+            } catch (error) {
+                return { success: false, message: error.message || 'Terjadi kesalahan saat menyimpan wishlist.' };
+            }
+        }
+
+        async function removeProductFromWishlist() {
+            try {
+                const response = await fetch(`/user/api/wishlist/remove/${detailState.productId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
+                });
+
+                const payload = await parseJsonSafe(response);
+                const success = response.ok && payload?.success;
+
+                const defaultMessage = response.status === 401
+                    ? 'Silakan login terlebih dahulu.'
+                    : `Gagal menghapus wishlist (HTTP ${response.status})`;
+
+                return {
+                    success,
+                    message: payload?.message || (success ? 'Produk dihapus dari wishlist.' : defaultMessage)
+                };
+            } catch (error) {
+                return { success: false, message: error.message || 'Terjadi kesalahan saat menghapus wishlist.' };
+            }
+        }
+
+        async function loadWishlistStatus() {
+            if (!detailState.productId) {
+                detailState.wishlistItems = [];
+                detailState.isInWishlist = false;
+                updateWishlistBadge(0);
+                updateWishlistButton();
+                return;
+            }
+
+            try {
+                const response = await fetch('/user/api/wishlist', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
+                });
+
+                const payload = await parseJsonSafe(response);
+
+                if (response.ok && payload?.success && payload.data) {
+                    const items = Array.isArray(payload.data.items) ? payload.data.items : [];
+                    detailState.wishlistItems = items;
+
+                    const targetId = Number(detailState.productId);
+                    detailState.isInWishlist = items.some(item => {
+                        const productId = item?.product?.id ?? item?.productId ?? item?.id;
+                        return Number(productId) === targetId;
+                    });
+
+                    updateWishlistBadge(items.length);
+                } else {
+                    detailState.wishlistItems = [];
+                    detailState.isInWishlist = false;
+                    updateWishlistBadge(0);
+                    if (response.status === 401) {
+                        console.warn('Pengguna belum login saat mencoba memuat wishlist.');
+                    }
+                }
+            } catch (error) {
+                console.warn('Gagal memuat data wishlist:', error);
+                detailState.wishlistItems = [];
+                detailState.isInWishlist = false;
+                updateWishlistBadge(null);
+            } finally {
+                updateWishlistButton();
+            }
+        }
+
+        function updateWishlistBadge(count) {
+            const badge = document.getElementById('wishlistBadge');
+            if (!badge) return;
+
+            if (!count || count <= 0) {
+                badge.style.display = 'none';
+                badge.textContent = '0';
+            } else {
+                badge.style.display = 'inline-flex';
+                badge.textContent = count;
+            }
+        }
+
+        function updateWishlistButton() {
+            const button = document.getElementById('toggleWishlistBtn');
+            if (!button) return;
+
+            const iconClass = detailState.isInWishlist ? 'fas fa-heart' : 'far fa-heart';
+            const label = detailState.isInWishlist ? 'Hapus dari Wishlist' : 'Simpan ke Wishlist';
+
+            button.classList.toggle('active', detailState.isInWishlist);
+            button.innerHTML = `<i class="${iconClass}"></i> ${label}`;
+        }
+
+        async function parseJsonSafe(response) {
+            try {
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('application/json')) {
+                    return await response.json();
+                }
+            } catch (error) {
+                console.warn('Gagal mem-parse JSON:', error);
+            }
+            return null;
+        }
+
+        async function getCurrentUserId() {
+            try {
+                const response = await fetch('/user/current');
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        return result.data.id;
+                    }
+                }
+            } catch (error) {
+                console.warn('Gagal mengambil user saat ini:', error);
+            }
+            return 1; // fallback untuk pengujian lokal
+        }
+
+        async function refreshCartBadge() {
+            try {
+                if (window.cartBadgeManager && typeof window.cartBadgeManager.refreshCart === 'function') {
+                    await window.cartBadgeManager.refreshCart();
+                } else if (typeof CartBadgeManager !== 'undefined' && typeof CartBadgeManager.triggerCartUpdate === 'function') {
+                    CartBadgeManager.triggerCartUpdate({ action: 'add', productId: detailState.productId });
+                }
+            } catch (error) {
+                console.warn('Gagal memperbarui badge keranjang:', error);
+            }
+        }
+
+        function toggleViews({ detail, empty }) {
+            document.getElementById('detailSection').hidden = !detail;
+            document.getElementById('emptyState').hidden = !empty;
+        }
+
+        function formatCurrency(value) {
+            if (typeof value !== 'number' || Number.isNaN(value) || value <= 0) {
+                return 'Harga tidak tersedia';
+            }
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
+        }
+
+        function formatCategory(category) {
+            if (!category) return '-';
+            const lower = String(category).toLowerCase();
+            return lower.charAt(0).toUpperCase() + lower.slice(1);
+        }
+
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-circle-exclamation' : 'fa-info-circle'}"></i><span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-10px)';
+                setTimeout(() => toast.remove(), 250);
+            }, 3200);
+        }
+    </script>
+</body>
+
+</html>

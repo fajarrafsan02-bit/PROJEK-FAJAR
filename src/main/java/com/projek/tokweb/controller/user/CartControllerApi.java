@@ -80,8 +80,8 @@ public class CartControllerApi {
     @DeleteMapping("/clear")
     public ResponseEntity<?> clearCart(@Parameter(description = "ID user") @RequestParam Long userId) {
         try {
-            cartService.clearCart(userId);
-            return ResponseEntity.ok(ApiResponse.success("Keranjang berhasil dikosongkan", null));
+            CartResponseDto cart = cartService.clearCart(userId);
+            return ResponseEntity.ok(ApiResponse.success("Keranjang berhasil dikosongkan", cart));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error("Gagal mengosongkan keranjang: " + e.getMessage()));

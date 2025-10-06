@@ -540,31 +540,31 @@
             
             <nav class="sidebar-nav">
                 <div class="nav-item">
-                    <a href="admin-dashboard.html" class="nav-link">
+                    <a href="/admin/home" class="nav-link">
                         <i class="fas fa-tachometer-alt nav-icon"></i>
                         <span class="nav-text">Dashboard</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="manajemen-produk.html" class="nav-link">
+                    <a href="/admin/produk" class="nav-link">
                         <i class="fas fa-gem nav-icon"></i>
                         <span class="nav-text">Produk Emas</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="harga-emas.html" class="nav-link">
+                    <a href="/admin/harga-emas" class="nav-link">
                         <i class="fas fa-chart-line nav-icon"></i>
                         <span class="nav-text">Harga Emas</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="manajemen-pesanan.html" class="nav-link">
+                    <a href="/admin/pesanan" class="nav-link">
                         <i class="fas fa-shopping-cart nav-icon"></i>
                         <span class="nav-text">Pesanan</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="laporan.html" class="nav-link active">
+                    <a href="/admin/laporan" class="nav-link active">
                         <i class="fas fa-chart-bar nav-icon"></i>
                         <span class="nav-text">Laporan</span>
                     </a>
@@ -753,15 +753,17 @@
                 this.currentPeriod = 'month';
                 this.salesTrendChart = null;
                 this.categoryChart = null;
+                this.reportData = null;
+                this.isLoading = false;
                 
                 this.init();
             }
 
             init() {
                 this.setupEventListeners();
+                this.setDefaultDates();
                 this.initializeCharts();
                 this.loadReportData();
-                this.setDefaultDates();
             }
 
             setupEventListeners() {
@@ -834,27 +836,22 @@
                 }
             }
 
-            generateReport() {
-                this.showNotification('Generating laporan...', 'info');
-                
-                // Simulate API call
-                setTimeout(() => {
-                    this.loadReportData();
-                    this.updateCharts();
-                    this.showNotification('Laporan berhasil di-generate!', 'success');
-                }, 1500);
+            async generateReport() {
+                if (this.isLoading) {
+                    return;
+                }
+                await this.loadReportData(true);
             }
 
             initializeCharts() {
-                // Sales Trend Chart
                 const salesCtx = document.getElementById('salesTrendChart').getContext('2d');
                 this.salesTrendChart = new Chart(salesCtx, {
                     type: 'line',
                     data: {
-                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+                        labels: [],
                         datasets: [{
                             label: 'Penjualan (Rp)',
-                            data: [8500000, 9200000, 7800000, 10500000, 11200000, 9800000, 12500000, 11800000, 13200000, 12100000, 14500000, 15200000],
+                            data: [],
                             borderColor: '#d4af37',
                             backgroundColor: 'rgba(212, 175, 55, 0.1)',
                             borderWidth: 3,
@@ -874,8 +871,12 @@
                             y: {
                                 beginAtZero: true,
                                 ticks: {
-                                    callback: function(value) {
-                                        return 'Rp ' + (value / 1000000).toFixed(0) + 'M';
+                                    callback: (value) => {
+                                        return new Intl.NumberFormat('id-ID', {
+                                            style: 'currency',
+                                            currency: 'IDR',
+                                            maximumFractionDigits: 0
+                                        }).format(value);
                                     }
                                 }
                             }
@@ -883,14 +884,13 @@
                     }
                 });
 
-                // Category Chart
                 const categoryCtx = document.getElementById('categoryChart').getContext('2d');
                 this.categoryChart = new Chart(categoryCtx, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Perhiasan', 'Batangan', 'Koin', 'Aksesoris'],
+                        labels: [],
                         datasets: [{
-                            data: [45, 30, 15, 10],
+                            data: [],
                             backgroundColor: [
                                 '#d4af37',
                                 '#ffd700',
@@ -913,81 +913,172 @@
             }
 
             updateCharts() {
-                // Update with new data based on selected period
-                this.salesTrendChart.update();
-                this.categoryChart.update();
-            }
-
-            loadReportData() {
-                this.loadTopProducts();
-                this.loadDailySales();
-                this.updateSummaryCards();
-            }
-
-            loadTopProducts() {
-                const topProducts = [
-                    { rank: 1, name: 'Cincin Emas 24K Berlian', category: 'Perhiasan', sold: 45, revenue: 146250000, margin: 25 },
-                    { rank: 2, name: 'Batangan Emas Antam 10g', category: 'Batangan', sold: 38, revenue: 399000000, margin: 15 },
-                    { rank: 3, name: 'Kalung Emas 22K Premium', category: 'Perhiasan', sold: 32, revenue: 217600000, margin: 30 },
-                    { rank: 4, name: 'Koin Emas Dinar', category: 'Koin', sold: 28, revenue: 95200000, margin: 20 },
-                    { rank: 5, name: 'Gelang Emas 18K', category: 'Perhiasan', sold: 25, revenue: 180000000, margin: 28 }
-                ];
-
-                const tbody = document.getElementById('topProductsTable');
-                tbody.innerHTML = topProducts.map(product => `
-                    <tr>
-                        <td><strong>#${product.rank}</strong></td>
-                        <td>${product.name}</td>
-                        <td>${product.category}</td>
-                        <td>${product.sold} pcs</td>
-                        <td>${this.formatCurrency(product.revenue)}</td>
-                        <td><span style="color: var(--success-color); font-weight: 600;">${product.margin}%</span></td>
-                    </tr>
-                `).join('');
-            }
-
-            loadDailySales() {
-                const dailySales = [];
-                const today = new Date();
-                
-                for (let i = 6; i >= 0; i--) {
-                    const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
-                    const orders = Math.floor(Math.random() * 20) + 10;
-                    const products = Math.floor(Math.random() * 50) + 25;
-                    const revenue = Math.floor(Math.random() * 5000000) + 3000000;
-                    
-                    dailySales.push({
-                        date: date,
-                        orders: orders,
-                        products: products,
-                        revenue: revenue,
-                        average: Math.floor(revenue / orders)
-                    });
+                if (!this.reportData) {
+                    return;
                 }
 
+                const trend = this.reportData.salesTrend || {};
+                if (this.salesTrendChart) {
+                    this.salesTrendChart.data.labels = Array.isArray(trend.labels) ? trend.labels : [];
+                    this.salesTrendChart.data.datasets[0].data = Array.isArray(trend.values)
+                        ? trend.values.map(value => Number(value ?? 0))
+                        : [];
+                    this.salesTrendChart.update();
+                }
+
+                const distribution = this.reportData.categoryDistribution || {};
+                if (this.categoryChart) {
+                    this.categoryChart.data.labels = Array.isArray(distribution.labels) ? distribution.labels : [];
+                    this.categoryChart.data.datasets[0].data = Array.isArray(distribution.values)
+                        ? distribution.values.map(value => Number(value ?? 0))
+                        : [];
+                    this.categoryChart.update();
+                }
+            }
+
+            async loadReportData(showFeedback = false) {
+                try {
+                    this.isLoading = true;
+                    if (showFeedback) {
+                        this.showNotification('Mengambil data laporan...', 'info');
+                    }
+
+                    const startDate = document.getElementById('startDate').value;
+                    const endDate = document.getElementById('endDate').value;
+                    this.reportData = await this.fetchReportData(startDate, endDate);
+
+                    this.updateSummaryCards();
+                    this.renderTopProducts();
+                    this.renderDailySales();
+                    this.updateCharts();
+
+                    if (showFeedback) {
+                        this.showNotification('Laporan berhasil diperbarui!', 'success');
+                    }
+                } catch (error) {
+                    console.error('Gagal memuat data laporan:', error);
+                    this.reportData = null;
+                    this.updateSummaryCards();
+                    this.renderTopProducts(true);
+                    this.renderDailySales(true);
+                    this.showNotification(error.message || 'Gagal memuat data laporan.', 'error');
+                } finally {
+                    this.isLoading = false;
+                }
+            }
+
+            async fetchReportData(startDate, endDate) {
+                const params = new URLSearchParams();
+                if (startDate) {
+                    params.append('startDate', startDate);
+                }
+                if (endDate) {
+                    params.append('endDate', endDate);
+                }
+
+                const query = params.toString();
+                const url = query ? `/admin/reports/dashboard?${query}` : '/admin/reports/dashboard';
+
+                const response = await fetch(url, {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    let errorMessage = 'Gagal mengambil data laporan dari server.';
+                    try {
+                        const errorBody = await response.json();
+                        if (errorBody?.message) {
+                            errorMessage = errorBody.message;
+                        }
+                    } catch (_) {
+                        // ignore parse errors
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                const payload = await response.json();
+                if (!payload.success) {
+                    throw new Error(payload.message || 'Gagal mengambil data laporan.');
+                }
+
+                return payload.data;
+            }
+
+            renderTopProducts(isError = false) {
+                const tbody = document.getElementById('topProductsTable');
+                if (isError) {
+                    tbody.innerHTML = '<tr><td colspan="6">Gagal memuat data produk terlaris.</td></tr>';
+                    return;
+                }
+
+                const products = Array.isArray(this.reportData?.topProducts) ? this.reportData.topProducts : [];
+
+                if (products.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6">Belum ada data penjualan pada periode ini.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = products.map((product, index) => {
+                    const markupValue = Number(product.markup);
+                    const markupText = Number.isFinite(markupValue)
+                        ? `${markupValue.toFixed(2)}%`
+                        : '-';
+                    return `
+                        <tr>
+                            <td><strong>#${index + 1}</strong></td>
+                            <td>${product.name || '-'}</td>
+                            <td>${product.category || '-'}</td>
+                            <td>${Number(product.quantitySold ?? 0).toLocaleString('id-ID')} pcs</td>
+                            <td>${this.formatCurrency(product.revenue)}</td>
+                            <td>${markupText}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            renderDailySales(isError = false) {
                 const tbody = document.getElementById('dailySalesTable');
-                tbody.innerHTML = dailySales.map(day => `
+                if (isError) {
+                    tbody.innerHTML = '<tr><td colspan="5">Gagal memuat data penjualan harian.</td></tr>';
+                    return;
+                }
+
+                const sales = Array.isArray(this.reportData?.dailySales) ? this.reportData.dailySales : [];
+
+                if (sales.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5">Belum ada transaksi pada periode ini.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = sales.map((day) => `
                     <tr>
                         <td>${this.formatDate(day.date)}</td>
-                        <td>${day.orders}</td>
-                        <td>${day.products}</td>
+                        <td>${Number(day.orders ?? 0).toLocaleString('id-ID')}</td>
+                        <td>${Number(day.productsSold ?? 0).toLocaleString('id-ID')}</td>
                         <td>${this.formatCurrency(day.revenue)}</td>
-                        <td>${this.formatCurrency(day.average)}</td>
+                        <td>${this.formatCurrency(day.averageOrderValue)}</td>
                     </tr>
                 `).join('');
             }
 
             updateSummaryCards() {
-                // Simulate dynamic data updates
-                const revenue = Math.floor(Math.random() * 50000000) + 100000000;
-                const orders = Math.floor(Math.random() * 100) + 300;
-                const products = Math.floor(Math.random() * 500) + 1000;
-                const customers = Math.floor(Math.random() * 50) + 70;
+                const summary = this.reportData?.summary;
+                document.getElementById('totalRevenue').textContent = this.formatCurrency(summary?.totalRevenue);
+                document.getElementById('totalOrders').textContent = Number(summary?.totalOrders ?? 0).toLocaleString('id-ID');
+                document.getElementById('productsSold').textContent = Number(summary?.totalProductsSold ?? 0).toLocaleString('id-ID');
+                document.getElementById('newCustomers').textContent = Number(summary?.newCustomers ?? 0).toLocaleString('id-ID');
 
-                document.getElementById('totalRevenue').textContent = this.formatCurrency(revenue);
-                document.getElementById('totalOrders').textContent = orders;
-                document.getElementById('productsSold').textContent = products.toLocaleString('id-ID');
-                document.getElementById('newCustomers').textContent = customers;
+                document.querySelectorAll('.summary-change').forEach((element) => {
+                    element.classList.remove('positive', 'negative');
+                    const textNode = element.querySelector('span');
+                    if (textNode) {
+                        textNode.textContent = 'Data periode sebelumnya belum tersedia';
+                    }
+                    const icon = element.querySelector('i');
+                    if (icon) {
+                        icon.className = 'fas fa-minus';
+                    }
+                });
             }
 
             exportToPDF() {
@@ -1004,20 +1095,28 @@
             }
 
             formatCurrency(amount) {
+                const numeric = Number(amount ?? 0);
                 return new Intl.NumberFormat('id-ID', {
                     style: 'currency',
                     currency: 'IDR',
                     minimumFractionDigits: 0
-                }).format(amount);
+                }).format(Number.isNaN(numeric) ? 0 : numeric);
             }
 
-            formatDate(date) {
+            formatDate(dateValue) {
+                if (!dateValue) {
+                    return '-';
+                }
+                const dateObject = dateValue instanceof Date ? dateValue : new Date(dateValue);
+                if (Number.isNaN(dateObject.getTime())) {
+                    return '-';
+                }
                 return new Intl.DateTimeFormat('id-ID', {
                     weekday: 'short',
                     year: 'numeric',
                     month: 'short',
                     day: 'numeric'
-                }).format(date);
+                }).format(dateObject);
             }
 
             showNotification(message, type = 'info') {

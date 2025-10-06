@@ -124,4 +124,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @EntityGraph(attributePaths = {"bukti"})
     @Query("SELECT o FROM Order o WHERE o.userId = :userId ORDER BY o.createdAt DESC")
     List<Order> findByUserIdWithBukti(@Param("userId") Long userId);
+
+    @EntityGraph(attributePaths = {"items", "items.product"})
+    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN o.items items WHERE o.createdAt BETWEEN :startDate AND :endDate AND o.status IN :statuses ORDER BY o.createdAt DESC")
+    List<Order> findByCreatedAtBetweenAndStatusInWithItems(
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate,
+        @Param("statuses") List<OrderStatus> statuses
+    );
 }
